@@ -9,7 +9,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [profileId, setProfileId] = useState(null);
 
-  // ✅ CORRIGIDO: Obtém o profile_id do usuário logado
+  // ✅ Obtém o profile_id do usuário logado
   useEffect(() => {
     const getProfileId = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -19,7 +19,7 @@ export default function Home() {
     getProfileId();
   }, []);
 
-  // ✅ CORRIGIDO: Carrega dados apenas após ter o profile_id
+  // ✅ Carrega dados apenas após ter o profile_id
   useEffect(() => {
     if (profileId) {
       carregarDados();

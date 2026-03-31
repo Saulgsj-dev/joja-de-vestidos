@@ -1,5 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -122,25 +120,32 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ CORRIGIDO: Deletar imagem antiga do R2 com extração segura do fileName
+  // ✅ CORRIGIDO: Deletar imagem antiga do R2 - funciona com QUALQUER bucket R2
   const deleteOldImage = async (imageUrl) => {
-    if (!imageUrl || 
-        imageUrl.startsWith('data:') || 
-        !imageUrl.includes('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev')) {
+    if (!imageUrl || typeof imageUrl !== 'string') {
       return;
     }
     
     try {
-      // Extrai apenas o path após o domínio e remove query params
-      const urlParts = imageUrl.split('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev/');
-      const fileName = urlParts[1]?.split('?')[0];
+      // ✅ Usa URL API para extrair o path de forma confiável (funciona com qualquer bucket)
+      const urlObj = new URL(imageUrl);
+      const pathParts = urlObj.pathname.split('/').filter(p => p);
       
-      if (!fileName) return;
+      // Pega as últimas 2 partes: userId/filename.jpg
+      const fileName = pathParts.slice(-2).join('/');
+      
+      if (!fileName) {
+        console.warn('⚠️ Não foi possível extrair fileName de:', imageUrl);
+        return;
+      }
       
       console.log('🗑️ Deletando imagem antiga:', fileName);
+      
       await apiRequest(`/api/upload/${encodeURIComponent(fileName)}`, {
         method: 'DELETE'
       });
+      
+      console.log('✅ Requisição de delete enviada');
     } catch (e) {
       console.warn('⚠️ Não foi possível deletar imagem antiga:', e.message);
       // Não interrompe o fluxo principal
