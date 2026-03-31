@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -55,15 +54,16 @@ export default function AdminDashboard() {
     }
   };
 
+  // ✅ CORRIGIDO: Adicionado parâmetro show_all=true
   const carregarSections = async (profileId) => {
     try {
-      const data = await apiRequest(`/api/sections?profile_id=${profileId}`);
+      const data = await apiRequest(`/api/sections?profile_id=${profileId}&show_all=true`);
       if (data && data.length > 0) {
         setSections(data);
       } else {
         // Inicializar seções padrão
         await apiRequest('/api/sections/init', { method: 'POST' });
-        const newData = await apiRequest(`/api/sections?profile_id=${profileId}`);
+        const newData = await apiRequest(`/api/sections?profile_id=${profileId}&show_all=true`);
         setSections(newData);
       }
     } catch (e) {
@@ -95,19 +95,24 @@ export default function AdminDashboard() {
         body: JSON.stringify(sectionData)
       });
       await carregarSections(user.id);
-      alert('✅ Seção salva!');
+      alert('✅ Seção salva! Recarregue a página para ver as mudanças.');
     } catch (e) {
       alert('❌ Erro ao salvar: ' + e.message);
     }
   };
 
+  // ✅ CORRIGIDO: Envia todos os campos obrigatórios
   const togglePublish = async (section, newStatus) => {
     try {
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...section,
+          id: section.id,
+          section_type: section.section_type,
+          section_order: section.section_order,
+          content: section.content,
+          styles: section.styles,
           is_active: newStatus ? 1 : 0
         })
       });
@@ -202,8 +207,8 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => setSelectedSection(section)}
                     className={`w-full p-3 rounded-lg text-left transition ${
-                      selectedSection?.id === section.id 
-                        ? 'bg-purple-100 border-2 border-purple-500' 
+                      selectedSection?.id === section.id
+                        ? 'bg-purple-100 border-2 border-purple-500'
                         : 'bg-gradient-to-r from-green-50 to-blue-100 hover:from-green-100 hover:to-blue-200'
                     } ${section.is_active === 0 ? 'opacity-50' : ''}`}
                   >
@@ -215,15 +220,14 @@ export default function AdminDashboard() {
                         {section.section_type === 'content' && `Sessão ${index + 1}`}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${
-                        section.is_active === 1 
-                          ? 'bg-green-500 text-white' 
+                        section.is_active === 1
+                          ? 'bg-green-500 text-white'
                           : 'bg-gray-400 text-white'
                       }`}>
                         {section.is_active === 1 ? '✓' : '○'}
                       </span>
                     </div>
                   </button>
-                  
                   {/* Botão rápido de publicar/despublicar */}
                   <button
                     onClick={(e) => {
@@ -270,7 +274,7 @@ export default function AdminDashboard() {
                   {selectedSection.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}
                 </button>
               </div>
-              
+
               {/* Header Editor */}
               {selectedSection.section_type === 'header' && (
                 <div className="space-y-4">

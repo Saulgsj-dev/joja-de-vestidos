@@ -1,26 +1,38 @@
-// src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
+import { supabase } from '../lib/supabaseClient';
 
 export default function Home() {
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const PROFILE_ID = 'demo-profile-id';
+  const [profileId, setProfileId] = useState(null);
 
+  // ✅ CORRIGIDO: Obtém o profile_id do usuário logado
   useEffect(() => {
-    carregarDados();
+    const getProfileId = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const id = session?.user?.id || null;
+      setProfileId(id);
+    };
+    getProfileId();
   }, []);
+
+  // ✅ CORRIGIDO: Carrega dados apenas após ter o profile_id
+  useEffect(() => {
+    if (profileId) {
+      carregarDados();
+    }
+  }, [profileId]);
 
   const carregarDados = async () => {
     try {
       const [sectionsData, configData, produtosData] = await Promise.all([
-        apiRequest(`/api/sections?profile_id=${PROFILE_ID}`).catch(() => []),
-        apiRequest(`/api/config?profile_id=${PROFILE_ID}`),
-        apiRequest(`/api/produtos?profile_id=${PROFILE_ID}`)
+        apiRequest(`/api/sections?profile_id=${profileId}`).catch(() => []),
+        apiRequest(`/api/config?profile_id=${profileId}`),
+        apiRequest(`/api/produtos?profile_id=${profileId}`)
       ]);
-      
       setSections(sectionsData || []);
       setConfig(configData || {});
       setProdutos(produtosData || []);
@@ -44,7 +56,7 @@ export default function Home() {
   // Renderiza cada tipo de seção
   const renderSection = (section) => {
     const { content, styles, section_type } = section;
-
+    
     switch (section_type) {
       case 'header':
         return (
@@ -53,17 +65,16 @@ export default function Home() {
               <h1 className="text-2xl font-bold">{content.title || 'Minha Loja de Vestidos'}</h1>
               <div className="flex gap-2">
                 <a href="/admin" className="px-4 py-2 bg-black rounded-lg hover:bg-gray-800">Painel</a>
-                <button className="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-purple-600">Sair</button>
               </div>
             </div>
           </header>
         );
-
+        
       case 'hero':
         return (
-          <section 
-            key={section.id} 
-            className="py-16 px-4 text-center" 
+          <section
+            key={section.id}
+            className="py-16 px-4 text-center"
             style={{ backgroundColor: styles.backgroundColor || '#faf5ff' }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">{content.title || 'Coleção de Vestidos'}</h2>
@@ -75,7 +86,7 @@ export default function Home() {
             )}
           </section>
         );
-
+        
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 py-12">
@@ -102,7 +113,7 @@ export default function Home() {
             )}
           </section>
         );
-
+        
       case 'content':
         return (
           <section key={section.id} className="py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
@@ -112,7 +123,7 @@ export default function Home() {
             </div>
           </section>
         );
-
+        
       default:
         return null;
     }
@@ -137,8 +148,7 @@ export default function Home() {
           </section>
         </>
       )}
-      
-      <footer 
+      <footer
         className="p-6 text-center mt-12"
         style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}
       >
