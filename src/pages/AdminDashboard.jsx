@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
 import { useNavigate } from 'react-router-dom';
+import SitePreview from '../components/SitePreview';
 
 const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ESem imagem%3C/text%3E%3C/svg%3E`;
 
@@ -955,18 +956,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Preview */}
-        <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
-          <div className="bg-white rounded-xl p-4 h-full">
-            <h3 className="text-lg font-bold mb-4">📱 Preview</h3>
-            <div className="text-sm text-gray-600 space-y-2">
-              <p>✓ Seções publicadas aparecem no site</p>
-              <p>○ Seções despublicadas ficam ocultas</p>
-              <p className="mt-4 p-2 bg-purple-50 rounded">
-                Clique em <strong>Ver Site</strong> para ver as mudanças!
-              </p>
-            </div>
-          </div>
-        </div>
+       {/* Preview em Tempo Real */}
+<div className="flex-1 bg-cyan-200 rounded-2xl p-6">
+  <SitePreview 
+    config={config} 
+    sections={sections} 
+    selectedSection={selectedSection}
+  />
+</div>
       </div>
     </div>
   );

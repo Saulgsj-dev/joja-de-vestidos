@@ -71,7 +71,9 @@ export default function Header({ config, sections }) {
 
   return (
     <header
-      className="p-3 sm:p-4 flex items-center shadow-md transition-all duration-300"
+      className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
+        isPreview ? 'text-xs' : ''
+      }`}
       style={{ ...backgroundStyle, color: textColor }}
     >
       {/* 🔹 LADO ESQUERDO */}
