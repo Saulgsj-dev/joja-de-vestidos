@@ -1,5 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -129,11 +127,8 @@ export default function AdminDashboard() {
     }
     
     try {
-      // ✅ Usa URL API para extrair o path de forma confiável (funciona com qualquer bucket)
       const urlObj = new URL(imageUrl);
       const pathParts = urlObj.pathname.split('/').filter(p => p);
-      
-      // Pega as últimas 2 partes: userId/filename.jpg
       const fileName = pathParts.slice(-2).join('/');
       
       if (!fileName) {
@@ -150,7 +145,6 @@ export default function AdminDashboard() {
       console.log('✅ Requisição de delete enviada');
     } catch (e) {
       console.warn('⚠️ Não foi possível deletar imagem antiga:', e.message);
-      // Não interrompe o fluxo principal
     }
   };
 
@@ -191,8 +185,6 @@ export default function AdminDashboard() {
       const { url: newUrl, fileName } = await uploadImage(file);
       console.log('✅ Upload concluído:', newUrl);
       
-      // 1️⃣ Salvar no banco PRIMEIRO
-      console.log('💾 Salvando no banco...');
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,20 +198,17 @@ export default function AdminDashboard() {
         })
       });
       
-      // 2️⃣ Só então atualiza o estado local
       const updatedSection = {
         ...selectedSection,
         content: { ...selectedSection.content, logo: newUrl }
       };
       setSelectedSection(updatedSection);
       
-      // 3️⃣ Deleta a imagem antiga
       if (oldImageUrl) {
         console.log('🗑️ Tentando deletar antiga...');
         await deleteOldImage(oldImageUrl);
       }
       
-      // 4️⃣ Recarregar seções
       await carregarSections(user.id);
       
       alert('✅ Logo atualizada com sucesso!');
@@ -248,8 +237,6 @@ export default function AdminDashboard() {
       const { url: newUrl, fileName } = await uploadImage(file);
       console.log('✅ Upload concluído:', newUrl);
       
-      // 1️⃣ Salvar no banco PRIMEIRO
-      console.log('💾 Salvando no banco...');
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -263,20 +250,17 @@ export default function AdminDashboard() {
         })
       });
       
-      // 2️⃣ Só então atualiza o estado local
       const updatedSection = {
         ...selectedSection,
         content: { ...selectedSection.content, image: newUrl }
       };
       setSelectedSection(updatedSection);
       
-      // 3️⃣ Deleta a imagem antiga
       if (oldImageUrl) {
         console.log('🗑️ Tentando deletar antiga...');
         await deleteOldImage(oldImageUrl);
       }
       
-      // 4️⃣ Recarregar seções
       await carregarSections(user.id);
       
       alert('✅ Imagem principal atualizada com sucesso!');
@@ -615,7 +599,6 @@ export default function AdminDashboard() {
 
                   <h3 className="text-lg font-semibold border-b pb-2 mt-6">🎨 Fundo</h3>
                   
-                  {/* Toggle entre Cor e Imagem de Fundo */}
                   <div className="flex gap-2 mb-4">
                     <button
                       onClick={() => handleBackgroundTypeChange('color')}
@@ -639,7 +622,6 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
-                  {/* Opção de Cor de Fundo */}
                   {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
@@ -652,7 +634,6 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {/* Opção de Imagem de Fundo */}
                   {selectedSection.styles.backgroundType === 'image' && (
                     <>
                       <div>
@@ -674,7 +655,7 @@ export default function AdminDashboard() {
                       
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          Opacidade da Imagem de Fundo: {selectedSection.styles.backgroundOpacity || 100}%
+                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
                         </label>
                         <input 
                           type="range" 
