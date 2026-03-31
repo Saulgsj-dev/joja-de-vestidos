@@ -1,3 +1,5 @@
+// frontend/src/pages/AdminDashboard.jsx
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -120,15 +122,20 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ NOVA FUNÇÃO: Deletar imagem antiga do R2
+  // ✅ CORRIGIDO: Deletar imagem antiga do R2 com extração segura do fileName
   const deleteOldImage = async (imageUrl) => {
-    if (!imageUrl || !imageUrl.includes('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev')) {
-      return; // Não é uma imagem do nosso R2
+    if (!imageUrl || 
+        imageUrl.startsWith('data:') || 
+        !imageUrl.includes('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev')) {
+      return;
     }
     
     try {
-      // Extrair fileName da URL
-      const fileName = imageUrl.replace('https://pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev/', '');
+      // Extrai apenas o path após o domínio e remove query params
+      const urlParts = imageUrl.split('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev/');
+      const fileName = urlParts[1]?.split('?')[0];
+      
+      if (!fileName) return;
       
       console.log('🗑️ Deletando imagem antiga:', fileName);
       await apiRequest(`/api/upload/${encodeURIComponent(fileName)}`, {
@@ -136,6 +143,7 @@ export default function AdminDashboard() {
       });
     } catch (e) {
       console.warn('⚠️ Não foi possível deletar imagem antiga:', e.message);
+      // Não interrompe o fluxo principal
     }
   };
 
@@ -157,7 +165,7 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  // ✅ CORRIGIDO: Deleta imagem antiga e salva no banco
+  // ✅ CORRIGIDO: Salva no banco antes de atualizar estado e deleta imagem antiga
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -168,42 +176,43 @@ export default function AdminDashboard() {
     }
     
     try {
-      // 1️⃣ Guardar URL antiga
       const oldImageUrl = selectedSection?.content?.logo;
       
+      console.log('🔄 Iniciando upload - URL antiga:', oldImageUrl);
       alert('📤 Fazendo upload...');
       
-      // 2️⃣ Fazer upload da nova imagem
       const { url: newUrl, fileName } = await uploadImage(file);
       console.log('✅ Upload concluído:', newUrl);
       
-      // 3️⃣ Atualizar estado local
+      // 1️⃣ Salvar no banco PRIMEIRO
+      console.log('💾 Salvando no banco...');
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: { ...selectedSection.content, logo: newUrl },
+          styles: selectedSection.styles,
+          is_active: selectedSection.is_active
+        })
+      });
+      
+      // 2️⃣ Só então atualiza o estado local
       const updatedSection = {
         ...selectedSection,
         content: { ...selectedSection.content, logo: newUrl }
       };
       setSelectedSection(updatedSection);
       
-      // 4️⃣ Salvar no banco de dados
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: updatedSection.id,
-          section_type: updatedSection.section_type,
-          section_order: updatedSection.section_order,
-          content: updatedSection.content,
-          styles: updatedSection.styles,
-          is_active: updatedSection.is_active
-        })
-      });
-      
-      // 5️⃣ Deletar imagem antiga do R2 (após salvar com sucesso)
+      // 3️⃣ Deleta a imagem antiga
       if (oldImageUrl) {
+        console.log('🗑️ Tentando deletar antiga...');
         await deleteOldImage(oldImageUrl);
       }
       
-      // 6️⃣ Recarregar seções
+      // 4️⃣ Recarregar seções
       await carregarSections(user.id);
       
       alert('✅ Logo atualizada com sucesso!');
@@ -213,7 +222,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ CORRIGIDO: Deleta imagem antiga e salva no banco
+  // ✅ CORRIGIDO: Mesma lógica para hero image
   const handleHeroImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -224,42 +233,43 @@ export default function AdminDashboard() {
     }
     
     try {
-      // 1️⃣ Guardar URL antiga
       const oldImageUrl = selectedSection?.content?.image;
       
+      console.log('🔄 Iniciando upload - URL antiga:', oldImageUrl);
       alert('📤 Fazendo upload...');
       
-      // 2️⃣ Fazer upload da nova imagem
       const { url: newUrl, fileName } = await uploadImage(file);
       console.log('✅ Upload concluído:', newUrl);
       
-      // 3️⃣ Atualizar estado local
+      // 1️⃣ Salvar no banco PRIMEIRO
+      console.log('💾 Salvando no banco...');
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: { ...selectedSection.content, image: newUrl },
+          styles: selectedSection.styles,
+          is_active: selectedSection.is_active
+        })
+      });
+      
+      // 2️⃣ Só então atualiza o estado local
       const updatedSection = {
         ...selectedSection,
         content: { ...selectedSection.content, image: newUrl }
       };
       setSelectedSection(updatedSection);
       
-      // 4️⃣ Salvar no banco de dados
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: updatedSection.id,
-          section_type: updatedSection.section_type,
-          section_order: updatedSection.section_order,
-          content: updatedSection.content,
-          styles: updatedSection.styles,
-          is_active: updatedSection.is_active
-        })
-      });
-      
-      // 5️⃣ Deletar imagem antiga do R2 (após salvar com sucesso)
+      // 3️⃣ Deleta a imagem antiga
       if (oldImageUrl) {
+        console.log('🗑️ Tentando deletar antiga...');
         await deleteOldImage(oldImageUrl);
       }
       
-      // 6️⃣ Recarregar seções
+      // 4️⃣ Recarregar seções
       await carregarSections(user.id);
       
       alert('✅ Imagem atualizada com sucesso!');
