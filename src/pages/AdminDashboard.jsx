@@ -54,14 +54,12 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ CORRIGIDO: Adicionado parâmetro show_all=true
   const carregarSections = async (profileId) => {
     try {
       const data = await apiRequest(`/api/sections?profile_id=${profileId}&show_all=true`);
       if (data && data.length > 0) {
         setSections(data);
       } else {
-        // Inicializar seções padrão
         await apiRequest('/api/sections/init', { method: 'POST' });
         const newData = await apiRequest(`/api/sections?profile_id=${profileId}&show_all=true`);
         setSections(newData);
@@ -95,13 +93,12 @@ export default function AdminDashboard() {
         body: JSON.stringify(sectionData)
       });
       await carregarSections(user.id);
-      alert('✅ Seção salva! Recarregue a página para ver as mudanças.');
+      alert('✅ Seção salva!');
     } catch (e) {
       alert('❌ Erro ao salvar: ' + e.message);
     }
   };
 
-  // ✅ CORRIGIDO: Envia todos os campos obrigatórios
   const togglePublish = async (section, newStatus) => {
     try {
       await apiRequest('/api/sections', {
@@ -123,6 +120,26 @@ export default function AdminDashboard() {
     }
   };
 
+  // ✅ NOVA FUNÇÃO: Deletar imagem do R2
+  const deleteImage = async (imageUrl) => {
+    if (!imageUrl || !imageUrl.includes('pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev')) {
+      return; // Não é uma imagem do nosso R2
+    }
+    
+    try {
+      // Extrair fileName da URL: https://...r2.dev/user-id/uuid.jpg
+      const fileName = imageUrl.replace('https://pub-a49b49ebb037e4ec153b25a7f2a476f2.r2.dev/', '');
+      
+      await apiRequest(`/api/upload/${encodeURIComponent(fileName)}`, {
+        method: 'DELETE'
+      });
+      console.log('🗑️ Imagem antiga deletada:', fileName);
+    } catch (e) {
+      console.warn('⚠️ Não foi possível deletar imagem antiga:', e.message);
+      // Não falha o upload se a deleção der erro
+    }
+  };
+
   const handleSectionUpdate = (field, value) => {
     if (!selectedSection) return;
     const updated = {
@@ -141,25 +158,63 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
+  // ✅ CORRIGIDO: Deleta imagem antiga antes de salvar nova
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    
     try {
-      const { url } = await uploadImage(file);
-      handleSectionUpdate('logo', url);
+      // ✅ Guardar URL antiga ANTES do upload
+      const oldImageUrl = selectedSection?.content?.logo;
+      
+      alert('📤 Fazendo upload...');
+      const { url: newUrl } = await uploadImage(file);
+      
+      // ✅ Deletar imagem antiga APÓS upload bem-sucedido
+      if (oldImageUrl) {
+        await deleteImage(oldImageUrl);
+      }
+      
+      handleSectionUpdate('logo', newUrl);
+      alert('✅ Logo atualizada!');
     } catch (e) {
-      alert('Erro no upload: ' + e.message);
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
     }
   };
 
+  // ✅ CORRIGIDO: Deleta imagem antiga antes de salvar nova
   const handleHeroImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    
     try {
-      const { url } = await uploadImage(file);
-      handleSectionUpdate('image', url);
+      // ✅ Guardar URL antiga ANTES do upload
+      const oldImageUrl = selectedSection?.content?.image;
+      
+      alert('📤 Fazendo upload...');
+      const { url: newUrl } = await uploadImage(file);
+      
+      // ✅ Deletar imagem antiga APÓS upload bem-sucedido
+      if (oldImageUrl) {
+        await deleteImage(oldImageUrl);
+      }
+      
+      handleSectionUpdate('image', newUrl);
+      alert('✅ Imagem atualizada!');
     } catch (e) {
-      alert('Erro no upload: ' + e.message);
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
     }
   };
 
@@ -228,7 +283,6 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                   </button>
-                  {/* Botão rápido de publicar/despublicar */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
