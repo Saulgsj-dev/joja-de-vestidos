@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
   const verificarAuth = async () => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {  { session }, error } = await supabase.auth.getSession();
       if (error || !session) {
         navigate('/login');
         return;
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  // ✅ Upload para logo
+  // ✅ Upload para logo (usada no header e hero)
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -210,7 +210,6 @@ export default function AdminDashboard() {
       }
       
       await carregarSections(user.id);
-      
       alert('✅ Logo atualizada com sucesso!');
     } catch (e) {
       console.error('❌ Erro no upload:', e);
@@ -218,7 +217,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Upload para imagem principal (centro)
+  // ✅ Upload para imagem principal do hero
   const handleHeroImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -262,7 +261,6 @@ export default function AdminDashboard() {
       }
       
       await carregarSections(user.id);
-      
       alert('✅ Imagem principal atualizada com sucesso!');
     } catch (e) {
       console.error('❌ Erro no upload:', e);
@@ -270,7 +268,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Upload para imagem de fundo
+  // ✅ Upload para imagem de fundo do hero
   const handleBackgroundImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -319,7 +317,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Upload para imagem lateral esquerda
+  // ✅ Upload para imagem lateral esquerda do hero
   const handleLeftImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -367,7 +365,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Upload para imagem lateral direita
+  // ✅ Upload para imagem lateral direita do hero
   const handleRightImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -415,7 +413,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ Handler para toggle entre cor e imagem de fundo
+  // ✅ Handler para toggle entre cor e imagem de fundo do hero
   const handleBackgroundTypeChange = (type) => {
     const updatedSection = {
       ...selectedSection,
@@ -437,7 +435,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
-      {/* Header */}
+      {/* Header fixo do admin */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Minha loja de vestidos</h1>
@@ -538,24 +536,300 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Header Editor */}
+              {/* ========== HEADER EDITOR ========== */}
               {selectedSection.section_type === 'header' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Logo</label>
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full" />
-                    {selectedSection.content.logo && (
-                      <img src={selectedSection.content.logo} alt="Logo" className="mt-2 h-16 object-contain" />
+                <div className="space-y-5">
+                  {/* 🔹 CONFIGURAÇÕES GERAIS */}
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-purple-800 mb-3">🎨 Aparência do Header</h3>
+                    
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleStyleUpdate('bgType', 'solid')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.bgType === 'solid' || !selectedSection.styles?.bgType
+                            ? 'bg-purple-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Cor Sólida
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('bgType', 'gradient')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.bgType === 'gradient'
+                            ? 'bg-purple-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Gradiente
+                      </button>
+                    </div>
+
+                    {(selectedSection.styles?.bgType === 'solid' || !selectedSection.styles?.bgType) && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium mb-1">Cor de Fundo</label>
+                        <input 
+                          type="color" 
+                          value={selectedSection.styles?.bgColor || config.cor_fundo || '#ffffff'} 
+                          onChange={(e) => handleStyleUpdate('bgColor', e.target.value)} 
+                          className="w-full h-10 rounded cursor-pointer" 
+                        />
+                      </div>
+                    )}
+
+                    {selectedSection.styles?.bgType === 'gradient' && (
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Cor Inicial</label>
+                          <input 
+                            type="color" 
+                            value={selectedSection.styles?.gradientStart || '#667eea'} 
+                            onChange={(e) => handleStyleUpdate('gradientStart', e.target.value)} 
+                            className="w-full h-10 rounded cursor-pointer" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Cor Final</label>
+                          <input 
+                            type="color" 
+                            value={selectedSection.styles?.gradientEnd || '#764ba2'} 
+                            onChange={(e) => handleStyleUpdate('gradientEnd', e.target.value)} 
+                            className="w-full h-10 rounded cursor-pointer" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Cor do Texto</label>
+                      <input 
+                        type="color" 
+                        value={selectedSection.styles?.textColor || config.cor_texto || '#000000'} 
+                        onChange={(e) => handleStyleUpdate('textColor', e.target.value)} 
+                        className="w-full h-10 rounded cursor-pointer" 
+                      />
+                    </div>
+
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium mb-1">Cor do Botão</label>
+                      <input 
+                        type="color" 
+                        value={selectedSection.styles?.buttonColor || config.cor_botao || '#000000'} 
+                        onChange={(e) => handleStyleUpdate('buttonColor', e.target.value)} 
+                        className="w-full h-10 rounded cursor-pointer" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* 🔹 LADO ESQUERDO */}
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-blue-800 mb-3">⬅️ Lado Esquerdo</h3>
+                    
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleStyleUpdate('leftType', 'text')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.leftType === 'text' || !selectedSection.styles?.leftType
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Texto
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('leftType', 'logo')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.leftType === 'logo'
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Logo
+                      </button>
+                    </div>
+
+                    {(!selectedSection.styles?.leftType || selectedSection.styles?.leftType === 'text') ? (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Texto</label>
+                        <input 
+                          type="text" 
+                          value={selectedSection.content?.leftText || selectedSection.content?.title || ''} 
+                          onChange={(e) => handleSectionUpdate('leftText', e.target.value)} 
+                          className="w-full p-2 border rounded text-sm"
+                          placeholder="Ex: Minha Loja"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Logo</label>
+                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full text-sm" />
+                        {(selectedSection.content?.logo || selectedSection.styles?.leftLogo) && (
+                          <div className="mt-2 relative inline-block">
+                            <img 
+                              src={selectedSection.content?.logo || selectedSection.styles?.leftLogo} 
+                              alt="Logo" 
+                              className="h-12 object-contain rounded border" 
+                            />
+                            <button
+                              onClick={() => {
+                                handleSectionUpdate('logo', '');
+                                handleStyleUpdate('leftLogo', '');
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título</label>
-                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+
+                  {/* 🔹 CENTRO */}
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-green-800 mb-3">⬇️ Centro (Opcional)</h3>
+                    
+                    <div className="flex items-center gap-2 mb-3">
+                      <input 
+                        type="checkbox" 
+                        id="showCenterText"
+                        checked={selectedSection.styles?.showCenterText !== false}
+                        onChange={(e) => handleStyleUpdate('showCenterText', e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <label htmlFor="showCenterText" className="text-sm">Mostrar texto central</label>
+                    </div>
+
+                    {selectedSection.styles?.showCenterText !== false && (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Texto Central</label>
+                        <input 
+                          type="text" 
+                          value={selectedSection.content?.centerText || ''} 
+                          onChange={(e) => handleSectionUpdate('centerText', e.target.value)} 
+                          className="w-full p-2 border rounded text-sm"
+                          placeholder="Ex: Frete grátis para todo Brasil"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">* Oculto automaticamente em mobile</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 🔹 LADO DIREITO */}
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-orange-800 mb-3">➡️ Lado Direito</h3>
+                    
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleStyleUpdate('rightType', 'button')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.rightType === 'button' || !selectedSection.styles?.rightType
+                            ? 'bg-orange-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Botão
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('rightType', 'text')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.rightType === 'text'
+                            ? 'bg-orange-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Texto
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('rightType', 'logo')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.rightType === 'logo'
+                            ? 'bg-orange-600 text-white' 
+                            : 'bg-gray-200'
+                        }`}
+                      >
+                        Logo
+                      </button>
+                    </div>
+
+                    {selectedSection.styles?.rightType === 'logo' ? (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Logo Direita</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleRightImageUpload} 
+                          className="w-full text-sm" 
+                        />
+                        {selectedSection.content?.rightImage && (
+                          <div className="mt-2 relative inline-block">
+                            <img 
+                              src={selectedSection.content.rightImage} 
+                              alt="Logo Direita" 
+                              className="h-12 object-contain rounded border" 
+                            />
+                            <button
+                              onClick={() => handleSectionUpdate('rightImage', '')}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : selectedSection.styles?.rightType === 'text' ? (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Texto</label>
+                        <input 
+                          type="text" 
+                          value={selectedSection.content?.rightText || ''} 
+                          onChange={(e) => handleSectionUpdate('rightText', e.target.value)} 
+                          className="w-full p-2 border rounded text-sm"
+                          placeholder="Ex: Contato: (11) 9999-9999"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Texto do Botão</label>
+                        <input 
+                          type="text" 
+                          value={selectedSection.content?.rightText || 'Área do Cliente'} 
+                          onChange={(e) => handleSectionUpdate('rightText', e.target.value)} 
+                          className="w-full p-2 border rounded text-sm"
+                          placeholder="Ex: Entrar"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Preview Miniatura */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">👁️ Preview</h3>
+                    <div 
+                      className="p-3 rounded border flex items-center text-xs"
+                      style={selectedSection.styles?.bgType === 'gradient' 
+                        ? { background: `linear-gradient(135deg, ${selectedSection.styles?.gradientStart || '#667eea'}, ${selectedSection.styles?.gradientEnd || '#764ba2'})` }
+                        : { backgroundColor: selectedSection.styles?.bgColor || config.cor_fundo }
+                      }
+                    >
+                      <span className="font-bold truncate max-w-20" style={{ color: selectedSection.styles?.textColor }}>
+                        {selectedSection.styles?.leftType === 'logo' ? '🖼️ Logo' : (selectedSection.content?.leftText || 'Minha Loja')}
+                      </span>
+                      {selectedSection.styles?.showCenterText !== false && selectedSection.content?.centerText && (
+                        <span className="hidden sm:inline mx-auto text-center flex-1" style={{ color: selectedSection.styles?.textColor }}>
+                          {selectedSection.content.centerText}
+                        </span>
+                      )}
+                      <span className="ml-auto text-right truncate max-w-24" style={{ color: selectedSection.styles?.textColor }}>
+                        {selectedSection.styles?.rightType === 'logo' ? '🖼️' : (selectedSection.content?.rightText || 'Botão')}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Hero Editor ATUALIZADO */}
+              {/* ========== HERO EDITOR ========== */}
               {selectedSection.section_type === 'hero' && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold border-b pb-2">📝 Conteúdo</h3>
