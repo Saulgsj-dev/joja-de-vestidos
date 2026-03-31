@@ -12,9 +12,13 @@ export default function Home() {
 
   useEffect(() => {
     const getProfileId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const id = session?.user?.id || null;
-      setProfileId(id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const id = session?.user?.id || null;
+        setProfileId(id);
+      } catch (error) {
+        console.error('Erro ao pegar session:', error);
+      }
     };
     getProfileId();
   }, []);
@@ -36,7 +40,7 @@ export default function Home() {
       setConfig(configData || {});
       setProdutos(produtosData || []);
     } catch (e) {
-      console.error('Erro:', e);
+      console.error('Erro ao carregar dados:', e);
     } finally {
       setLoading(false);
     }
@@ -57,8 +61,7 @@ export default function Home() {
     
     switch (section_type) {
       case 'header':
-        // ✅ O Header é renderizado pelo componente Header.jsx
-        // Esta seção só existe para referência no admin
+        // Header é renderizado pelo componente Header.jsx
         return null;
         
       case 'hero':
@@ -196,7 +199,9 @@ export default function Home() {
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>{content.title || 'Nossos Vestidos'}</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>
+              {content.title || 'Nossos Vestidos'}
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {produtos.map(produto => (
                 <div key={produto.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
@@ -206,13 +211,17 @@ export default function Home() {
                   <div className="p-4">
                     <h4 className="font-bold text-base sm:text-lg" style={{ color: config?.cor_texto }}>{produto.titulo}</h4>
                     {produto.preco && (
-                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>
+                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>
+                        {produto.preco}
+                      </p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-            {produtos.length === 0 && <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>}
+            {produtos.length === 0 && (
+              <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>
+            )}
           </section>
         );
         
@@ -220,7 +229,9 @@ export default function Home() {
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>{content.title || 'Sessão'}</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>
+                {content.title || 'Sessão'}
+              </h3>
               {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
             </div>
           </section>
@@ -233,10 +244,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      {/* ✅ USANDO O COMPONENTE HEADER */}
+      {/* ✅ Header Component */}
       <Header config={config} />
       
-      {/* Renderiza as outras seções (exceto header) */}
+      {/* Renderiza as seções (exceto header) */}
       {sections.length > 0 ? (
         sections
           .filter(section => section.section_type !== 'header')
@@ -244,12 +255,17 @@ export default function Home() {
       ) : (
         <>
           <section className="py-12 sm:py-16 px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>Coleção de Vestidos</h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>Elegância e estilo para você</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
+              Coleção de Vestidos
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
+              Elegância e estilo para você
+            </p>
           </section>
         </>
       )}
       
+      {/* Footer */}
       <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
         <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
       </footer>

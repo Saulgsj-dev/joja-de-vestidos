@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ config, onColorChange }) {
+export default function Header({ config }) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
+    // ✅ Destructuring correto: { data: { session } }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -20,6 +21,7 @@ export default function Header({ config, onColorChange }) {
   }, []);
 
   const handleLogin = () => navigate('/login');
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
@@ -39,22 +41,22 @@ export default function Header({ config, onColorChange }) {
   const showCenterText = headerConfig.showCenterText !== false;
   const centerText = headerConfig.centerText || '';
   
-  // Lado direito (NOVO)
-  const rightType = headerConfig.rightType || 'button'; // 'button', 'text' ou 'logo'
+  // Lado direito
+  const rightType = headerConfig.rightType || 'button';
   const rightText = headerConfig.rightText || 'Área do Cliente';
   const rightLogo = headerConfig.rightLogo || '';
   
   // Fundo
-  const bgType = headerConfig.bgType || 'solid'; // 'solid' ou 'gradient'
+  const bgType = headerConfig.bgType || 'solid';
   const bgColor = headerConfig.bgColor || config?.cor_fundo || '#ffffff';
   const gradientStart = headerConfig.gradientStart || '#667eea';
   const gradientEnd = headerConfig.gradientEnd || '#764ba2';
   
-  // Cores do texto
+  // Cores
   const textColor = headerConfig.textColor || config?.cor_texto || '#000000';
   const buttonColor = headerConfig.buttonColor || config?.cor_botao || '#000000';
 
-  // Calcula o estilo de fundo
+  // Calcula estilo de fundo
   const backgroundStyle = {};
   if (bgType === 'gradient') {
     backgroundStyle.background = `linear-gradient(135deg, ${gradientStart}, ${gradientEnd})`;
@@ -67,7 +69,7 @@ export default function Header({ config, onColorChange }) {
       className="p-3 sm:p-4 flex items-center shadow-md transition-all duration-300"
       style={{ ...backgroundStyle, color: textColor }}
     >
-      {/* 🔹 LADO ESQUERDO: Logo ou Texto */}
+      {/* 🔹 LADO ESQUERDO */}
       <div className="flex items-center min-w-0">
         {leftType === 'logo' && leftLogo ? (
           <img 
@@ -87,7 +89,7 @@ export default function Header({ config, onColorChange }) {
         )}
       </div>
 
-      {/* 🔹 CENTRO: Texto opcional (oculto no mobile) */}
+      {/* 🔹 CENTRO (oculto no mobile) */}
       {showCenterText && centerText && (
         <div className="hidden md:flex flex-1 justify-center px-4">
           <p className="text-sm sm:text-base font-medium truncate max-w-md" style={{ color: textColor }}>
@@ -96,7 +98,7 @@ export default function Header({ config, onColorChange }) {
         </div>
       )}
 
-      {/* 🔹 LADO DIREITO: Botão, Texto ou Logo */}
+      {/* 🔹 LADO DIREITO */}
       <div className="flex items-center gap-2 sm:gap-3 ml-auto">
         {rightType === 'logo' && rightLogo ? (
           <img 
