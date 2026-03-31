@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { supabase } from '../lib/supabaseClient';
+import Header from '../components/Header';
 
 export default function Home() {
   const [sections, setSections] = useState([]);
@@ -56,16 +57,9 @@ export default function Home() {
     
     switch (section_type) {
       case 'header':
-        return (
-          <header key={section.id} className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-              <h1 className="text-xl sm:text-2xl font-bold">{content.title || 'Minha Loja de Vestidos'}</h1>
-              <div className="flex gap-2">
-                <a href="/admin" className="px-3 sm:px-4 py-2 bg-black rounded-lg hover:bg-gray-800 text-sm sm:text-base">Painel</a>
-              </div>
-            </div>
-          </header>
-        );
+        // ✅ O Header é renderizado pelo componente Header.jsx
+        // Esta seção só existe para referência no admin
+        return null;
         
       case 'hero':
         const hasLeftImage = content.leftImage;
@@ -78,7 +72,6 @@ export default function Home() {
           backgroundStyle.backgroundSize = 'cover';
           backgroundStyle.backgroundPosition = 'center';
           backgroundStyle.backgroundRepeat = 'no-repeat';
-          // Overlay escuro para melhorar legibilidade do texto
           backgroundStyle.backgroundColor = `rgba(0, 0, 0, ${0.4 * opacity})`;
           backgroundStyle.backgroundBlendMode = 'multiply';
         } else {
@@ -91,7 +84,6 @@ export default function Home() {
             className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 relative overflow-hidden"
             style={backgroundStyle}
           >
-            {/* Overlay para melhorar contraste no mobile */}
             <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
             
             <div className="max-w-7xl mx-auto relative z-10">
@@ -204,7 +196,7 @@ export default function Home() {
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8">{content.title || 'Nossos Vestidos'}</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>{content.title || 'Nossos Vestidos'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {produtos.map(produto => (
                 <div key={produto.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
@@ -212,19 +204,15 @@ export default function Home() {
                     <img src={produto.imagem_url || PLACEHOLDER} alt={produto.titulo} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-4">
-                    <h4 className="font-bold text-base sm:text-lg">{produto.titulo}</h4>
+                    <h4 className="font-bold text-base sm:text-lg" style={{ color: config?.cor_texto }}>{produto.titulo}</h4>
                     {produto.preco && (
-                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao || '#000' }}>
-                        {produto.preco}
-                      </p>
+                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-            {produtos.length === 0 && (
-              <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>
-            )}
+            {produtos.length === 0 && <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>}
           </section>
         );
         
@@ -232,7 +220,7 @@ export default function Home() {
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">{content.title || 'Sessão'}</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>{content.title || 'Sessão'}</h3>
               {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
             </div>
           </section>
@@ -244,27 +232,25 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff' }}>
+    <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
+      {/* ✅ USANDO O COMPONENTE HEADER */}
+      <Header config={config} />
+      
+      {/* Renderiza as outras seções (exceto header) */}
       {sections.length > 0 ? (
-        sections.map(renderSection)
+        sections
+          .filter(section => section.section_type !== 'header')
+          .map(renderSection)
       ) : (
         <>
-          <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-              <h1 className="text-xl sm:text-2xl font-bold">Minha Loja de Vestidos</h1>
-              <a href="/admin" className="px-3 sm:px-4 py-2 bg-black rounded-lg text-sm sm:text-base">Painel</a>
-            </div>
-          </header>
-          <section className="py-12 sm:py-16 px-4 text-center bg-gradient-to-b from-purple-50 to-white">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Coleção de Vestidos</h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-80">Elegância e estilo para você</p>
+          <section className="py-12 sm:py-16 px-4 text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>Coleção de Vestidos</h2>
+            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>Elegância e estilo para você</p>
           </section>
         </>
       )}
-      <footer
-        className="p-4 sm:p-6 text-center mt-12"
-        style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}
-      >
+      
+      <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
         <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
       </footer>
     </div>
