@@ -2,10 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
-import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
-// ✅ Placeholder SVG em Data URI (sem dependência externa)
 const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ESem imagem%3C/text%3E%3C/svg%3E`;
 
 export default function AdminDashboard() {
@@ -16,14 +14,12 @@ export default function AdminDashboard() {
     footer_texto: '© 2024 Minha Loja',
     whatsapp_numero: ''
   });
-  const [produtos, setProdutos] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [selectedSection, setSelectedSection] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [novoProduto, setNovoProduto] = useState({
-    titulo: '', descricao: '', preco: '', imagem_url: ''
-  });
-  const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('sections'); // 'sections' | 'products' | 'config'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,20 +29,17 @@ export default function AdminDashboard() {
   const verificarAuth = async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
-      
       if (error || !session) {
-        console.warn('Sessão não encontrada, redirecionando...');
         navigate('/login');
         return;
       }
-      
       setUser(session.user);
       await Promise.all([
-        carregarConfig(session.user.id), 
-        carregarProdutos()
+        carregarConfig(session.user.id),
+        carregarSections(session.user.id)
       ]);
     } catch (err) {
-      console.error('Erro na verificação de auth:', err);
+      console.error('Erro na auth:', err);
       navigate('/login');
     } finally {
       setLoading(false);
@@ -56,363 +49,249 @@ export default function AdminDashboard() {
   const carregarConfig = async (profileId) => {
     try {
       const data = await apiRequest(`/api/config?profile_id=${profileId}`);
-      if (data && Object.keys(data).length > 0) {
-        setConfig(data);
-      }
+      if (data && Object.keys(data).length > 0) setConfig(data);
     } catch (e) {
       console.error('Erro ao carregar config:', e);
     }
   };
 
-  const carregarProdutos = async () => {
+  const carregarSections = async (profileId) => {
     try {
-      const data = await apiRequest(`/api/meus-produtos`);
-      setProdutos(Array.isArray(data) ? data : []);
+      const data = await apiRequest(`/api/sections?profile_id=${profileId}`);
+      if (data && data.length > 0) {
+        setSections(data);
+      } else {
+        // Inicializar seções padrão
+        await apiRequest('/api/sections/init', { method: 'POST' });
+        const newData = await apiRequest(`/api/sections?profile_id=${profileId}`);
+        setSections(newData);
+      }
     } catch (e) {
-      console.error('Erro ao carregar produtos:', e);
-      setProdutos([]);
+      console.error('Erro ao carregar sections:', e);
     }
   };
 
   const salvarConfig = async () => {
-    if (saving) return;
     setSaving(true);
-    
     try {
       await apiRequest('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      alert('✅ Configurações salvas com sucesso!');
+      alert('✅ Configurações salvas!');
     } catch (e) {
-      console.error('Erro ao salvar config:', e);
-      alert('❌ Erro ao salvar: ' + (e.message || 'Verifique seu login'));
+      alert('❌ Erro: ' + e.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleColorChange = (campo, valor) => {
-    setConfig(prev => ({ ...prev, [campo]: valor }));
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor, selecione um arquivo de imagem válido.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('A imagem deve ter menos de 5MB.');
-      return;
-    }
-
-    setUploading(true);
+  const salvarSection = async (sectionData) => {
     try {
-      const { url } = await uploadImage(file);
-      setNovoProduto(prev => ({ ...prev, imagem_url: url }));
-      alert('✅ Imagem enviada com sucesso!');
-    } catch (e) {
-      console.error('Erro no upload:', e);
-      alert('❌ Erro no upload: ' + (e.message || 'Tente novamente'));
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
-  };
-
-  const criarProduto = async () => {
-    if (!novoProduto.titulo?.trim() || !novoProduto.imagem_url) {
-      alert('⚠️ Preencha pelo menos o título e envie uma imagem.');
-      return;
-    }
-
-    try {
-      await apiRequest('/api/produtos', {
+      await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          titulo: novoProduto.titulo.trim(),
-          descricao: novoProduto.descricao?.trim() || '',
-          preco: novoProduto.preco?.trim() || '',
-          imagem_url: novoProduto.imagem_url,
-          destaque: false
-        })
+        body: JSON.stringify(sectionData)
       });
-      
-      setNovoProduto({ titulo: '', descricao: '', preco: '', imagem_url: '' });
-      await carregarProdutos();
-      alert('✅ Produto criado com sucesso!');
+      await carregarSections(user.id);
+      alert('✅ Seção salva!');
     } catch (e) {
-      console.error('Erro ao criar produto:', e);
-      alert('❌ Erro ao criar produto: ' + (e.message || 'Tente novamente'));
+      alert('❌ Erro ao salvar: ' + e.message);
     }
   };
 
-  const deletarProduto = async (id) => {
-    if (!confirm('⚠️ Tem certeza que deseja excluir este produto?')) {
-      return;
-    }
-    
+  const handleSectionUpdate = (field, value) => {
+    if (!selectedSection) return;
+    const updated = {
+      ...selectedSection,
+      content: { ...selectedSection.content, [field]: value }
+    };
+    setSelectedSection(updated);
+  };
+
+  const handleStyleUpdate = (field, value) => {
+    if (!selectedSection) return;
+    const updated = {
+      ...selectedSection,
+      styles: { ...selectedSection.styles, [field]: value }
+    };
+    setSelectedSection(updated);
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      await apiRequest(`/api/produtos/${id}`, { 
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      await carregarProdutos();
-      alert('✅ Produto excluído com sucesso!');
+      const { url } = await uploadImage(file);
+      handleSectionUpdate('logo', url);
     } catch (e) {
-      console.error('Erro ao excluir produto:', e);
-      alert('❌ Erro ao excluir: ' + (e.message || 'Tente novamente'));
+      alert('Erro no upload: ' + e.message);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+  const handleHeroImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const { url } = await uploadImage(file);
+      handleSectionUpdate('image', url);
+    } catch (e) {
+      alert('Erro no upload: ' + e.message);
+    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando painel...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
       </div>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen" 
-      style={{ 
-        backgroundColor: config.cor_fundo, 
-        color: config.cor_texto,
-        transition: 'background-color 0.3s, color 0.3s'
-      }}
-    >
-      <Header config={config} onLogout={handleLogout} />
-      
-      <main className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold">🎛️ Painel Administrativo</h2>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition"
-          >
-            🔐 Sair
-          </button>
+    <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
+      {/* Header */}
+      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Minha loja de vestidos</h1>
+          <div className="flex gap-2">
+            <button onClick={() => navigate('/')} className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800">
+              painel
+            </button>
+            <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800">
+              sair
+            </button>
+          </div>
         </div>
-        
-        {/* Editor de Cores */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
-          <h3 className="text-xl font-semibold mb-4">🎨 Personalizar Loja</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-              <input 
-                type="color" 
-                value={config.cor_fundo}
-                onChange={(e) => handleColorChange('cor_fundo', e.target.value)}
-                className="w-full h-12 rounded cursor-pointer border"
-                aria-label="Selecionar cor de fundo"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Cor do Texto</label>
-              <input 
-                type="color" 
-                value={config.cor_texto}
-                onChange={(e) => handleColorChange('cor_texto', e.target.value)}
-                className="w-full h-12 rounded cursor-pointer border"
-                aria-label="Selecionar cor do texto"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Cor do Botão</label>
-              <input 
-                type="color" 
-                value={config.cor_botao}
-                onChange={(e) => handleColorChange('cor_botao', e.target.value)}
-                className="w-full h-12 rounded cursor-pointer border"
-                aria-label="Selecionar cor do botão"
-              />
-            </div>
-          </div>
+      </header>
 
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">Texto do Footer</label>
-            <input 
-              type="text" 
-              value={config.footer_texto}
-              onChange={(e) => setConfig(prev => ({ ...prev, footer_texto: e.target.value }))}
-              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-              placeholder="© 2024 Minha Loja"
-              maxLength={100}
-            />
-          </div>
-          
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">WhatsApp (com DDD)</label>
-            <input 
-              type="tel" 
-              value={config.whatsapp_numero}
-              onChange={(e) => setConfig(prev => ({ ...prev, whatsapp_numero: e.target.value }))}
-              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-              placeholder="Ex: 5511999999999"
-              maxLength={20}
-            />
-          </div>
-
-          <button 
-            onClick={salvarConfig}
-            disabled={saving}
-            className={`mt-6 px-6 py-3 text-white font-bold rounded transition flex items-center gap-2
-              ${saving ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'}`}
-            style={{ backgroundColor: config.cor_botao }}
-          >
-            {saving ? (
-              <>
-                <span className="animate-spin">⏳</span> Salvando...
-              </>
-            ) : (
-              <>💾 Salvar Alterações</>
-            )}
-          </button>
-        </section>
-
-        {/* Gerenciador de Produtos */}
-        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
-          <h3 className="text-xl font-semibold mb-4">👗 Gerenciar Vestidos</h3>
-          
-          {/* Formulário de Novo Produto */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded">
-            <input 
-              type="text"
-              placeholder="Título do vestido *"
-              value={novoProduto.titulo}
-              onChange={(e) => setNovoProduto(p => ({...p, titulo: e.target.value}))}
-              className="p-2 border rounded dark:bg-gray-600 dark:border-gray-500"
-              maxLength={100}
-            />
-            <input 
-              type="text"
-              placeholder="Preço (ex: R$ 199,90)"
-              value={novoProduto.preco}
-              onChange={(e) => setNovoProduto(p => ({...p, preco: e.target.value}))}
-              className="p-2 border rounded dark:bg-gray-600 dark:border-gray-500"
-              maxLength={20}
-            />
-            <textarea 
-              placeholder="Descrição"
-              value={novoProduto.descricao}
-              onChange={(e) => setNovoProduto(p => ({...p, descricao: e.target.value}))}
-              className="p-2 border rounded md:col-span-2 dark:bg-gray-600 dark:border-gray-500"
-              rows="2"
-              maxLength={500}
-            />
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Imagem do Produto *</label>
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={uploading}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 disabled:opacity-50"
-              />
-              {uploading && (
-                <span className="text-sm text-blue-600 mt-2 inline-block">
-                  ⏳ Enviando imagem...
-                </span>
-              )}
-              {novoProduto.imagem_url && (
-                <div className="mt-2 relative inline-block">
-                  <img 
-                    src={novoProduto.imagem_url} 
-                    alt="Preview" 
-                    className="h-20 rounded object-cover border" 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setNovoProduto(p => ({...p, imagem_url: ''}))}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hover:bg-red-600"
-                    aria-label="Remover imagem"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-            </div>
-            <button 
-              onClick={criarProduto}
-              disabled={uploading}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 md:col-span-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              + Adicionar Produto
+      <div className="max-w-7xl mx-auto p-4 flex gap-4">
+        {/* Sidebar - Lista de Seções */}
+        <div className="w-80 bg-white rounded-2xl p-4 shadow-lg">
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => setActiveTab('sections')} className={`flex-1 py-2 rounded ${activeTab === 'sections' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>
+              Seções
+            </button>
+            <button onClick={() => setActiveTab('products')} className={`flex-1 py-2 rounded ${activeTab === 'products' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>
+              Produtos
             </button>
           </div>
 
-          {/* Lista de Produtos */}
-          <div className="space-y-3">
-            {produtos.map(produto => (
-              <div 
-                key={produto.id} 
-                className="flex items-center gap-4 p-3 border rounded hover:shadow-sm transition bg-white dark:bg-gray-700"
-              >
-                <img 
-                  src={produto.imagem_url} 
-                  alt={produto.titulo} 
-                  className="w-16 h-16 object-cover rounded flex-shrink-0"
-                  // ✅ CORREÇÃO: Usa Data URI SVG em vez de placeholder.com
-                  onError={(e) => {
-                    if (!e.target.dataset.fallback) {
-                      e.target.dataset.fallback = 'true';
-                      e.target.src = PLACEHOLDER_SVG;
-                    }
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{produto.titulo}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-300">{produto.preco}</p>
-                  {produto.descricao && (
-                    <p className="text-xs text-gray-400 truncate mt-1">{produto.descricao}</p>
-                  )}
-                </div>
-                <button 
-                  onClick={() => deletarProduto(produto.id)}
-                  className="px-3 py-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-sm transition"
+          {activeTab === 'sections' && (
+            <div className="space-y-2">
+              {sections.map((section, index) => (
+                <button
+                  key={section.id}
+                  onClick={() => setSelectedSection(section)}
+                  className={`w-full p-3 rounded-lg text-left transition ${
+                    selectedSection?.id === section.id ? 'bg-purple-100 border-2 border-purple-500' : 'bg-gradient-to-r from-green-50 to-blue-100 hover:from-green-100 hover:to-blue-200'
+                  }`}
                 >
-                  Excluir
+                  {section.section_type === 'header' && 'Header'}
+                  {section.section_type === 'hero' && 'Hero Section (Destaque Principal)'}
+                  {section.section_type === 'content' && `sessão ${index + 1}`}
                 </button>
-              </div>
-            ))}
-            {produtos.length === 0 && (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                Nenhum produto cadastrado ainda. Adicione o primeiro acima! 👆
-              </p>
-            )}
-          </div>
-        </section>
+              ))}
+              <button className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg">
+                +
+              </button>
+            </div>
+          )}
 
-        {/* Preview do Footer */}
-        <footer 
-          className="p-4 text-center mt-8 rounded-lg shadow"
-          style={{ 
-            backgroundColor: config.cor_botao, 
-            color: '#ffffff',
-            transition: 'background-color 0.3s'
-          }}
-        >
-          {config.footer_texto}
-        </footer>
-      </main>
+          {activeTab === 'products' && (
+            <div className="text-center text-gray-500 py-8">
+              Gerenciamento de produtos em breve...
+            </div>
+          )}
+        </div>
+
+        {/* Editor da Seção Selecionada */}
+        <div className="flex-1 bg-white rounded-2xl p-6 shadow-lg">
+          {selectedSection ? (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Editando: {selectedSection.section_type}</h2>
+              
+              {/* Header Editor */}
+              {selectedSection.section_type === 'header' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Logo da Loja</label>
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full" />
+                    {selectedSection.content.logo && (
+                      <img src={selectedSection.content.logo} alt="Logo" className="mt-2 h-16 object-contain" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Título</label>
+                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                  </div>
+                </div>
+              )}
+
+              {/* Hero Editor */}
+              {selectedSection.section_type === 'hero' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-4xl font-bold mb-2">Inserir um título</label>
+                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded text-2xl" />
+                  </div>
+                  <div>
+                    <label className="block text-2xl mb-2">Inserir um subtítulo</label>
+                    <input type="text" value={selectedSection.content.subtitle || ''} onChange={(e) => handleSectionUpdate('subtitle', e.target.value)} className="w-full p-2 border rounded text-xl" />
+                  </div>
+                  <div>
+                    <label className="block text-lg mb-2">Inserir uma imagem</label>
+                    <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="w-full" />
+                    {selectedSection.content.image && (
+                      <img src={selectedSection.content.image} alt="Hero" className="mt-2 w-full h-64 object-cover rounded" />
+                    )}
+                  </div>
+                  <div className="mt-4 text-right text-sm text-gray-500">
+                    <p>alterar a cor ou</p>
+                    <p>inserir imagem de fundo</p>
+                    <input type="color" value={selectedSection.styles.backgroundColor || '#67e8f9'} onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)} className="mt-2" />
+                  </div>
+                </div>
+              )}
+
+              {/* Content Sections Editor */}
+              {selectedSection.section_type === 'content' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Título da Seção</label>
+                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Texto/Conteúdo</label>
+                    <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
+                  </div>
+                </div>
+              )}
+
+              {/* Botão Salvar */}
+              <button onClick={() => salvarSection(selectedSection)} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                💾 Salvar Seção
+              </button>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-400">
+              <p>Selecione uma seção para editar</p>
+            </div>
+          )}
+        </div>
+
+        {/* Preview */}
+        <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
+          <div className="bg-white rounded-xl p-4 h-full">
+            <h3 className="text-lg font-bold mb-4">Preview</h3>
+            <div className="text-sm text-gray-600">
+              <p className="mb-2">As alterações aparecem aqui em tempo real!</p>
+              <p>Vá para <code className="bg-gray-200 px-2 py-1 rounded">/</code> para ver o site publicado</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
