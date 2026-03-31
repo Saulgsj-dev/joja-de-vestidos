@@ -1,3 +1,5 @@
+// frontend/src/pages/AdminDashboard.jsx
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
