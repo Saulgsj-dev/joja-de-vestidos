@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { supabase } from '../lib/supabaseClient';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function Home() {
   const [sections, setSections] = useState([]);
@@ -20,6 +21,7 @@ export default function Home() {
         console.error('Erro ao pegar session:', error);
       }
     };
+
     getProfileId();
   }, []);
 
@@ -36,6 +38,7 @@ export default function Home() {
         apiRequest(`/api/config?profile_id=${profileId}`),
         apiRequest(`/api/produtos?profile_id=${profileId}`)
       ]);
+
       setSections(sectionsData || []);
       setConfig(configData || {});
       setProdutos(produtosData || []);
@@ -58,17 +61,16 @@ export default function Home() {
 
   const renderSection = (section) => {
     const { content, styles, section_type } = section;
-    
+
     switch (section_type) {
       case 'header':
-        // Header é renderizado pelo componente Header.jsx
         return null;
-        
+
       case 'hero':
         const hasLeftImage = content.leftImage;
         const hasRightImage = content.rightImage;
-        
         const backgroundStyle = {};
+
         if (styles.backgroundType === 'image' && styles.backgroundImage) {
           const opacity = (styles.backgroundOpacity || 100) / 100;
           backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
@@ -88,18 +90,16 @@ export default function Home() {
             style={backgroundStyle}
           >
             <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
-            
             <div className="max-w-7xl mx-auto relative z-10">
               {hasLeftImage && hasRightImage ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                   <div className="hidden lg:block order-2 lg:order-1">
-                    <img 
-                      src={content.leftImage} 
-                      alt="Lateral Esquerda" 
+                    <img
+                      src={content.leftImage}
+                      alt="Lateral Esquerda"
                       className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
                     />
                   </div>
-                  
                   <div className="order-1 lg:order-2 text-center">
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
                       {content.title || 'Coleção de Vestidos'}
@@ -109,36 +109,34 @@ export default function Home() {
                     </p>
                     {content.image && (
                       <div className="relative w-full flex justify-center mt-4 sm:mt-6">
-                        <img 
-                          src={content.image} 
-                          alt="Principal" 
+                        <img
+                          src={content.image}
+                          alt="Principal"
                           className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
                           style={{ maxHeight: 'min(40vh, 350px)' }}
                         />
                       </div>
                     )}
                   </div>
-                  
                   <div className="hidden lg:block order-3">
-                    <img 
-                      src={content.rightImage} 
-                      alt="Lateral Direita" 
+                    <img
+                      src={content.rightImage}
+                      alt="Lateral Direita"
                       className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
                     />
                   </div>
-                  
                   <div className="lg:hidden order-3 grid grid-cols-2 gap-3 sm:gap-4 mt-6">
                     {hasLeftImage && (
-                      <img 
-                        src={content.leftImage} 
-                        alt="Lateral Esquerda" 
+                      <img
+                        src={content.leftImage}
+                        alt="Lateral Esquerda"
                         className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
                       />
                     )}
                     {hasRightImage && (
-                      <img 
-                        src={content.rightImage} 
-                        alt="Lateral Direita" 
+                      <img
+                        src={content.rightImage}
+                        alt="Lateral Direita"
                         className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
                       />
                     )}
@@ -155,9 +153,9 @@ export default function Home() {
                     </p>
                     {content.image && (
                       <div className="relative w-full flex justify-center">
-                        <img 
-                          src={content.image} 
-                          alt="Principal" 
+                        <img
+                          src={content.image}
+                          alt="Principal"
                           className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
                           style={{ maxHeight: 'min(40vh, 300px)' }}
                         />
@@ -165,9 +163,9 @@ export default function Home() {
                     )}
                   </div>
                   <div className={hasRightImage ? 'md:order-1' : 'md:order-2'}>
-                    <img 
-                      src={hasLeftImage ? content.leftImage : content.rightImage} 
-                      alt="Lateral" 
+                    <img
+                      src={hasLeftImage ? content.leftImage : content.rightImage}
+                      alt="Lateral"
                       className="w-full h-48 sm:h-64 md:h-80 object-cover rounded-lg shadow-xl"
                     />
                   </div>
@@ -182,9 +180,9 @@ export default function Home() {
                   </p>
                   {content.image && (
                     <div className="relative w-full flex justify-center">
-                      <img 
-                        src={content.image} 
-                        alt="Principal" 
+                      <img
+                        src={content.image}
+                        alt="Principal"
                         className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
                         style={{ maxHeight: 'min(50vh, 450px)' }}
                       />
@@ -195,7 +193,7 @@ export default function Home() {
             </div>
           </section>
         );
-        
+
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
@@ -224,7 +222,7 @@ export default function Home() {
             )}
           </section>
         );
-        
+
       case 'content':
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
@@ -236,7 +234,7 @@ export default function Home() {
             </div>
           </section>
         );
-        
+
       default:
         return null;
     }
@@ -246,7 +244,7 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
       {/* ✅ Header Component */}
       <Header config={config} />
-      
+
       {/* Renderiza as seções (exceto header) */}
       {sections.length > 0 ? (
         sections
@@ -264,11 +262,9 @@ export default function Home() {
           </section>
         </>
       )}
-      
-      {/* Footer */}
-      <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
-        <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
-      </footer>
+
+      {/* ✅ Footer Component */}
+      <Footer config={config} />
     </div>
   );
 }
