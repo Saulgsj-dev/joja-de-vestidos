@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import Header from '../components/Header';
