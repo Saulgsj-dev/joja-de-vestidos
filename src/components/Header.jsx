@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ config }) {
+export default function Header({ config, sections }) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -18,17 +19,37 @@ export default function Header({ config }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Extrai configurações do header
-  const headerConfig = config?.header || {};
+  const handleLogin = () => navigate('/login');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const isPublicSite = location.pathname === '/';
+
+  // ✅ ENCONTRAR A SEÇÃO HEADER nas sections
+  const headerSection = sections?.find(s => s.section_type === 'header');
+  
+  // ✅ MERGE das configurações: header section tem prioridade
+  const headerConfig = {
+    ...(config?.header || {}),
+    ...(headerSection?.styles || {}),
+    ...(headerSection?.content || {})
+  };
 
   // Lado esquerdo
   const leftType = headerConfig.leftType || 'text';
-  const leftText = headerConfig.leftText || '';
-  const leftLogo = headerConfig.leftLogo || '';
+  const leftText = headerConfig.leftText || headerConfig.title || '';
+  const leftLogo = headerConfig.leftLogo || headerConfig.logo || '';
 
   // Centro
   const showCenterText = headerConfig.showCenterText !== false;
   const centerText = headerConfig.centerText || '';
+
+  // Lado direito
+  const rightType = headerConfig.rightType || 'button';
+  const rightText = headerConfig.rightText || 'Área do Cliente';
+  const rightLogo = headerConfig.rightLogo || '';
 
   // Fundo
   const bgType = headerConfig.bgType || 'solid';
@@ -38,6 +59,7 @@ export default function Header({ config }) {
 
   // Cores
   const textColor = headerConfig.textColor || config?.cor_texto || '#000000';
+  const buttonColor = headerConfig.buttonColor || config?.cor_botao || '#000000';
 
   // Calcula estilo de fundo
   const backgroundStyle = {};
@@ -53,7 +75,7 @@ export default function Header({ config }) {
       style={{ ...backgroundStyle, color: textColor }}
     >
       {/* 🔹 LADO ESQUERDO */}
-      <div className="flex items-center min-w-0 flex-1">
+      <div className="flex items-center min-w-0">
         {leftType === 'logo' && leftLogo ? (
           <img
             src={leftLogo}
@@ -81,8 +103,53 @@ export default function Header({ config }) {
         </div>
       )}
 
-      {/* 🔹 LADO DIREITO (Espaço vazio para equilibrar) */}
-      <div className="flex-1"></div>
+      {/* 🔹 LADO DIREITO */}
+      <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+        {rightType === 'logo' && rightLogo ? (
+          <img
+            src={rightLogo}
+            alt="Logo Direita"
+            className="h-8 sm:h-10 w-auto object-contain cursor-pointer"
+            onClick={() => navigate('/login')}
+          />
+        ) : rightType === 'text' ? (
+          <span className="text-xs sm:text-sm font-medium truncate max-w-32 hidden sm:inline" style={{ color: textColor }}>
+            {rightText}
+          </span>
+        ) : (
+          <>
+            {user ? (
+              <>
+                <span className="text-xs sm:text-sm hidden lg:inline truncate max-w-24" style={{ color: textColor }}>
+                  Olá, {user.email?.split('@')[0]}
+                </span>
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded text-white text-xs sm:text-sm font-medium transition hover:opacity-90 whitespace-nowrap"
+                  style={{ backgroundColor: buttonColor }}
+                >
+                  Painel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 border rounded text-xs sm:text-sm hover:bg-red-50 transition whitespace-nowrap"
+                  style={{ borderColor: textColor, color: textColor }}
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleLogin}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 border rounded text-xs sm:text-sm whitespace-nowrap transition hover:opacity-90"
+                style={{ borderColor: buttonColor, color: buttonColor }}
+              >
+                {rightText || 'Área do Cliente'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </header>
   );
 }

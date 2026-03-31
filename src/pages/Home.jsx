@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { supabase } from '../lib/supabaseClient';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 
 export default function Home() {
   const [sections, setSections] = useState([]);
@@ -242,8 +241,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      {/* ✅ Header Component */}
-      <Header config={config} />
+      {/* ✅ Header Component - Passando sections também */}
+      <Header config={config} sections={sections} />
 
       {/* Renderiza as seções (exceto header) */}
       {sections.length > 0 ? (
@@ -263,8 +262,10 @@ export default function Home() {
         </>
       )}
 
-      {/* ✅ Footer Component */}
-      <Footer config={config} />
+      {/* Footer */}
+      <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
+        <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
+      </footer>
     </div>
   );
 }
