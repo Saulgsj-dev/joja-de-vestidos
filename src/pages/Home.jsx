@@ -71,19 +71,107 @@ export default function Home() {
         );
         
       case 'hero':
+        // Determina o layout baseado nas imagens laterais
+        const hasLeftImage = content.leftImage;
+        const hasRightImage = content.rightImage;
+        
+        // Calcula o estilo de fundo
+        const backgroundStyle = {};
+        if (styles.backgroundType === 'image' && styles.backgroundImage) {
+          const opacity = (styles.backgroundOpacity || 100) / 100;
+          backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+          backgroundStyle.backgroundSize = 'cover';
+          backgroundStyle.backgroundPosition = 'center';
+          backgroundStyle.opacity = opacity;
+        } else {
+          backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
+        }
+
         return (
           <section
             key={section.id}
-            className="py-16 px-4 text-center"
-            style={{ backgroundColor: styles.backgroundColor || '#faf5ff' }}
+            className="py-16 px-4 relative"
+            style={backgroundStyle}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{content.title || 'Coleção de Vestidos'}</h2>
-            <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
-              {content.subtitle || 'Elegância e estilo para você'}
-            </p>
-            {content.image && (
-              <img src={content.image} alt="Hero" className="mx-auto max-w-2xl mt-8 rounded-lg shadow-lg" />
-            )}
+            <div className="max-w-7xl mx-auto">
+              {/* Layout com 2 imagens laterais */}
+              {hasLeftImage && hasRightImage ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                  <div className="order-2 md:order-1">
+                    <img 
+                      src={content.leftImage} 
+                      alt="Lateral Esquerda" 
+                      className="w-full h-64 md:h-96 object-cover rounded-lg shadow-xl"
+                    />
+                  </div>
+                  <div className="order-1 md:order-2 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                      {content.title || 'Coleção de Vestidos'}
+                    </h2>
+                    <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+                      {content.subtitle || 'Elegância e estilo para você'}
+                    </p>
+                    {content.image && (
+                      <img 
+                        src={content.image} 
+                        alt="Principal" 
+                        className="mx-auto max-w-md mt-8 rounded-lg shadow-2xl"
+                      />
+                    )}
+                  </div>
+                  <div className="order-3">
+                    <img 
+                      src={content.rightImage} 
+                      alt="Lateral Direita" 
+                      className="w-full h-64 md:h-96 object-cover rounded-lg shadow-xl"
+                    />
+                  </div>
+                </div>
+              ) : hasLeftImage || hasRightImage ? (
+                /* Layout com 1 imagem lateral */
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center ${hasRightImage ? 'md:flex-row-reverse' : ''}`}>
+                  <div className="text-center md:text-left">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                      {content.title || 'Coleção de Vestidos'}
+                    </h2>
+                    <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto md:mx-0">
+                      {content.subtitle || 'Elegância e estilo para você'}
+                    </p>
+                    {content.image && (
+                      <img 
+                        src={content.image} 
+                        alt="Principal" 
+                        className="mx-auto md:mx-0 max-w-md mt-8 rounded-lg shadow-2xl"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <img 
+                      src={hasLeftImage ? content.leftImage : content.rightImage} 
+                      alt="Lateral" 
+                      className="w-full h-96 object-cover rounded-lg shadow-xl"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Layout padrão sem imagens laterais */
+                <div className="text-center">
+                  <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                    {content.title || 'Coleção de Vestidos'}
+                  </h2>
+                  <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+                    {content.subtitle || 'Elegância e estilo para você'}
+                  </p>
+                  {content.image && (
+                    <img 
+                      src={content.image} 
+                      alt="Principal" 
+                      className="mx-auto max-w-2xl mt-8 rounded-lg shadow-lg"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           </section>
         );
         

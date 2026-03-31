@@ -170,7 +170,7 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  // ✅ CORRIGIDO: Salva no banco antes de atualizar estado e deleta imagem antiga
+  // ✅ Upload para logo
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ CORRIGIDO: Mesma lógica para hero image
+  // ✅ Upload para imagem principal (centro)
   const handleHeroImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -277,11 +277,168 @@ export default function AdminDashboard() {
       // 4️⃣ Recarregar seções
       await carregarSections(user.id);
       
-      alert('✅ Imagem atualizada com sucesso!');
+      alert('✅ Imagem principal atualizada com sucesso!');
     } catch (e) {
       console.error('❌ Erro no upload:', e);
       alert('❌ Erro: ' + e.message);
     }
+  };
+
+  // ✅ Upload para imagem de fundo
+  const handleBackgroundImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    
+    try {
+      const oldImageUrl = selectedSection?.styles?.backgroundImage;
+      
+      alert('📤 Fazendo upload da imagem de fundo...');
+      
+      const { url: newUrl } = await uploadImage(file);
+      console.log('✅ Upload de fundo concluído:', newUrl);
+      
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: selectedSection.content,
+          styles: { ...selectedSection.styles, backgroundImage: newUrl },
+          is_active: selectedSection.is_active
+        })
+      });
+      
+      const updatedSection = {
+        ...selectedSection,
+        styles: { ...selectedSection.styles, backgroundImage: newUrl }
+      };
+      setSelectedSection(updatedSection);
+      
+      if (oldImageUrl) {
+        await deleteOldImage(oldImageUrl);
+      }
+      
+      await carregarSections(user.id);
+      alert('✅ Imagem de fundo atualizada!');
+    } catch (e) {
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
+    }
+  };
+
+  // ✅ Upload para imagem lateral esquerda
+  const handleLeftImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    
+    try {
+      const oldImageUrl = selectedSection?.content?.leftImage;
+      
+      alert('📤 Fazendo upload da imagem esquerda...');
+      
+      const { url: newUrl } = await uploadImage(file);
+      
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: { ...selectedSection.content, leftImage: newUrl },
+          styles: selectedSection.styles,
+          is_active: selectedSection.is_active
+        })
+      });
+      
+      const updatedSection = {
+        ...selectedSection,
+        content: { ...selectedSection.content, leftImage: newUrl }
+      };
+      setSelectedSection(updatedSection);
+      
+      if (oldImageUrl) {
+        await deleteOldImage(oldImageUrl);
+      }
+      
+      await carregarSections(user.id);
+      alert('✅ Imagem esquerda atualizada!');
+    } catch (e) {
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
+    }
+  };
+
+  // ✅ Upload para imagem lateral direita
+  const handleRightImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    
+    try {
+      const oldImageUrl = selectedSection?.content?.rightImage;
+      
+      alert('📤 Fazendo upload da imagem direita...');
+      
+      const { url: newUrl } = await uploadImage(file);
+      
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: { ...selectedSection.content, rightImage: newUrl },
+          styles: selectedSection.styles,
+          is_active: selectedSection.is_active
+        })
+      });
+      
+      const updatedSection = {
+        ...selectedSection,
+        content: { ...selectedSection.content, rightImage: newUrl }
+      };
+      setSelectedSection(updatedSection);
+      
+      if (oldImageUrl) {
+        await deleteOldImage(oldImageUrl);
+      }
+      
+      await carregarSections(user.id);
+      alert('✅ Imagem direita atualizada!');
+    } catch (e) {
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
+    }
+  };
+
+  // ✅ Handler para toggle entre cor e imagem de fundo
+  const handleBackgroundTypeChange = (type) => {
+    const updatedSection = {
+      ...selectedSection,
+      styles: { 
+        ...selectedSection.styles, 
+        backgroundType: type
+      }
+    };
+    setSelectedSection(updatedSection);
   };
 
   if (loading) {
@@ -412,27 +569,173 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Hero Editor */}
+              {/* Hero Editor ATUALIZADO */}
               {selectedSection.section_type === 'hero' && (
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">📝 Conteúdo</h3>
+                  
                   <div>
-                    <label className="block text-lg font-bold mb-2">Título Principal</label>
-                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded text-xl" />
+                    <label className="block text-sm font-medium mb-2">Título Principal</label>
+                    <input 
+                      type="text" 
+                      value={selectedSection.content.title || ''} 
+                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
+                      className="w-full p-2 border rounded text-xl" 
+                    />
                   </div>
+                  
                   <div>
-                    <label className="block text-sm font-medium mb-2">Subtítulo</label>
-                    <input type="text" value={selectedSection.content.subtitle || ''} onChange={(e) => handleSectionUpdate('subtitle', e.target.value)} className="w-full p-2 border rounded" />
+                    <label className="block text-sm font-medium mb-2">Subtítulo/Descrição</label>
+                    <textarea 
+                      value={selectedSection.content.subtitle || ''} 
+                      onChange={(e) => handleSectionUpdate('subtitle', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                      rows="3"
+                    />
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
-                    <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="w-full" />
+                    <label className="block text-sm font-medium mb-2">Imagem Principal (Centro)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleHeroImageUpload} 
+                      className="w-full" 
+                    />
                     {selectedSection.content.image && (
-                      <img src={selectedSection.content.image} alt="Hero" className="mt-2 w-full h-48 object-cover rounded" />
+                      <img 
+                        src={selectedSection.content.image} 
+                        alt="Principal" 
+                        className="mt-2 w-full h-48 object-cover rounded" 
+                      />
                     )}
                   </div>
+
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🎨 Fundo</h3>
+                  
+                  {/* Toggle entre Cor e Imagem de Fundo */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleBackgroundTypeChange('color')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-200'
+                      }`}
+                    >
+                      Cor de Fundo
+                    </button>
+                    <button
+                      onClick={() => handleBackgroundTypeChange('image')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'image'
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-gray-200'
+                      }`}
+                    >
+                      Imagem de Fundo
+                    </button>
+                  </div>
+
+                  {/* Opção de Cor de Fundo */}
+                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                      <input 
+                        type="color" 
+                        value={selectedSection.styles.backgroundColor || '#faf5ff'} 
+                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)} 
+                        className="w-full h-10 rounded" 
+                      />
+                    </div>
+                  )}
+
+                  {/* Opção de Imagem de Fundo */}
+                  {selectedSection.styles.backgroundType === 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleBackgroundImageUpload} 
+                          className="w-full" 
+                        />
+                        {selectedSection.styles.backgroundImage && (
+                          <img 
+                            src={selectedSection.styles.backgroundImage} 
+                            alt="Fundo" 
+                            className="mt-2 w-full h-48 object-cover rounded" 
+                          />
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Opacidade da Imagem de Fundo: {selectedSection.styles.backgroundOpacity || 100}%
+                        </label>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={selectedSection.styles.backgroundOpacity || 100}
+                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🖼️ Imagens Laterais</h3>
+                  
                   <div>
-                    <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-                    <input type="color" value={selectedSection.styles.backgroundColor || '#faf5ff'} onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)} className="w-full h-10 rounded" />
+                    <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleLeftImageUpload} 
+                      className="w-full" 
+                    />
+                    {selectedSection.content.leftImage && (
+                      <div className="mt-2 relative">
+                        <img 
+                          src={selectedSection.content.leftImage} 
+                          alt="Esquerda" 
+                          className="w-full h-32 object-cover rounded" 
+                        />
+                        <button
+                          onClick={() => handleSectionUpdate('leftImage', '')}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleRightImageUpload} 
+                      className="w-full" 
+                    />
+                    {selectedSection.content.rightImage && (
+                      <div className="mt-2 relative">
+                        <img 
+                          src={selectedSection.content.rightImage} 
+                          alt="Direita" 
+                          className="w-full h-32 object-cover rounded" 
+                        />
+                        <button
+                          onClick={() => handleSectionUpdate('rightImage', '')}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
