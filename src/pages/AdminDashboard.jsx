@@ -19,7 +19,7 @@ export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('sections'); // 'sections' | 'products' | 'config'
+  const [activeTab, setActiveTab] = useState('sections');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,6 +101,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const togglePublish = async (section, newStatus) => {
+    try {
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...section,
+          is_active: newStatus ? 1 : 0
+        })
+      });
+      await carregarSections(user.id);
+      alert(newStatus ? '✅ Seção publicada!' : '⏸️ Seção despublicada!');
+    } catch (e) {
+      alert('❌ Erro: ' + e.message);
+    }
+  };
+
   const handleSectionUpdate = (field, value) => {
     if (!selectedSection) return;
     const updated = {
@@ -157,17 +174,17 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold">Minha loja de vestidos</h1>
           <div className="flex gap-2">
             <button onClick={() => navigate('/')} className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800">
-              painel
+              Ver Site
             </button>
             <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800">
-              sair
+              Sair
             </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto p-4 flex gap-4">
-        {/* Sidebar - Lista de Seções */}
+        {/* Sidebar */}
         <div className="w-80 bg-white rounded-2xl p-4 shadow-lg">
           <div className="flex gap-2 mb-4">
             <button onClick={() => setActiveTab('sections')} className={`flex-1 py-2 rounded ${activeTab === 'sections' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>
@@ -181,20 +198,50 @@ export default function AdminDashboard() {
           {activeTab === 'sections' && (
             <div className="space-y-2">
               {sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  onClick={() => setSelectedSection(section)}
-                  className={`w-full p-3 rounded-lg text-left transition ${
-                    selectedSection?.id === section.id ? 'bg-purple-100 border-2 border-purple-500' : 'bg-gradient-to-r from-green-50 to-blue-100 hover:from-green-100 hover:to-blue-200'
-                  }`}
-                >
-                  {section.section_type === 'header' && 'Header'}
-                  {section.section_type === 'hero' && 'Hero Section (Destaque Principal)'}
-                  {section.section_type === 'content' && `sessão ${index + 1}`}
-                </button>
+                <div key={section.id} className="relative group">
+                  <button
+                    onClick={() => setSelectedSection(section)}
+                    className={`w-full p-3 rounded-lg text-left transition ${
+                      selectedSection?.id === section.id 
+                        ? 'bg-purple-100 border-2 border-purple-500' 
+                        : 'bg-gradient-to-r from-green-50 to-blue-100 hover:from-green-100 hover:to-blue-200'
+                    } ${section.is_active === 0 ? 'opacity-50' : ''}`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span>
+                        {section.section_type === 'header' && 'Header'}
+                        {section.section_type === 'hero' && 'Hero Section'}
+                        {section.section_type === 'products' && 'Produtos'}
+                        {section.section_type === 'content' && `Sessão ${index + 1}`}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        section.is_active === 1 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-gray-400 text-white'
+                      }`}>
+                        {section.is_active === 1 ? '✓' : '○'}
+                      </span>
+                    </div>
+                  </button>
+                  
+                  {/* Botão rápido de publicar/despublicar */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePublish(section, section.is_active === 0);
+                    }}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition px-2 py-1 rounded text-xs ${
+                      section.is_active === 1
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                        : 'bg-green-500 hover:bg-green-600 text-white'
+                    }`}
+                  >
+                    {section.is_active === 1 ? 'Despublicar' : 'Publicar'}
+                  </button>
+                </div>
               ))}
-              <button className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg">
-                +
+              <button className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg mt-2">
+                + Adicionar Seção
               </button>
             </div>
           )}
@@ -206,17 +253,29 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Editor da Seção Selecionada */}
+        {/* Editor */}
         <div className="flex-1 bg-white rounded-2xl p-6 shadow-lg">
           {selectedSection ? (
             <div>
-              <h2 className="text-2xl font-bold mb-6">Editando: {selectedSection.section_type}</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Editando: {selectedSection.section_type}</h2>
+                <button
+                  onClick={() => togglePublish(selectedSection, selectedSection.is_active === 0)}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    selectedSection.is_active === 1
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                >
+                  {selectedSection.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}
+                </button>
+              </div>
               
               {/* Header Editor */}
               {selectedSection.section_type === 'header' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Logo da Loja</label>
+                    <label className="block text-sm font-medium mb-2">Logo</label>
                     <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full" />
                     {selectedSection.content.logo && (
                       <img src={selectedSection.content.logo} alt="Logo" className="mt-2 h-16 object-contain" />
@@ -233,25 +292,35 @@ export default function AdminDashboard() {
               {selectedSection.section_type === 'hero' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-4xl font-bold mb-2">Inserir um título</label>
-                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded text-2xl" />
+                    <label className="block text-lg font-bold mb-2">Título Principal</label>
+                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded text-xl" />
                   </div>
                   <div>
-                    <label className="block text-2xl mb-2">Inserir um subtítulo</label>
-                    <input type="text" value={selectedSection.content.subtitle || ''} onChange={(e) => handleSectionUpdate('subtitle', e.target.value)} className="w-full p-2 border rounded text-xl" />
+                    <label className="block text-sm font-medium mb-2">Subtítulo</label>
+                    <input type="text" value={selectedSection.content.subtitle || ''} onChange={(e) => handleSectionUpdate('subtitle', e.target.value)} className="w-full p-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-lg mb-2">Inserir uma imagem</label>
+                    <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
                     <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="w-full" />
                     {selectedSection.content.image && (
-                      <img src={selectedSection.content.image} alt="Hero" className="mt-2 w-full h-64 object-cover rounded" />
+                      <img src={selectedSection.content.image} alt="Hero" className="mt-2 w-full h-48 object-cover rounded" />
                     )}
                   </div>
-                  <div className="mt-4 text-right text-sm text-gray-500">
-                    <p>alterar a cor ou</p>
-                    <p>inserir imagem de fundo</p>
-                    <input type="color" value={selectedSection.styles.backgroundColor || '#67e8f9'} onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)} className="mt-2" />
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                    <input type="color" value={selectedSection.styles.backgroundColor || '#faf5ff'} onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)} className="w-full h-10 rounded" />
                   </div>
+                </div>
+              )}
+
+              {/* Products Section Editor */}
+              {selectedSection.section_type === 'products' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Título da Seção</label>
+                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                  </div>
+                  <p className="text-sm text-gray-500">Esta seção mostra automaticamente os produtos cadastrados.</p>
                 </div>
               )}
 
@@ -259,19 +328,18 @@ export default function AdminDashboard() {
               {selectedSection.section_type === 'content' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Título da Seção</label>
+                    <label className="block text-sm font-medium mb-2">Título</label>
                     <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Texto/Conteúdo</label>
+                    <label className="block text-sm font-medium mb-2">Texto</label>
                     <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
                   </div>
                 </div>
               )}
 
-              {/* Botão Salvar */}
               <button onClick={() => salvarSection(selectedSection)} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                💾 Salvar Seção
+                💾 Salvar Alterações
               </button>
             </div>
           ) : (
@@ -284,10 +352,13 @@ export default function AdminDashboard() {
         {/* Preview */}
         <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
           <div className="bg-white rounded-xl p-4 h-full">
-            <h3 className="text-lg font-bold mb-4">Preview</h3>
-            <div className="text-sm text-gray-600">
-              <p className="mb-2">As alterações aparecem aqui em tempo real!</p>
-              <p>Vá para <code className="bg-gray-200 px-2 py-1 rounded">/</code> para ver o site publicado</p>
+            <h3 className="text-lg font-bold mb-4">📱 Preview</h3>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p>✓ Seções publicadas aparecem no site</p>
+              <p>○ Seções despublicadas ficam ocultas</p>
+              <p className="mt-4 p-2 bg-purple-50 rounded">
+                Clique em <strong>Ver Site</strong> para ver as mudanças!
+              </p>
             </div>
           </div>
         </div>
