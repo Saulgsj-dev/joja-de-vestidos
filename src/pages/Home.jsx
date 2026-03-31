@@ -90,84 +90,119 @@ export default function Home() {
         return (
           <section
             key={section.id}
-            className="py-16 px-4 relative"
+            className="py-16 px-4 relative overflow-hidden"
             style={backgroundStyle}
           >
             <div className="max-w-7xl mx-auto">
               {/* Layout com 2 imagens laterais */}
               {hasLeftImage && hasRightImage ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                  <div className="order-2 md:order-1">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
+                  {/* Imagem Esquerda - Desktop */}
+                  <div className="hidden lg:block order-2 lg:order-1">
                     <img 
                       src={content.leftImage} 
                       alt="Lateral Esquerda" 
-                      className="w-full h-64 md:h-96 object-cover rounded-lg shadow-xl"
+                      className="w-full h-auto max-h-96 object-contain rounded-lg shadow-xl"
                     />
                   </div>
-                  <div className="order-1 md:order-2 text-center">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                  
+                  {/* Conteúdo Central */}
+                  <div className="order-1 lg:order-2 text-center">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                       {content.title || 'Coleção de Vestidos'}
                     </h2>
-                    <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+                    <p className="text-base sm:text-lg lg:text-xl opacity-80 max-w-xl mx-auto mb-6 px-2">
                       {content.subtitle || 'Elegância e estilo para você'}
                     </p>
                     {content.image && (
-                      <img 
-                        src={content.image} 
-                        alt="Principal" 
-                        className="mx-auto max-w-md mt-8 rounded-lg shadow-2xl"
-                      />
+                      <div className="relative w-full flex justify-center">
+                        <img 
+                          src={content.image} 
+                          alt="Principal" 
+                          className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
+                          style={{ 
+                            maxHeight: 'min(50vh, 500px)',
+                            width: 'auto'
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
-                  <div className="order-3">
+                  
+                  {/* Imagem Direita - Desktop */}
+                  <div className="hidden lg:block order-3">
                     <img 
                       src={content.rightImage} 
                       alt="Lateral Direita" 
-                      className="w-full h-64 md:h-96 object-cover rounded-lg shadow-xl"
+                      className="w-full h-auto max-h-96 object-contain rounded-lg shadow-xl"
                     />
+                  </div>
+                  
+                  {/* Imagens Laterais - Mobile (empilhadas abaixo) */}
+                  <div className="lg:hidden order-3 grid grid-cols-2 gap-4 mt-6">
+                    {hasLeftImage && (
+                      <img 
+                        src={content.leftImage} 
+                        alt="Lateral Esquerda" 
+                        className="w-full h-48 object-cover rounded-lg shadow-lg"
+                      />
+                    )}
+                    {hasRightImage && (
+                      <img 
+                        src={content.rightImage} 
+                        alt="Lateral Direita" 
+                        className="w-full h-48 object-cover rounded-lg shadow-lg"
+                      />
+                    )}
                   </div>
                 </div>
               ) : hasLeftImage || hasRightImage ? (
                 /* Layout com 1 imagem lateral */
-                <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center ${hasRightImage ? 'md:flex-row-reverse' : ''}`}>
-                  <div className="text-center md:text-left">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                  <div className={`text-center md:text-left ${hasRightImage ? 'md:order-2' : 'md:order-1'}`}>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                       {content.title || 'Coleção de Vestidos'}
                     </h2>
-                    <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto md:mx-0">
+                    <p className="text-base sm:text-lg lg:text-xl opacity-80 max-w-xl mx-auto md:mx-0 mb-6">
                       {content.subtitle || 'Elegância e estilo para você'}
                     </p>
                     {content.image && (
-                      <img 
-                        src={content.image} 
-                        alt="Principal" 
-                        className="mx-auto md:mx-0 max-w-md mt-8 rounded-lg shadow-2xl"
-                      />
+                      <div className="relative w-full flex justify-center">
+                        <img 
+                          src={content.image} 
+                          alt="Principal" 
+                          className="w-full max-w-sm sm:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
+                          style={{ maxHeight: 'min(50vh, 400px)' }}
+                        />
+                      </div>
                     )}
                   </div>
-                  <div>
+                  <div className={hasRightImage ? 'md:order-1' : 'md:order-2'}>
                     <img 
                       src={hasLeftImage ? content.leftImage : content.rightImage} 
                       alt="Lateral" 
-                      className="w-full h-96 object-cover rounded-lg shadow-xl"
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded-lg shadow-xl"
                     />
                   </div>
                 </div>
               ) : (
                 /* Layout padrão sem imagens laterais */
                 <div className="text-center">
-                  <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
                     {content.title || 'Coleção de Vestidos'}
                   </h2>
-                  <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+                  <p className="text-base sm:text-lg lg:text-xl opacity-80 max-w-2xl mx-auto mb-8 px-4">
                     {content.subtitle || 'Elegância e estilo para você'}
                   </p>
                   {content.image && (
-                    <img 
-                      src={content.image} 
-                      alt="Principal" 
-                      className="mx-auto max-w-2xl mt-8 rounded-lg shadow-lg"
-                    />
+                    <div className="relative w-full flex justify-center">
+                      <img 
+                        src={content.image} 
+                        alt="Principal" 
+                        className="w-full max-w-sm sm:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
+                        style={{ maxHeight: 'min(60vh, 600px)' }}
+                      />
+                    </div>
                   )}
                 </div>
               )}
