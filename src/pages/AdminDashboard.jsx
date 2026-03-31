@@ -25,25 +25,29 @@ export default function AdminDashboard() {
     verificarAuth();
   }, []);
 
-  const verificarAuth = async () => {
-    try {
-      const {  { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        navigate('/login');
-        return;
-      }
-      setUser(session.user);
-      await Promise.all([
-        carregarConfig(session.user.id),
-        carregarSections(session.user.id)
-      ]);
-    } catch (err) {
-      console.error('Erro na auth:', err);
+const verificarAuth = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
       navigate('/login');
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+
+    setUser(session.user);
+
+    await Promise.all([
+      carregarConfig(session.user.id),
+      carregarSections(session.user.id)
+    ]);
+
+  } catch (err) {
+    console.error('Erro na auth:', err);
+    navigate('/login');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const carregarConfig = async (profileId) => {
     try {
