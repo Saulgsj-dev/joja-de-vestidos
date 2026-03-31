@@ -11,7 +11,6 @@ export async function apiRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Adiciona o token JWT se existir sessão
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }

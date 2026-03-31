@@ -5,6 +5,9 @@ import { apiRequest, uploadImage } from '../lib/apiClient';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
+// ✅ Placeholder SVG em Data URI (sem dependência externa)
+const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ESem imagem%3C/text%3E%3C/svg%3E`;
+
 export default function AdminDashboard() {
   const [config, setConfig] = useState({
     cor_fundo: '#ffffff',
@@ -40,7 +43,7 @@ export default function AdminDashboard() {
       setUser(session.user);
       await Promise.all([
         carregarConfig(session.user.id), 
-        carregarProdutos(session.user.id)
+        carregarProdutos()
       ]);
     } catch (err) {
       console.error('Erro na verificação de auth:', err);
@@ -58,13 +61,11 @@ export default function AdminDashboard() {
       }
     } catch (e) {
       console.error('Erro ao carregar config:', e);
-      // Não bloqueia a UI se falhar
     }
   };
 
   const carregarProdutos = async () => {
     try {
-      // A rota /api/meus-produtos já usa o token para identificar o usuário
       const data = await apiRequest(`/api/meus-produtos`);
       setProdutos(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -100,12 +101,11 @@ export default function AdminDashboard() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validação básica de tipo e tamanho
     if (!file.type.startsWith('image/')) {
       alert('Por favor, selecione um arquivo de imagem válido.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) { // 5MB
+    if (file.size > 5 * 1024 * 1024) {
       alert('A imagem deve ter menos de 5MB.');
       return;
     }
@@ -120,7 +120,6 @@ export default function AdminDashboard() {
       alert('❌ Erro no upload: ' + (e.message || 'Tente novamente'));
     } finally {
       setUploading(false);
-      // Limpa o input para permitir reupload do mesmo arquivo
       e.target.value = '';
     }
   };
@@ -154,7 +153,7 @@ export default function AdminDashboard() {
   };
 
   const deletarProduto = async (id) => {
-    if (!confirm('⚠️ Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
+    if (!confirm('⚠️ Tem certeza que deseja excluir este produto?')) {
       return;
     }
     
@@ -370,9 +369,13 @@ export default function AdminDashboard() {
                 <img 
                   src={produto.imagem_url} 
                   alt={produto.titulo} 
-                  className="w-16 h-16 object-cover rounded flex-shrink-0" 
+                  className="w-16 h-16 object-cover rounded flex-shrink-0"
+                  // ✅ CORREÇÃO: Usa Data URI SVG em vez de placeholder.com
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/64?text=Sem+imagem';
+                    if (!e.target.dataset.fallback) {
+                      e.target.dataset.fallback = 'true';
+                      e.target.src = PLACEHOLDER_SVG;
+                    }
                   }}
                 />
                 <div className="flex-1 min-w-0">
