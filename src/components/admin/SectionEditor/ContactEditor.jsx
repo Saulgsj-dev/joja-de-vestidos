@@ -1,3 +1,4 @@
+// frontend/src/components/admin/SectionEditor/ContactEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 
 export default function ContactEditor({ section, config, activeAccordion, onUpdateSection }) {

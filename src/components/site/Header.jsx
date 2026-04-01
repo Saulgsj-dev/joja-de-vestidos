@@ -1,3 +1,4 @@
+// frontend/src/components/site/Header.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';

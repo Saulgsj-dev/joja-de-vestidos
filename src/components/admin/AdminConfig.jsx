@@ -1,3 +1,4 @@
+// frontend/src/components/admin/AdminConfig.jsx
 import { useState } from 'react';
 
 export default function AdminConfig({ config, setConfig, onSave, saving }) {

@@ -1,3 +1,4 @@
+// frontend/src/components/admin/ImageUploader.jsx
 import { uploadImage } from '../../lib/apiClient';
 
 export default function ImageUploader({ value, onChange, onRemove, label, maxSize = 10 }) {
