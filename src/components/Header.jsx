@@ -69,89 +69,115 @@ export default function Header({ config, sections, isPreview = false }) {
     backgroundStyle.backgroundColor = bgColor;
   }
 
-  return (
-    <header
-      className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
-        isPreview ? 'text-xs' : ''
-      }`}
-      style={{ ...backgroundStyle, color: textColor }}
-    >
-      {/* 🔹 LADO ESQUERDO */}
-      <div className="flex items-center min-w-0">
-        {leftType === 'logo' && leftLogo ? (
-          <img
-            src={leftLogo}
-            alt="Logo"
-            className="h-8 sm:h-10 w-auto object-contain cursor-pointer"
-            onClick={() => navigate('/')}
-          />
-        ) : (
-          <h1
-            className="text-lg sm:text-xl lg:text-2xl font-bold cursor-pointer truncate"
-            onClick={() => navigate('/')}
-            style={{ color: textColor }}
-          >
-            {leftText || config?.nome_loja || '👗 Minha Loja'}
-          </h1>
-        )}
-      </div>
-
-      {/* 🔹 CENTRO (oculto no mobile) */}
-      {showCenterText && centerText && (
-        <div className="hidden md:flex flex-1 justify-center px-4">
-          <p className="text-sm sm:text-base font-medium truncate max-w-md" style={{ color: textColor }}>
-            {centerText}
-          </p>
-        </div>
+ return (
+  <header
+    className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
+      isPreview ? 'text-xs' : ''
+    }`}
+    style={{ ...backgroundStyle, color: textColor }}
+  >
+    {/* 🔹 LADO ESQUERDO */}
+    <div className="flex items-center min-w-0">
+      {leftType === 'logo' && leftLogo ? (
+        <img
+          src={leftLogo}
+          alt="Logo"
+          className={`w-auto object-contain cursor-pointer ${
+            isPreview ? 'h-6 sm:h-8' : 'h-8 sm:h-10'
+          }`}
+          onClick={() => navigate('/')}
+        />
+      ) : (
+        <h1
+          className={`font-bold cursor-pointer truncate ${
+            isPreview 
+              ? 'text-sm sm:text-base' 
+              : 'text-lg sm:text-xl lg:text-2xl'
+          }`}
+          onClick={() => navigate('/')}
+          style={{ color: textColor }}
+        >
+          {leftText || config?.nome_loja || '👗 Minha Loja'}
+        </h1>
       )}
+    </div>
 
-      {/* 🔹 LADO DIREITO */}
-      <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-        {rightType === 'logo' && rightLogo ? (
-          <img
-            src={rightLogo}
-            alt="Logo Direita"
-            className="h-8 sm:h-10 w-auto object-contain cursor-pointer"
-            onClick={() => navigate('/login')}
-          />
-        ) : rightType === 'text' ? (
-          <span className="text-xs sm:text-sm font-medium truncate max-w-32 hidden sm:inline" style={{ color: textColor }}>
-            {rightText}
-          </span>
-        ) : (
-          <>
-            {user ? (
-              <>
-                <span className="text-xs sm:text-sm hidden lg:inline truncate max-w-24" style={{ color: textColor }}>
-                  Olá, {user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={() => navigate('/admin')}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded text-white text-xs sm:text-sm font-medium transition hover:opacity-90 whitespace-nowrap"
-                  style={{ backgroundColor: buttonColor }}
-                >
-                  Painel
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 border rounded text-xs sm:text-sm hover:bg-red-50 transition whitespace-nowrap"
-                  style={{ borderColor: textColor, color: textColor }}
-                >
-                  Sair
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleLogin}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 border rounded text-xs sm:text-sm whitespace-nowrap transition hover:opacity-90"
-                style={{ borderColor: buttonColor, color: buttonColor }}
-              >
-                {rightText || 'Área do Cliente'}
-              </button>
-            )}
-          </>
-        )}
+    {/* 🔹 CENTRO (oculto no mobile) */}
+    {showCenterText && centerText && (
+      <div className="hidden md:flex flex-1 justify-center px-4">
+        <p className={`font-medium truncate max-w-md ${
+          isPreview ? 'text-xs' : 'text-sm sm:text-base'
+        }`} style={{ color: textColor }}>
+          {centerText}
+        </p>
       </div>
-    </header>
+    )}
+
+    {/* 🔹 LADO DIREITO */}
+    <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+      {rightType === 'logo' && rightLogo ? (
+        <img
+          src={rightLogo}
+          alt="Logo Direita"
+          className={`w-auto object-contain cursor-pointer ${
+            isPreview ? 'h-6 sm:h-8' : 'h-8 sm:h-10'
+          }`}
+          onClick={() => navigate('/login')}
+        />
+      ) : rightType === 'text' ? (
+        <span className={`font-medium truncate hidden sm:inline ${
+          isPreview ? 'text-xs max-w-24' : 'text-xs sm:text-sm max-w-32'
+        }`} style={{ color: textColor }}>
+          {rightText}
+        </span>
+      ) : (
+        <>
+          {user ? (
+            <>
+              <span className={`hidden lg:inline truncate ${
+                isPreview ? 'text-xs max-w-16' : 'text-xs sm:text-sm max-w-24'
+              }`} style={{ color: textColor }}>
+                Olá, {user.email?.split('@')[0]}
+              </span>
+              <button
+                onClick={() => navigate('/admin')}
+                className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${
+                  isPreview 
+                    ? 'px-2 py-1 text-xs' 
+                    : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+                }`}
+                style={{ backgroundColor: buttonColor }}
+              >
+                Painel
+              </button>
+              <button
+                onClick={handleLogout}
+                className={`border rounded transition whitespace-nowrap ${
+                  isPreview 
+                    ? 'px-2 py-1 text-xs' 
+                    : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+                } hover:bg-red-50`}
+                style={{ borderColor: textColor, color: textColor }}
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleLogin}
+              className={`border rounded whitespace-nowrap transition hover:opacity-90 ${
+                isPreview 
+                  ? 'px-2 py-1 text-xs' 
+                  : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+              }`}
+              style={{ borderColor: buttonColor, color: buttonColor }}
+            >
+              {rightText || 'Área do Cliente'}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  </header>
   );
 }
