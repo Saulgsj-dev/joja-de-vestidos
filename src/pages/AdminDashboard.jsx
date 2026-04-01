@@ -318,7 +318,10 @@ export default function AdminDashboard() {
   const Accordion = ({ id, title, children, defaultOpen = false }) => (
     <div className="border rounded-lg overflow-hidden mb-3">
       <button
-        onClick={() => setActiveAccordion(activeAccordion === id ? null : id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveAccordion(activeAccordion === id ? null : id);
+        }}
         className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition"
       >
         <span className="font-semibold text-gray-700">{title}</span>
@@ -327,10 +330,25 @@ export default function AdminDashboard() {
         </svg>
       </button>
       {(activeAccordion === id || defaultOpen) && (
-        <div className="p-4 bg-white">{children}</div>
+        <div className="p-4 bg-white" onClick={(e) => e.stopPropagation()}>
+          {children}
+        </div>
       )}
     </div>
   );
+
+  // Handler para inputs de cor com stopPropagation
+  const handleColorChange = (e, field, isStyle = false, sectionField = null) => {
+    e.stopPropagation();
+    const color = e.target.value;
+    if (isStyle && selectedSection) {
+      handleStyleUpdate(field, color);
+    } else if (selectedSection && sectionField) {
+      handleSectionUpdate(sectionField, color);
+    } else {
+      setConfig({...config, [field]: color});
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
@@ -428,7 +446,8 @@ export default function AdminDashboard() {
                 <input
                   type="color"
                   value={config.cor_fundo}
-                  onChange={(e) => setConfig({...config, cor_fundo: e.target.value})}
+                  onChange={(e) => handleColorChange(e, 'cor_fundo')}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
@@ -437,7 +456,8 @@ export default function AdminDashboard() {
                 <input
                   type="color"
                   value={config.cor_texto}
-                  onChange={(e) => setConfig({...config, cor_texto: e.target.value})}
+                  onChange={(e) => handleColorChange(e, 'cor_texto')}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
@@ -446,7 +466,8 @@ export default function AdminDashboard() {
                 <input
                   type="color"
                   value={config.cor_botao}
-                  onChange={(e) => setConfig({...config, cor_botao: e.target.value})}
+                  onChange={(e) => handleColorChange(e, 'cor_botao')}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
@@ -493,7 +514,7 @@ export default function AdminDashboard() {
                   <Accordion id="header-appearance" title="🎨 Aparência" defaultOpen={true}>
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleStyleUpdate('bgType', 'solid')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('bgType', 'solid'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.bgType === 'solid' || !selectedSection.styles?.bgType
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -502,7 +523,7 @@ export default function AdminDashboard() {
                         Cor Sólida
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('bgType', 'gradient')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('bgType', 'gradient'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.bgType === 'gradient' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -516,7 +537,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.bgColor || config.cor_fundo || '#ffffff'}
-                          onChange={(e) => handleStyleUpdate('bgColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'bgColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -528,7 +550,8 @@ export default function AdminDashboard() {
                           <input
                             type="color"
                             value={selectedSection.styles?.gradientStart || '#667eea'}
-                            onChange={(e) => handleStyleUpdate('gradientStart', e.target.value)}
+                            onChange={(e) => handleColorChange(e, 'gradientStart', true)}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full h-10 rounded cursor-pointer"
                           />
                         </div>
@@ -537,7 +560,8 @@ export default function AdminDashboard() {
                           <input
                             type="color"
                             value={selectedSection.styles?.gradientEnd || '#764ba2'}
-                            onChange={(e) => handleStyleUpdate('gradientEnd', e.target.value)}
+                            onChange={(e) => handleColorChange(e, 'gradientEnd', true)}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full h-10 rounded cursor-pointer"
                           />
                         </div>
@@ -548,7 +572,8 @@ export default function AdminDashboard() {
                       <input
                         type="color"
                         value={selectedSection.styles?.textColor || config.cor_texto || '#000000'}
-                        onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+                        onChange={(e) => handleColorChange(e, 'textColor', true)}
+                        onClick={(e) => e.stopPropagation()}
                         className="w-full h-10 rounded cursor-pointer"
                       />
                     </div>
@@ -557,7 +582,7 @@ export default function AdminDashboard() {
                   <Accordion id="header-left" title="⬅️ Lado Esquerdo">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleStyleUpdate('leftType', 'text')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('leftType', 'text'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.leftType === 'text' || !selectedSection.styles?.leftType
                             ? 'bg-blue-600 text-white' : 'bg-gray-200'
@@ -566,7 +591,7 @@ export default function AdminDashboard() {
                         Texto
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('leftType', 'logo')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('leftType', 'logo'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.leftType === 'logo' ? 'bg-blue-600 text-white' : 'bg-gray-200'
                         }`}
@@ -592,7 +617,7 @@ export default function AdminDashboard() {
                         {(selectedSection.content?.logo || selectedSection.styles?.leftLogo) && (
                           <div className="mt-2 relative inline-block">
                             <img src={selectedSection.content?.logo || selectedSection.styles?.leftLogo} alt="Logo" className="h-12 object-contain rounded border" />
-                            <button onClick={() => { handleSectionUpdate('logo', ''); handleStyleUpdate('leftLogo', ''); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleSectionUpdate('logo', ''); handleStyleUpdate('leftLogo', ''); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                           </div>
                         )}
                       </div>
@@ -630,7 +655,7 @@ export default function AdminDashboard() {
                     </div>
                   </Accordion>
 
-                  {/* 🎨 CORES DOS TEXTOS */}
+                  {/* 🎨 CORES DOS TEXTOS - Apenas para Hero */}
                   <Accordion id="text-colors" title="🎨 Cores dos Textos">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -638,7 +663,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.titleColor || '#ffffff'}
-                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'titleColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -647,7 +673,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.subtitleColor || '#e5e7eb'}
-                          onChange={(e) => handleStyleUpdate('subtitleColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'subtitleColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -661,7 +688,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontSize || 'large'}
-                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -674,7 +701,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Peso do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontWeight || 'bold'}
-                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontWeight', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="normal">Normal</option>
@@ -687,7 +714,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho da Descrição</label>
                         <select
                           value={selectedSection.styles?.subtitleFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('subtitleFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('subtitleFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -707,7 +734,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('titleAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -724,7 +751,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('subtitleAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('subtitleAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.subtitleAlign === align || (!selectedSection.styles?.subtitleAlign && align === 'center')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -750,7 +777,7 @@ export default function AdminDashboard() {
                         ].map(pos => (
                           <button
                             key={pos.value}
-                            onClick={() => handleStyleUpdate('imagePosition', pos.value)}
+                            onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imagePosition', pos.value); }}
                             className={`p-3 rounded-lg text-sm border-2 transition ${
                               selectedSection.styles?.imagePosition === pos.value || (!selectedSection.styles?.imagePosition && pos.value === 'above')
                                 ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300'
@@ -773,18 +800,18 @@ export default function AdminDashboard() {
                       {selectedSection.content.image && (
                         <div className="mt-2 relative">
                           <img src={selectedSection.content.image} alt="Principal" className="w-full h-48 object-cover rounded" />
-                          <button onClick={() => handleRemoveImage('image', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('image', false); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
                         </div>
                       )}
                     </div>
                   </Accordion>
 
-                  {/* 🎨 FUNDO */}
+                  {/* 🎨 FUNDO - Apenas para esta seção */}
                   <Accordion id="background" title="🎨 Fundo da Seção">
                     <div className="space-y-4">
                       <div className="flex gap-2 mb-4">
                         <button
-                          onClick={() => handleBackgroundTypeChange('color')}
+                          onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('color'); }}
                           className={`flex-1 py-2 rounded ${
                             selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
                               ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -793,7 +820,7 @@ export default function AdminDashboard() {
                           Cor de Fundo
                         </button>
                         <button
-                          onClick={() => handleBackgroundTypeChange('image')}
+                          onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('image'); }}
                           className={`flex-1 py-2 rounded ${
                             selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                           }`}
@@ -807,7 +834,8 @@ export default function AdminDashboard() {
                           <input
                             type="color"
                             value={selectedSection.styles.backgroundColor || '#faf5ff'}
-                            onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                            onChange={(e) => handleColorChange(e, 'backgroundColor', true)}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full h-10 rounded"
                           />
                         </div>
@@ -833,7 +861,7 @@ export default function AdminDashboard() {
                               min="0"
                               max="100"
                               value={selectedSection.styles.backgroundOpacity || 100}
-                              onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                              onChange={(e) => { e.stopPropagation(); handleStyleUpdate('backgroundOpacity', parseInt(e.target.value)); }}
                               className="w-full"
                             />
                           </div>
@@ -846,7 +874,7 @@ export default function AdminDashboard() {
                   <Accordion id="image-layout" title="🖼️ Layout de Imagens">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'center'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'center' || !selectedSection.styles?.imageLayout
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -855,7 +883,7 @@ export default function AdminDashboard() {
                         Centralizado
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'sides')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'sides'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'sides' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -863,7 +891,7 @@ export default function AdminDashboard() {
                         Laterais
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'grid'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -879,7 +907,7 @@ export default function AdminDashboard() {
                           {selectedSection.content.leftImage && (
                             <div className="mt-2 relative">
                               <img src={selectedSection.content.leftImage} alt="Esquerda" className="w-full h-32 object-cover rounded" />
-                              <button onClick={() => handleRemoveImage('leftImage', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('leftImage', false); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
                             </div>
                           )}
                         </div>
@@ -889,7 +917,7 @@ export default function AdminDashboard() {
                           {selectedSection.content.rightImage && (
                             <div className="mt-2 relative">
                               <img src={selectedSection.content.rightImage} alt="Direita" className="w-full h-32 object-cover rounded" />
-                              <button onClick={() => handleRemoveImage('rightImage', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('rightImage', false); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
                             </div>
                           )}
                         </div>
@@ -902,10 +930,10 @@ export default function AdminDashboard() {
                           {(selectedSection.content.gridImages || []).map((img, index) => (
                             <div key={index} className="flex gap-2 items-center">
                               <input type="file" accept="image/*" onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)} className="flex-1 text-sm" />
-                              <button onClick={() => handleRemoveImageFromArray('gridImages', index)} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleRemoveImageFromArray('gridImages', index); }} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
                             </div>
                           ))}
-                          <button onClick={() => handleAddImage('gridImages')} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleAddImage('gridImages'); }} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
                         </div>
                         {selectedSection.content.gridImages?.length > 0 && (
                           <div className="grid grid-cols-3 gap-2 mt-4">
@@ -937,7 +965,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
-                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'titleColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -946,7 +975,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.priceColor || config.cor_botao || '#000000'}
-                          onChange={(e) => handleStyleUpdate('priceColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'priceColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -960,7 +990,7 @@ export default function AdminDashboard() {
                         {['left', 'center', 'right'].map(align => (
                           <button
                             key={align}
-                            onClick={() => handleStyleUpdate('titleAlign', align)}
+                            onClick={(e) => { e.stopPropagation(); handleStyleUpdate('titleAlign', align); }}
                             className={`flex-1 py-2 rounded text-sm ${
                               selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
                                 ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -979,7 +1009,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -991,7 +1021,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Peso do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontWeight || 'bold'}
-                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontWeight', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="normal">Normal</option>
@@ -1005,7 +1035,7 @@ export default function AdminDashboard() {
                   <Accordion id="products-background" title="🎨 Fundo da Seção">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleBackgroundTypeChange('color')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('color'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1014,7 +1044,7 @@ export default function AdminDashboard() {
                         Cor de Fundo
                       </button>
                       <button
-                        onClick={() => handleBackgroundTypeChange('image')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('image'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1028,7 +1058,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles.backgroundColor || '#ffffff'}
-                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'backgroundColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded"
                         />
                       </div>
@@ -1044,7 +1075,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
-                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => { e.stopPropagation(); handleStyleUpdate('backgroundOpacity', parseInt(e.target.value)); }} className="w-full" />
                         </div>
                       </>
                     )}
@@ -1077,7 +1108,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
-                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'titleColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -1086,7 +1118,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.textColor || '#374151'}
-                          onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'textColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -1101,7 +1134,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('titleAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'left')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1118,7 +1151,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('textAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('textAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.textAlign === align || (!selectedSection.styles?.textAlign && align === 'left')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1138,7 +1171,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -1150,7 +1183,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Peso do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontWeight || 'semibold'}
-                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontWeight', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="normal">Normal</option>
@@ -1162,7 +1195,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
                         <select
                           value={selectedSection.styles?.textFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('textFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -1185,7 +1218,7 @@ export default function AdminDashboard() {
                         ].map(pos => (
                           <button
                             key={pos.value}
-                            onClick={() => handleStyleUpdate('imagePosition', pos.value)}
+                            onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imagePosition', pos.value); }}
                             className={`p-2 rounded-lg text-xs border-2 transition ${
                               selectedSection.styles?.imagePosition === pos.value || (!selectedSection.styles?.imagePosition && pos.value === 'above')
                                 ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300'
@@ -1203,7 +1236,7 @@ export default function AdminDashboard() {
                         {selectedSection.content.image && (
                           <div className="mt-2 relative inline-block">
                             <img src={selectedSection.content.image} alt="Seção" className="w-full h-48 object-cover rounded" />
-                            <button onClick={() => handleRemoveImage('image', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('image', false); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
                           </div>
                         )}
                       </div>
@@ -1213,7 +1246,7 @@ export default function AdminDashboard() {
                   <Accordion id="content-image-layout" title="🖼️ Layout de Imagens">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'none')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'none'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'none' || !selectedSection.styles?.imageLayout
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1222,7 +1255,7 @@ export default function AdminDashboard() {
                         Sem Layout
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'center'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'center' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1230,7 +1263,7 @@ export default function AdminDashboard() {
                         Centro
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'side')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'side'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'side' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1238,7 +1271,7 @@ export default function AdminDashboard() {
                         Lateral
                       </button>
                       <button
-                        onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                        onClick={(e) => { e.stopPropagation(); handleStyleUpdate('imageLayout', 'grid'); }}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1253,10 +1286,10 @@ export default function AdminDashboard() {
                           {(selectedSection.content.gridImages || []).map((img, index) => (
                             <div key={index} className="flex gap-2 items-center">
                               <input type="file" accept="image/*" onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)} className="flex-1 text-sm" />
-                              <button onClick={() => handleRemoveImageFromArray('gridImages', index)} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleRemoveImageFromArray('gridImages', index); }} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
                             </div>
                           ))}
-                          <button onClick={() => handleAddImage('gridImages')} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleAddImage('gridImages'); }} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
                         </div>
                         {selectedSection.content.gridImages?.length > 0 && (
                           <div className="grid grid-cols-3 gap-2 mt-4">
@@ -1272,7 +1305,7 @@ export default function AdminDashboard() {
                   <Accordion id="content-background" title="🎨 Fundo da Seção">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleBackgroundTypeChange('color')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('color'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1281,7 +1314,7 @@ export default function AdminDashboard() {
                         Cor de Fundo
                       </button>
                       <button
-                        onClick={() => handleBackgroundTypeChange('image')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('image'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1295,7 +1328,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles.backgroundColor || '#faf5ff'}
-                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'backgroundColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded"
                         />
                       </div>
@@ -1311,7 +1345,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
-                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => { e.stopPropagation(); handleStyleUpdate('backgroundOpacity', parseInt(e.target.value)); }} className="w-full" />
                         </div>
                       </>
                     )}
@@ -1342,7 +1376,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
-                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'titleColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -1351,7 +1386,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles?.textColor || '#374151'}
-                          onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'textColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
@@ -1366,7 +1402,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('titleAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1383,7 +1419,7 @@ export default function AdminDashboard() {
                           {['left', 'center', 'right'].map(align => (
                             <button
                               key={align}
-                              onClick={() => handleStyleUpdate('textAlign', align)}
+                              onClick={(e) => { e.stopPropagation(); handleStyleUpdate('textAlign', align); }}
                               className={`flex-1 py-2 rounded text-sm ${
                                 selectedSection.styles?.textAlign === align || (!selectedSection.styles?.textAlign && align === 'center')
                                   ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1403,7 +1439,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -1415,7 +1451,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Peso do Título</label>
                         <select
                           value={selectedSection.styles?.titleFontWeight || 'semibold'}
-                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('titleFontWeight', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="normal">Normal</option>
@@ -1427,7 +1463,7 @@ export default function AdminDashboard() {
                         <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
                         <select
                           value={selectedSection.styles?.textFontSize || 'medium'}
-                          onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
+                          onChange={(e) => { e.stopPropagation(); handleStyleUpdate('textFontSize', e.target.value); }}
                           className="w-full p-2 border rounded"
                         >
                           <option value="small">Pequeno</option>
@@ -1441,7 +1477,7 @@ export default function AdminDashboard() {
                   <Accordion id="contact-background" title="🎨 Fundo da Seção">
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => handleBackgroundTypeChange('color')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('color'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
                             ? 'bg-purple-600 text-white' : 'bg-gray-200'
@@ -1450,7 +1486,7 @@ export default function AdminDashboard() {
                         Cor de Fundo
                       </button>
                       <button
-                        onClick={() => handleBackgroundTypeChange('image')}
+                        onClick={(e) => { e.stopPropagation(); handleBackgroundTypeChange('image'); }}
                         className={`flex-1 py-2 rounded ${
                           selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
@@ -1464,7 +1500,8 @@ export default function AdminDashboard() {
                         <input
                           type="color"
                           value={selectedSection.styles.backgroundColor || '#f9fafb'}
-                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          onChange={(e) => handleColorChange(e, 'backgroundColor', true)}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-full h-10 rounded"
                         />
                       </div>
@@ -1480,7 +1517,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
-                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => { e.stopPropagation(); handleStyleUpdate('backgroundOpacity', parseInt(e.target.value)); }} className="w-full" />
                         </div>
                       </>
                     )}
@@ -1488,7 +1525,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <button onClick={() => salvarSection(selectedSection)} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full font-semibold">
+              <button onClick={(e) => { e.stopPropagation(); salvarSection(selectedSection); }} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full font-semibold">
                 💾 Salvar Alterações
               </button>
             </div>
