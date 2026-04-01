@@ -1,3 +1,4 @@
+// frontend/src/components/SitePreview.jsx
 import { useState } from 'react';
 import Header from './Header';
 
