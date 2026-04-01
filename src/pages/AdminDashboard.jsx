@@ -155,36 +155,39 @@ export default function AdminDashboard() {
           </div>
 
           {/*  EDITOR - Ocupa espaço disponível */}
-          <div className="flex-1 min-w-0 order-2 lg:order-2">
-            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg min-h-[500px]">
-              {activeTab === 'config' ? (
-                <AdminConfig
-                  config={config}
-                  setConfig={setConfig}
-                  onSave={handleSaveConfig}
-                  saving={saving}
-                />
-              ) : selectedSection ? (
-                <SectionEditor
-                  section={selectedSection}
-                  config={config}
-                  activeAccordion={activeAccordion}
-                  onSave={handleSaveSection}
-                  onTogglePublish={handleTogglePublish}
-                  onUpdateSection={handleUpdateSection}
-                  onSetActiveAccordion={setActiveAccordion}
-                />
-              ) : (
-                <div className="h-64 flex flex-col items-center justify-center text-gray-400">
-                  <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <p className="text-lg font-medium">Selecione uma seção para editar</p>
-                  <p className="text-sm mt-2">Clique em uma seção na barra lateral</p>
-                </div>
-              )}
-            </div>
-          </div>
+<div className="bg-white rounded-2xl shadow-lg h-[80vh] flex flex-col overflow-hidden">
+  
+  {/* Conteúdo com scroll */}
+  <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+    {activeTab === 'config' ? (
+      <AdminConfig
+        config={config}
+        setConfig={setConfig}
+        onSave={handleSaveConfig}
+        saving={saving}
+      />
+    ) : selectedSection ? (
+      <SectionEditor
+        section={selectedSection}
+        config={config}
+        activeAccordion={activeAccordion}
+        onSave={handleSaveSection}
+        onTogglePublish={handleTogglePublish}
+        onUpdateSection={handleUpdateSection}
+        onSetActiveAccordion={setActiveAccordion}
+      />
+    ) : (
+      <div className="h-full flex flex-col items-center justify-center text-gray-400">
+        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <p className="text-lg font-medium">Selecione uma seção para editar</p>
+        <p className="text-sm mt-2">Clique em uma seção na barra lateral</p>
+      </div>
+    )}
+  </div>
+
+</div>
 
           {/* 👁️ PREVIEW - Desktop: Lado direito / Mobile: Abaixo */}
           <div className="flex-1 min-w-0 order-3 lg:order-3">
