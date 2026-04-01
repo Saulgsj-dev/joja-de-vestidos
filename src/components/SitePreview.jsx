@@ -14,75 +14,6 @@ export default function SitePreview({ config, sections, selectedSection }) {
   const contentSections = previewSections.filter(s => s.section_type === 'content');
   const contactSection = previewSections.find(s => s.section_type === 'contact');
 
-  // 🎨 Funções auxiliares para preview
-  const getBackgroundStyle = (styles) => {
-    const backgroundStyle = {};
-    if (styles?.backgroundType === 'image' && styles?.backgroundImage) {
-      const opacity = (styles.backgroundOpacity || 100) / 100;
-      backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
-      backgroundStyle.backgroundSize = 'cover';
-      backgroundStyle.backgroundPosition = 'center';
-      backgroundStyle.backgroundRepeat = 'no-repeat';
-      backgroundStyle.backgroundColor = `rgba(0, 0, 0, ${0.4 * opacity})`;
-      backgroundStyle.backgroundBlendMode = 'multiply';
-    } else {
-      backgroundStyle.backgroundColor = styles?.backgroundColor || '#ffffff';
-    }
-    return backgroundStyle;
-  };
-
-  const getSectionPadding = (styles, defaultPadding = 'py-8') => {
-    if (styles?.padding?.top && styles?.padding?.bottom) {
-      return `${styles.padding.top} ${styles.padding.bottom}`;
-    }
-    if (styles?.padding?.vertical) {
-      return styles.padding.vertical;
-    }
-    return defaultPadding;
-  };
-
-  const getContainerClasses = (config) => {
-    const widthClasses = {
-      full: 'max-w-none',
-      narrow: 'max-w-7xl',
-      compact: 'max-w-4xl'
-    };
-    const paddingClasses = {
-      none: 'px-0',
-      small: 'px-4',
-      normal: 'px-4 sm:px-6',
-      large: 'px-6 sm:px-8'
-    };
-    return {
-      width: widthClasses[config?.site_container_width || 'full'] || 'max-w-none',
-      padding: paddingClasses[config?.site_side_padding || 'normal'] || 'px-4 sm:px-6'
-    };
-  };
-
-  const getAlignClass = (align) => {
-    const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
-    return alignClasses[align] || 'text-center';
-  };
-
-  const renderButton = (button, config) => {
-    if (!button?.text || !button?.link) return null;
-    const isWhatsApp = button.type === 'whatsapp' || button.link.includes('wa.me');
-    const href = isWhatsApp && !button.link.startsWith('http') 
-      ? `https://wa.me/${button.link.replace(/\D/g, '')}` 
-      : button.link;
-    return (
-      <a
-        href={href}
-        target={isWhatsApp ? '_blank' : '_self'}
-        rel={isWhatsApp ? 'noopener noreferrer' : ''}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium shadow-lg hover:shadow-xl"
-      >
-        {isWhatsApp && '📱'}
-        {button.text}
-      </a>
-    );
-  };
-
   return (
     <div className="h-full flex flex-col bg-gray-100 rounded-xl overflow-hidden shadow-2xl">
       {/* Header do Preview */}
@@ -95,11 +26,15 @@ export default function SitePreview({ config, sections, selectedSection }) {
           </div>
           <span className="text-sm font-semibold text-gray-700 ml-2">Preview ao vivo</span>
         </div>
+        
+        {/* Toggle Desktop/Mobile */}
         <div className="flex bg-gray-200 rounded-lg p-1 gap-1">
           <button
             onClick={() => setViewMode('desktop')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              viewMode === 'desktop' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+              viewMode === 'desktop'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +45,9 @@ export default function SitePreview({ config, sections, selectedSection }) {
           <button
             onClick={() => setViewMode('mobile')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              viewMode === 'mobile' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+              viewMode === 'mobile'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,36 +58,81 @@ export default function SitePreview({ config, sections, selectedSection }) {
         </div>
       </div>
 
-      {/* Área de Preview */}
+      {/* Área de Preview com Scroll */}
       <div className="flex-1 overflow-hidden bg-gray-200 relative">
         {viewMode === 'desktop' ? (
+          /* DESKTOP PREVIEW - Largura total como o site real */
           <div className="h-full overflow-y-auto">
             <div className="min-h-full bg-white">
-              {headerSection && <Header config={config} sections={[headerSection]} isPreview={true} />}
-              {heroSection && <HeroPreview section={heroSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
-              {productsSection && <ProductsPreview section={productsSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
-              {contentSections.map((section) => <ContentPreview key={section.id} section={section} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />)}
-              {contactSection && <ContactPreview section={contactSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
+              {headerSection ? (
+                <Header config={config} sections={[headerSection]} isPreview={true} />
+              ) : (
+                <div className="bg-gray-200 p-4 text-center text-sm text-gray-500">
+                  Header não configurado
+                </div>
+              )}
+
+              {heroSection && (
+                <HeroPreview section={heroSection} config={config} />
+              )}
+
+              {productsSection && (
+                <ProductsPreview section={productsSection} config={config} />
+              )}
+
+              {contentSections.map((section, index) => (
+                <ContentPreview key={section.id} section={section} config={config} index={index} />
+              ))}
+
+              {contactSection && (
+                <ContactPreview section={contactSection} config={config} />
+              )}
+
               <FooterPreview config={config} />
               <div className="h-8"></div>
             </div>
           </div>
         ) : (
+          /* MOBILE PREVIEW - Layout de celular */
           <div className="h-full overflow-y-auto p-4 sm:p-8">
             <div className="flex justify-center min-h-full">
               <div className="w-[375px] min-h-[667px] bg-white rounded-[3rem] border-8 border-gray-800 overflow-hidden shadow-2xl">
+                {/* Barra de status do mobile */}
                 <div className="bg-gray-800 h-6 flex items-center justify-center">
                   <div className="w-20 h-4 bg-black rounded-full"></div>
                 </div>
+                
+                {/* Conteúdo do Site */}
                 <div className="h-[calc(100%-1.5rem)] overflow-y-auto">
-                  {headerSection && <Header config={config} sections={[headerSection]} isPreview={true} />}
-                  {heroSection && <HeroPreview section={heroSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
-                  {productsSection && <ProductsPreview section={productsSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
-                  {contentSections.map((section) => <ContentPreview key={section.id} section={section} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />)}
-                  {contactSection && <ContactPreview section={contactSection} config={config} getBackgroundStyle={getBackgroundStyle} getSectionPadding={getSectionPadding} getContainerClasses={getContainerClasses} getAlignClass={getAlignClass} renderButton={renderButton} />}
+                  {headerSection ? (
+                    <Header config={config} sections={[headerSection]} isPreview={true} />
+                  ) : (
+                    <div className="bg-gray-200 p-4 text-center text-sm text-gray-500">
+                      Header não configurado
+                    </div>
+                  )}
+
+                  {heroSection && (
+                    <HeroPreview section={heroSection} config={config} />
+                  )}
+
+                  {productsSection && (
+                    <ProductsPreview section={productsSection} config={config} />
+                  )}
+
+                  {contentSections.map((section, index) => (
+                    <ContentPreview key={section.id} section={section} config={config} index={index} />
+                  ))}
+
+                  {contactSection && (
+                    <ContactPreview section={contactSection} config={config} />
+                  )}
+
                   <FooterPreview config={config} />
                   <div className="h-8"></div>
                 </div>
+
+                {/* Home indicator do mobile */}
                 <div className="bg-gray-800 h-1 flex justify-center items-end pb-1">
                   <div className="w-32 h-1 bg-white rounded-full"></div>
                 </div>
@@ -163,12 +145,23 @@ export default function SitePreview({ config, sections, selectedSection }) {
   );
 }
 
-// ✅ HERO PREVIEW ATUALIZADO
-function HeroPreview({ section, config, getBackgroundStyle, getSectionPadding, getContainerClasses, getAlignClass, renderButton }) {
+// ✅ HERO PREVIEW - Mesma estrutura do site real
+function HeroPreview({ section, config }) {
   const { content, styles } = section;
-  const backgroundStyle = getBackgroundStyle(styles);
-  const paddingClass = getSectionPadding(styles);
-  const containerClasses = getContainerClasses(config);
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundRepeat = 'no-repeat';
+    backgroundStyle.backgroundColor = `rgba(0, 0, 0, ${0.4 * opacity})`;
+    backgroundStyle.backgroundBlendMode = 'multiply';
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
+  }
+
   const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'center';
   const hasLeftImage = content.leftImage;
@@ -176,71 +169,145 @@ function HeroPreview({ section, config, getBackgroundStyle, getSectionPadding, g
   const hasGridImages = content.gridImages?.length > 0;
 
   return (
-    <section className={`${paddingClass} px-4 sm:px-6 relative overflow-hidden`} style={backgroundStyle}>
+    <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
       <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
-      <div className={`mx-auto relative z-10 ${containerClasses.width} ${containerClasses.padding}`}>
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Layout Centralizado */}
         {imageLayout === 'center' && (
-          <div className={getAlignClass(styles?.titleAlign || 'center')}>
+          <div className="text-center">
             {imagePosition === 'above' && content.image && (
               <div className="mb-4 flex justify-center">
                 <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
-            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">{content.title || 'Bem-vindo'}</h2>
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
+            </h2>
             {imagePosition === 'between' && content.image && (
               <div className="mb-4 flex justify-center">
                 <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
-            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">{content.subtitle || 'Sua mensagem aqui'}</p>
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
+            </p>
             {imagePosition === 'below' && content.image && (
               <div className="mt-4 flex justify-center">
                 <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
-            {renderButton(content.button, config)}
           </div>
         )}
-        {/* ... outros layouts (sides, grid) seguem mesma lógica com botão ... */}
+
+        {/* Layout Laterais */}
         {imageLayout === 'sides' && hasLeftImage && hasRightImage && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
             <div className="hidden lg:block">
               <img src={content.leftImage} alt="Lateral Esquerda" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
             </div>
-            <div className={getAlignClass(styles?.titleAlign || 'center')}>
+            <div className="text-center">
               {imagePosition === 'above' && content.image && (
                 <div className="mb-4 flex justify-center">
                   <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
-              <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">{content.title || 'Bem-vindo'}</h2>
+              <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                {content.title || 'Bem-vindo'}
+              </h2>
               {imagePosition === 'between' && content.image && (
                 <div className="mb-4 flex justify-center">
                   <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
-              <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-6 text-white drop-shadow-md">{content.subtitle || 'Sua mensagem aqui'}</p>
+              <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-6 text-white drop-shadow-md">
+                {content.subtitle || 'Sua mensagem aqui'}
+              </p>
               {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center">
                   <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
-              {renderButton(content.button, config)}
             </div>
             <div className="hidden lg:block">
               <img src={content.rightImage} alt="Lateral Direita" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
             </div>
           </div>
         )}
-        {/* Layout Grid simplificado para preview */}
-        {imageLayout === 'grid' && hasGridImages && (
-          <div className={getAlignClass(styles?.titleAlign || 'center')}>
-            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">{content.title || 'Bem-vindo'}</h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">{content.subtitle || 'Sua mensagem aqui'}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {content.gridImages.map((img, index) => img && <img key={index} src={img} alt={`Grid ${index}`} className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg" />)}
+
+        {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div className="text-center md:text-left">
+              {imagePosition === 'above' && content.image && (
+                <div className="mb-4 flex justify-center md:justify-start">
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                </div>
+              )}
+              <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                {content.title || 'Bem-vindo'}
+              </h2>
+              {imagePosition === 'between' && content.image && (
+                <div className="mb-4 flex justify-center md:justify-start">
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                </div>
+              )}
+              <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto md:mx-0 mb-6 text-white drop-shadow-md">
+                {content.subtitle || 'Sua mensagem aqui'}
+              </p>
+              {imagePosition === 'below' && content.image && (
+                <div className="mt-4 flex justify-center md:justify-start">
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                </div>
+              )}
             </div>
-            {renderButton(content.button, config)}
+            <div>
+              <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-64 object-cover rounded-lg shadow-xl" />
+            </div>
+          </div>
+        )}
+
+        {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
+            </p>
+          </div>
+        )}
+
+        {/* Layout Grid */}
+        {imageLayout === 'grid' && hasGridImages && (
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {content.gridImages.map((img, index) => (
+                img && (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`Grid ${index}`}
+                    className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
+                  />
+                )
+              ))}
+            </div>
+          </div>
+        )}
+
+        {imageLayout === 'grid' && !hasGridImages && (
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
+            </h2>
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
+            </p>
           </div>
         )}
       </div>
@@ -248,93 +315,187 @@ function HeroPreview({ section, config, getBackgroundStyle, getSectionPadding, g
   );
 }
 
-// ✅ PRODUCTS PREVIEW ATUALIZADO
-function ProductsPreview({ section, config, getBackgroundStyle, getSectionPadding, getContainerClasses, getAlignClass, renderButton }) {
+// ✅ PRODUCTS PREVIEW
+function ProductsPreview({ section, config }) {
   const { styles, content } = section;
-  const backgroundStyle = getBackgroundStyle(styles);
-  const paddingClass = getSectionPadding(styles, 'py-12');
-  const containerClasses = getContainerClasses(config);
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#ffffff';
+  }
+
+  const titleAlign = styles?.titleAlign || 'center';
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
   const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const priceColor = styles?.priceColor || config?.cor_botao || '#000000';
 
   return (
-    <section className={`mx-auto px-4 sm:px-6 ${paddingClass}`} style={backgroundStyle}>
-      <div className={`${containerClasses.width} ${containerClasses.padding}`}>
-        <h3 className={`sm:text-2xl font-bold mb-8 ${getAlignClass(styles?.titleAlign || 'center')}`} style={{ color: titleColor }}>
-          {content.title || 'Nossos Produtos'}
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-              <div className="aspect-square bg-gray-100">
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Produto {i}</div>
-              </div>
-              <div className="p-4">
-                <h4 className="font-bold text-base sm:text-lg" style={{ color: titleColor }}>Vestido Exemplo {i}</h4>
-                <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: priceColor }}>R$ 199,90</p>
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12" style={backgroundStyle}>
+      <h3 className={`sm:text-2xl font-bold mb-8 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+        {content.title || 'Nossos Produtos'}
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+            <div className="aspect-square bg-gray-100">
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                Produto {i}
               </div>
             </div>
-          ))}
-        </div>
-        <div className="mt-8 text-center">{renderButton(content.button, config)}</div>
-      </div>
-    </section>
-  );
-}
-
-// ✅ CONTENT PREVIEW ATUALIZADO
-function ContentPreview({ section, config, getBackgroundStyle, getSectionPadding, getContainerClasses, getAlignClass, renderButton }) {
-  const { content, styles } = section;
-  const backgroundStyle = getBackgroundStyle(styles);
-  const paddingClass = getSectionPadding(styles);
-  const containerClasses = getContainerClasses(config);
-  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
-  const textColor = styles?.textColor || '#374151';
-
-  return (
-    <section className={`${paddingClass} px-4`} style={backgroundStyle}>
-      <div className={`mx-auto ${containerClasses.width} ${containerClasses.padding}`}>
-        <div className="max-w-4xl mx-auto">
-          {styles?.imagePosition === 'above' && content.image && styles?.imageLayout !== 'side' && (
-            <img src={content.image} alt={content.title || 'Imagem'} className="w-full h-64 object-cover rounded-lg mb-4 shadow-md" />
-          )}
-          <h3 className={`sm:text-xl font-semibold mb-4 ${getAlignClass(styles?.titleAlign || 'left')}`} style={{ color: titleColor }}>{content.title || 'Seção'}</h3>
-          {styles?.imagePosition === 'between' && content.image && styles?.imageLayout !== 'side' && (
-            <img src={content.image} alt={content.title || 'Imagem'} className="w-full h-64 object-cover rounded-lg my-4 shadow-md" />
-          )}
-          {content.text && <p className={`text-sm sm:text-base ${getAlignClass(styles?.textAlign || 'left')}`} style={{ color: textColor }}>{content.text}</p>}
-          {styles?.imagePosition === 'below' && content.image && styles?.imageLayout !== 'side' && (
-            <img src={content.image} alt={content.title || 'Imagem'} className="w-full h-64 object-cover rounded-lg mt-4 shadow-md" />
-          )}
-          <div className="mt-6">{renderButton(content.button, config)}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ✅ CONTACT PREVIEW ATUALIZADO
-function ContactPreview({ section, config, getBackgroundStyle, getSectionPadding, getContainerClasses, getAlignClass, renderButton }) {
-  const { content, styles } = section;
-  const backgroundStyle = getBackgroundStyle(styles);
-  const paddingClass = getSectionPadding(styles);
-  const containerClasses = getContainerClasses(config);
-  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
-  const textColor = styles?.textColor || '#374151';
-
-  return (
-    <section className={`${paddingClass} px-4`} style={backgroundStyle}>
-      <div className={`mx-auto ${containerClasses.width} ${containerClasses.padding}`}>
-        <div className="max-w-4xl mx-auto">
-          <h3 className={`sm:text-xl font-semibold mb-4 ${getAlignClass(styles?.titleAlign || 'center')}`} style={{ color: titleColor }}>{content.title || 'Contato'}</h3>
-          {content.text && <p className={`text-sm sm:text-base ${getAlignClass(styles?.textAlign || 'center')} mb-4`} style={{ color: textColor }}>{content.text}</p>}
-          <div className={getAlignClass(styles?.textAlign || 'center')}>
-            {renderButton(content.button, config)}
-            {!content.button?.text && config?.whatsapp_numero && (
-              <a href={`https://wa.me/${config.whatsapp_numero}`} className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600">📱 Falar no WhatsApp</a>
-            )}
+            <div className="p-4">
+              <h4 className="font-bold text-base sm:text-lg" style={{ color: titleColor }}>Vestido Exemplo {i}</h4>
+              <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: priceColor }}>R$ 199,90</p>
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ✅ CONTENT PREVIEW
+function ContentPreview({ section, config, index }) {
+  const { content, styles } = section;
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
+  }
+
+  const imagePosition = styles?.imagePosition || 'above';
+  const imageLayout = styles?.imageLayout || 'none';
+  const hasGridImages = content.gridImages?.length > 0;
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const textColor = styles?.textColor || '#374151';
+  const titleAlign = styles?.titleAlign || 'left';
+  const textAlign = styles?.textAlign || 'left';
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
+
+  return (
+    <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
+      <div className="max-w-4xl mx-auto">
+        {imagePosition === 'above' && content.image && imageLayout !== 'side' && (
+          <img 
+            src={content.image} 
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
+          />
+        )}
+
+        <h3 className={`sm:text-xl font-semibold mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+          {content.title || 'Seção'}
+        </h3>
+
+        {imagePosition === 'between' && content.image && imageLayout !== 'side' && (
+          <img 
+            src={content.image} 
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg my-4 shadow-md"
+          />
+        )}
+
+        {imageLayout === 'side' && content.image && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-4">
+            <div className={alignClasses[textAlign]}>
+              {content.text && <p className="text-sm sm:text-base" style={{ color: textColor }}>{content.text}</p>}
+            </div>
+            <div>
+              <img 
+                src={content.image} 
+                alt={content.title || 'Imagem da seção'} 
+                className="w-full h-64 object-cover rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+        )}
+
+        {imageLayout === 'grid' && hasGridImages && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 mb-4">
+            {content.gridImages.map((img, i) => (
+              img && (
+                <img
+                  key={i}
+                  src={img}
+                  alt={`Grid ${i}`}
+                  className="w-full h-32 object-cover rounded shadow"
+                />
+              )
+            ))}
+          </div>
+        )}
+
+        {imageLayout !== 'side' && content.text && (
+          <p className={`text-sm sm:text-base ${alignClasses[textAlign]}`} style={{ color: textColor }}>
+            {content.text}
+          </p>
+        )}
+
+        {imagePosition === 'below' && content.image && imageLayout !== 'side' && (
+          <img 
+            src={content.image} 
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg mt-4 shadow-md"
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ✅ CONTACT PREVIEW
+function ContactPreview({ section, config }) {
+  const { content, styles } = section;
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#f9fafb';
+  }
+
+  const titleAlign = styles?.titleAlign || 'center';
+  const textAlign = styles?.textAlign || 'center';
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const textColor = styles?.textColor || '#374151';
+
+  return (
+    <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
+      <div className="max-w-4xl mx-auto">
+        <h3 className={`sm:text-xl font-semibold mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+          {content.title || 'Contato'}
+        </h3>
+        {content.text && (
+          <p className={`text-sm sm:text-base ${alignClasses[textAlign]} mb-4`} style={{ color: textColor }}>
+            {content.text}
+          </p>
+        )}
+        {config?.whatsapp_numero && (
+          <div className={alignClasses[textAlign]}>
+            <a
+              href={`https://wa.me/${config.whatsapp_numero}`}
+              className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              📱 Falar no WhatsApp
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );
