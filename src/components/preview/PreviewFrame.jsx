@@ -3,10 +3,11 @@ export default function PreviewFrame({ viewMode, children }) {
     return (
       <div className="h-full overflow-y-auto bg-gray-200 p-4 sm:p-8">
         <div className="flex justify-center min-h-full">
-          {/* Container Desktop com borda e sombra */}
           <div className="w-full max-w-6xl bg-white rounded-xl overflow-hidden shadow-2xl border border-gray-300">
-            {/* Barra de rolagem customizada */}
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+            <div className="h-full overflow-y-auto" style={{ 
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#9ca3af #e5e7eb'
+            }}>
               {children}
             </div>
           </div>
@@ -15,7 +16,7 @@ export default function PreviewFrame({ viewMode, children }) {
     );
   }
 
-  // Mobile view (já está perfeito)
+  // Mobile view
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-8 bg-gray-200">
       <div className="flex justify-center min-h-full">
@@ -25,8 +26,11 @@ export default function PreviewFrame({ viewMode, children }) {
             <div className="w-20 h-4 bg-black rounded-full"></div>
           </div>
           
-          {/* Content com scrollbar */}
-          <div className="h-[calc(100%-1.5rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+          {/* Content */}
+          <div className="h-[calc(100%-1.5rem)] overflow-y-auto" style={{ 
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#6b7280 #e5e7eb'
+          }}>
             {children}
           </div>
           
