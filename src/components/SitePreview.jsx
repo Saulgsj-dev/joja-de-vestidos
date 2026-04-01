@@ -14,10 +14,9 @@ export default function SitePreview({ config, sections, selectedSection }) {
   const contentSections = previewSections.filter(s => s.section_type === 'content');
   const contactSection = previewSections.find(s => s.section_type === 'contact');
 
-  const containerWidth = viewMode === 'mobile' ? 'max-w-md' : 'w-full';
-
   return (
     <div className="h-full flex flex-col bg-gray-100 rounded-xl overflow-hidden shadow-2xl">
+      {/* Header do Preview */}
       <div className="bg-white px-4 py-3 border-b flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -27,62 +26,95 @@ export default function SitePreview({ config, sections, selectedSection }) {
           </div>
           <span className="text-sm font-semibold text-gray-700 ml-2">Preview ao vivo</span>
         </div>
-        <div className="flex bg-gray-200 rounded-lg p-1">
+        
+        {/* Toggle Desktop/Mobile */}
+        <div className="flex bg-gray-200 rounded-lg p-1 gap-1">
           <button
             onClick={() => setViewMode('desktop')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
               viewMode === 'desktop'
                 ? 'bg-white text-purple-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
             }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
+            <span className="hidden sm:inline">Desktop</span>
           </button>
           <button
             onClick={() => setViewMode('mobile')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
               viewMode === 'mobile'
                 ? 'bg-white text-purple-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
             }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
+            <span className="hidden sm:inline">Mobile</span>
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-gray-200 p-4">
-        <div className={`${containerWidth} mx-auto bg-white shadow-2xl transition-all duration-300`}>
-          {headerSection ? (
-            <Header config={config} sections={[headerSection]} isPreview={true} />
-          ) : (
-            <div className="bg-gray-200 p-4 text-center text-sm text-gray-500">
-              Header não configurado
+      {/* Área de Preview com Scroll */}
+      <div className="flex-1 overflow-y-auto bg-gray-200 p-4 sm:p-8">
+        <div className="flex justify-center min-h-full">
+          {/* Container do Preview */}
+          <div 
+            className={`
+              bg-white shadow-2xl transition-all duration-500 ease-in-out
+              ${viewMode === 'mobile' 
+                ? 'w-[375px] min-h-[667px] rounded-[3rem] border-8 border-gray-800 overflow-hidden' 
+                : 'w-full max-w-7xl rounded-lg overflow-hidden'
+              }
+            `}
+          >
+            {/* Barra de status do mobile (apenas no modo mobile) */}
+            {viewMode === 'mobile' && (
+              <div className="bg-gray-800 h-6 flex items-center justify-center">
+                <div className="w-20 h-4 bg-black rounded-full"></div>
+              </div>
+            )}
+            
+            {/* Conteúdo do Site */}
+            <div className={`${viewMode === 'mobile' ? 'h-[calc(100%-1.5rem)]' : 'h-full'} overflow-y-auto`}>
+              {headerSection ? (
+                <Header config={config} sections={[headerSection]} isPreview={true} />
+              ) : (
+                <div className="bg-gray-200 p-4 text-center text-sm text-gray-500">
+                  Header não configurado
+                </div>
+              )}
+
+              {heroSection && (
+                <HeroPreview section={heroSection} config={config} />
+              )}
+
+              {productsSection && (
+                <ProductsPreview section={productsSection} config={config} />
+              )}
+
+              {contentSections.map((section, index) => (
+                <ContentPreview key={section.id} section={section} config={config} index={index} />
+              ))}
+
+              {contactSection && (
+                <ContactPreview section={contactSection} config={config} />
+              )}
+
+              <FooterPreview config={config} />
+              <div className="h-8"></div>
             </div>
-          )}
 
-          {heroSection && (
-            <HeroPreview section={heroSection} config={config} />
-          )}
-
-          {productsSection && (
-            <ProductsPreview section={productsSection} config={config} />
-          )}
-
-          {contentSections.map((section, index) => (
-            <ContentPreview key={section.id} section={section} config={config} index={index} />
-          ))}
-
-          {contactSection && (
-            <ContactPreview section={contactSection} config={config} />
-          )}
-
-          <FooterPreview config={config} />
-          <div className="h-8"></div>
+            {/* Home indicator do mobile (apenas no modo mobile) */}
+            {viewMode === 'mobile' && (
+              <div className="bg-gray-800 h-1 flex justify-center items-end pb-1">
+                <div className="w-32 h-1 bg-white rounded-full"></div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
