@@ -1,7 +1,6 @@
-// src/lib/apiClient.js
 import { supabase } from './supabaseClient';
 
-const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://saas-vestidos-api.webpagesuporte.workers.dev';
 
 export async function apiRequest(endpoint, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();

@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -38,18 +37,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ✅ Rota pública com ID da loja */}
         <Route path="/:storeId" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
       </Routes>
     </Router>
   );

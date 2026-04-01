@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -22,13 +21,10 @@ export default function Login() {
 
     try {
       if (isSignUp) {
-        // Cadastro
         const { data: { user }, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: { nome_loja: nomeLoja }
-          }
+          options: { data: { nome_loja: nomeLoja } }
         });
         
         if (error) throw error;
@@ -38,7 +34,6 @@ export default function Login() {
           setIsSignUp(false);
         }
       } else {
-        // Login
         const { data: { session }, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -69,12 +64,9 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
-          {/* Campo Nome da Loja (apenas no cadastro) */}
           {isSignUp && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome da Loja
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Loja</label>
               <input
                 type="text"
                 value={nomeLoja}
@@ -86,11 +78,8 @@ export default function Login() {
             </div>
           )}
 
-          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               value={email}
@@ -101,11 +90,8 @@ export default function Login() {
             />
           </div>
 
-          {/* Senha */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Senha
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
             <input
               type="password"
               value={password}
@@ -117,50 +103,31 @@ export default function Login() {
             />
           </div>
 
-          {/* Mensagem de erro */}
           {error && (
-            <p className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">
-              {error}
-            </p>
+            <p className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">{error}</p>
           )}
 
-          {/* Botão */}
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading 
-              ? 'Carregando...' 
-              : isSignUp 
-                ? 'Criar Conta' 
-                : 'Entrar'
-            }
+            {loading ? 'Carregando...' : isSignUp ? 'Criar Conta' : 'Entrar'}
           </button>
         </form>
 
-        {/* Toggle Login/Cadastro */}
         <p className="text-center text-sm text-gray-500 mt-6">
           {isSignUp ? 'Já tem conta?' : 'Não tem conta?'}{' '}
           <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-            }}
+            onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
             className="text-pink-600 font-medium hover:underline"
           >
             {isSignUp ? 'Fazer Login' : 'Cadastrar'}
           </button>
         </p>
 
-        {/* Link para voltar ao site */}
         <p className="text-center text-sm text-gray-400 mt-4">
-          <button
-            onClick={() => navigate('/')}
-            className="hover:text-gray-600"
-          >
-            ← Voltar para o site
-          </button>
+          <button onClick={() => navigate('/')} className="hover:text-gray-600">← Voltar para o site</button>
         </p>
       </div>
     </div>

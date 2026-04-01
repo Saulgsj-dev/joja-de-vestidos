@@ -1,13 +1,11 @@
-// frontend/src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { supabase } from '../lib/supabaseClient';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 
 export default function Home() {
-  const { storeId } = useParams(); // ✅ Pega o ID da loja da URL
+  const { storeId } = useParams();
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -15,7 +13,6 @@ export default function Home() {
   const [profileId, setProfileId] = useState(null);
 
   useEffect(() => {
-    // ✅ Prioriza storeId da URL, senão tenta pegar da sessão
     const getProfileId = async () => {
       if (storeId) {
         setProfileId(storeId);
@@ -24,40 +21,29 @@ export default function Home() {
       
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const id = session?.user?.id || null;
-        
-        // ✅ Se não tem storeId e não está logado, permite carregar sem profileId
-        setProfileId(id);
+        if (session?.user?.id) {
+          setProfileId(session.user.id);
+          return;
+        }
       } catch (error) {
         console.error('Erro ao pegar session:', error);
-        setProfileId(null); // ✅ Garante que profileId seja definido mesmo com erro
       }
+      
+      // ✅ FALLBACK: Usa ID de demonstração para página pública
+      setProfileId(import.meta.env.VITE_DEMO_PROFILE_ID || 'demo-profile-id');
     };
-    
+
     getProfileId();
   }, [storeId]);
 
   useEffect(() => {
-    // ✅ Carrega dados sempre, mesmo sem profileId (para visitantes)
-    carregarDados();
+    if (profileId) {
+      carregarDados();
+    }
   }, [profileId]);
 
   const carregarDados = async () => {
     try {
-      // ✅ Se não tem profileId, carrega dados vazios/demo
-      if (!profileId) {
-        setConfig({
-          cor_fundo: '#ffffff',
-          cor_texto: '#000000',
-          cor_botao: '#000000',
-          footer_texto: '© 2024 Minha Loja de Vestidos',
-          nome_loja: 'Minha Loja'
-        });
-        setSections([]);
-        setProdutos([]);
-        return;
-      }
-
       const [sectionsData, configData, produtosData] = await Promise.all([
         apiRequest(`/api/sections?profile_id=${profileId}`).catch(() => []),
         apiRequest(`/api/config?profile_id=${profileId}`),
@@ -69,17 +55,8 @@ export default function Home() {
       setProdutos(produtosData || []);
     } catch (e) {
       console.error('Erro ao carregar dados:', e);
-      // ✅ Mesmo com erro, define valores padrão
-      setConfig({
-        cor_fundo: '#ffffff',
-        cor_texto: '#000000',
-        cor_botao: '#000000',
-        footer_texto: '© 2024 Minha Loja de Vestidos'
-      });
-      setSections([]);
-      setProdutos([]);
     } finally {
-      setLoading(false); // ✅ GARANTE que loading seja false
+      setLoading(false);
     }
   };
 
@@ -95,16 +72,16 @@ export default function Home() {
 
   const renderSection = (section) => {
     const { content, styles, section_type } = section;
-    
+
     switch (section_type) {
       case 'header':
         return null;
-      
+
       case 'hero':
         const hasLeftImage = content.leftImage;
         const hasRightImage = content.rightImage;
         const backgroundStyle = {};
-        
+
         if (styles.backgroundType === 'image' && styles.backgroundImage) {
           const opacity = (styles.backgroundOpacity || 100) / 100;
           backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
@@ -128,11 +105,7 @@ export default function Home() {
               {hasLeftImage && hasRightImage ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                   <div className="hidden lg:block order-2 lg:order-1">
-                    <img
-                      src={content.leftImage}
-                      alt="Lateral Esquerda"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
+                    <img src={content.leftImage} alt="Lateral Esquerda" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" />
                   </div>
                   <div className="order-1 lg:order-2 text-center">
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
@@ -143,37 +116,12 @@ export default function Home() {
                     </p>
                     {content.image && (
                       <div className="relative w-full flex justify-center mt-4 sm:mt-6">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 350px)' }}
-                        />
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(40vh, 350px)' }} />
                       </div>
                     )}
                   </div>
                   <div className="hidden lg:block order-3">
-                    <img
-                      src={content.rightImage}
-                      alt="Lateral Direita"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
-                  </div>
-                  <div className="lg:hidden order-3 grid grid-cols-2 gap-3 sm:gap-4 mt-6">
-                    {hasLeftImage && (
-                      <img
-                        src={content.leftImage}
-                        alt="Lateral Esquerda"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
-                    {hasRightImage && (
-                      <img
-                        src={content.rightImage}
-                        alt="Lateral Direita"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
+                    <img src={content.rightImage} alt="Lateral Direita" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" />
                   </div>
                 </div>
               ) : hasLeftImage || hasRightImage ? (
@@ -187,21 +135,12 @@ export default function Home() {
                     </p>
                     {content.image && (
                       <div className="relative w-full flex justify-center">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 300px)' }}
-                        />
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(40vh, 300px)' }} />
                       </div>
                     )}
                   </div>
                   <div className={hasRightImage ? 'md:order-1' : 'md:order-2'}>
-                    <img
-                      src={hasLeftImage ? content.leftImage : content.rightImage}
-                      alt="Lateral"
-                      className="w-full h-48 sm:h-64 md:h-80 object-cover rounded-lg shadow-xl"
-                    />
+                    <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-48 sm:h-64 md:h-80 object-cover rounded-lg shadow-xl" />
                   </div>
                 </div>
               ) : (
@@ -214,12 +153,7 @@ export default function Home() {
                   </p>
                   {content.image && (
                     <div className="relative w-full flex justify-center">
-                      <img
-                        src={content.image}
-                        alt="Principal"
-                        className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
-                        style={{ maxHeight: 'min(50vh, 450px)' }}
-                      />
+                      <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(50vh, 450px)' }} />
                     </div>
                   )}
                 </div>
@@ -227,7 +161,7 @@ export default function Home() {
             </div>
           </section>
         );
-      
+
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
@@ -256,7 +190,7 @@ export default function Home() {
             )}
           </section>
         );
-      
+
       case 'content':
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
@@ -268,7 +202,7 @@ export default function Home() {
             </div>
           </section>
         );
-      
+
       default:
         return null;
     }
@@ -276,29 +210,26 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      {/* ✅ Header Component - Passando sections também */}
       <Header config={config} sections={sections} />
-      
-      {/* Renderiza as seções (exceto header) */}
+
       {sections.length > 0 ? (
         sections
           .filter(section => section.section_type !== 'header')
           .map(renderSection)
       ) : (
-        <>
-          <section className="py-12 sm:py-16 px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
-              {config?.nome_loja || 'Minha Loja de Vestidos'}
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
-              Elegância e estilo para você
-            </p>
-          </section>
-        </>
+        <section className="py-12 sm:py-16 px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
+            Coleção de Vestidos
+          </h2>
+          <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
+            Elegância e estilo para você
+          </p>
+        </section>
       )}
-      
-      {/* ✅ Footer Component */}
-      <Footer config={config} />
+
+      <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
+        <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
+      </footer>
     </div>
   );
 }
