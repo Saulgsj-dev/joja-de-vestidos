@@ -1,0 +1,13 @@
+# ✅ robots.txt para SaaS de Vestidos
+User-agent: *
+Allow: /
+Allow: /:storeId
+Disallow: /admin
+Disallow: /login
+Disallow: /api/
+
+# ✅ Sitemap
+Sitemap: https://jojadevestidos.netlify.app/sitemap.xml
+
+# ✅ Delay de crawl para não sobrecarregar
+Crawl-delay: 1

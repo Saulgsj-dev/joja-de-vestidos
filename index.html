@@ -1,10 +1,56 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    
+    <!-- ✅ SEO: Meta Description dinâmica (será preenchida pelo JS) -->
+    <meta name="description" content="Loja de vestidos exclusivos. Encontre o vestido perfeito para sua ocasião especial." />
+    <meta name="keywords" content="vestidos, moda feminina, loja online, vestidos de festa" />
+    <meta name="author" content="Minha Loja de Vestidos" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- ✅ Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Minha Loja de Vestidos" />
+    <meta property="og:description" content="Encontre vestidos exclusivos para todas as ocasiões." />
+    <meta property="og:url" content="https://jojadevestidos.netlify.app" />
+    
+    <!-- ✅ Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Minha Loja de Vestidos" />
+    <meta name="twitter:description" content="Vestidos exclusivos para você brilhar." />
+    
+    <!-- ✅ Preconnect para recursos externos (melhora performance) -->
+    <link rel="preconnect" href="https://jwmoftfgoiwbfwitcyrf.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://saas-vestidos-api.webpagesuporte.workers.dev" crossorigin />
+    <link rel="preconnect" href="https://pub-94710721ffb942c0bb900bb52d0d47ef.r2.dev" crossorigin />
+    
+    <!-- ✅ Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- ✅ Manifest para PWA (opcional) -->
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <title>Minha Loja de Vestidos</title>
+    
+    <!-- ✅ Schema.org JSON-LD para SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": "Minha Loja de Vestidos",
+      "url": "https://jojadevestidos.netlify.app",
+      "description": "Loja especializada em vestidos exclusivos para todas as ocasiões.",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "BR"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
