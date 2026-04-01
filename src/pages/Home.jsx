@@ -104,14 +104,38 @@ export default function Home() {
   };
 
   // ✅ FUNÇÃO PARA OBTER CLASSES DE FONTE
-  const getFontClasses = (styles, defaultSize = 'medium', defaultWeight = 'normal') => {
+  const getTitleFontClasses = (styles, defaultSize = 'medium', defaultWeight = 'normal') => {
     const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg', xlarge: 'text-xl' };
     const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
     return {
-      size: fontSizes[styles?.fontSize || defaultSize],
-      weight: fontWeights[styles?.fontWeight || defaultWeight],
-      color: styles?.fontColor || config?.cor_texto || '#000000'
+      size: fontSizes[styles?.titleFontSize || defaultSize],
+      weight: fontWeights[styles?.titleFontWeight || defaultWeight],
+      color: styles?.titleColor || config?.cor_texto || '#000000',
+      align: styles?.titleAlign || 'center'
     };
+  };
+
+  const getSubtitleFontClasses = (styles, defaultSize = 'medium') => {
+    const fontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
+    return {
+      size: fontSizes[styles?.subtitleFontSize || defaultSize],
+      color: styles?.subtitleColor || '#e5e7eb',
+      align: styles?.subtitleAlign || 'center'
+    };
+  };
+
+  const getTextFontClasses = (styles, defaultSize = 'medium') => {
+    const fontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
+    return {
+      size: fontSizes[styles?.textFontSize || defaultSize],
+      color: styles?.textColor || '#374151',
+      align: styles?.textAlign || 'left'
+    };
+  };
+
+  const getAlignClass = (align) => {
+    const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
+    return alignClasses[align] || 'text-center';
   };
 
   const renderSection = (section) => {
@@ -123,7 +147,9 @@ export default function Home() {
 
       case 'hero':
         const heroBgStyle = getBackgroundStyle(styles);
-        const heroFont = getFontClasses(styles, 'large', 'bold');
+        const heroTitleFont = getTitleFontClasses(styles, 'large', 'bold');
+        const heroSubtitleFont = getSubtitleFontClasses(styles, 'medium');
+        const imagePosition = styles?.imagePosition || 'above';
         const imageLayout = styles?.imageLayout || 'center';
         const hasLeftImage = content.leftImage;
         const hasRightImage = content.rightImage;
@@ -139,15 +165,25 @@ export default function Home() {
             <div className="max-w-7xl mx-auto relative z-10">
               {/* Layout Centralizado */}
               {imageLayout === 'center' && (
-                <div className="text-center">
-                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                <div className={getAlignClass(heroTitleFont.align)}>
+                  {imagePosition === 'above' && content.image && (
+                    <div className="mb-4 flex justify-center">
+                      <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
+                    </div>
+                  )}
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                     {content.title || 'Bem-vindo'}
                   </h2>
+                  {imagePosition === 'between' && content.image && (
+                    <div className="mb-4 flex justify-center">
+                      <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
+                    </div>
+                  )}
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
                     {content.subtitle || 'Sua mensagem aqui'}
                   </p>
-                  {content.image && (
-                    <div className="flex justify-center">
+                  {imagePosition === 'below' && content.image && (
+                    <div className="mt-4 flex justify-center">
                       <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                     </div>
                   )}
@@ -160,15 +196,25 @@ export default function Home() {
                   <div className="hidden lg:block">
                     <img src={content.leftImage} alt="Lateral Esquerda" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
                   </div>
-                  <div className="text-center">
-                    <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                  <div className={getAlignClass(heroTitleFont.align)}>
+                    {imagePosition === 'above' && content.image && (
+                      <div className="mb-4 flex justify-center">
+                        <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
+                      </div>
+                    )}
+                    <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                       {content.title || 'Bem-vindo'}
                     </h2>
+                    {imagePosition === 'between' && content.image && (
+                      <div className="mb-4 flex justify-center">
+                        <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
+                      </div>
+                    )}
                     <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-6 text-white drop-shadow-md">
                       {content.subtitle || 'Sua mensagem aqui'}
                     </p>
-                    {content.image && (
-                      <div className="flex justify-center">
+                    {imagePosition === 'below' && content.image && (
+                      <div className="mt-4 flex justify-center">
                         <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                       </div>
                     )}
@@ -181,15 +227,25 @@ export default function Home() {
 
               {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  <div className="text-center md:text-left">
-                    <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                  <div className={getAlignClass(heroTitleFont.align)}>
+                    {imagePosition === 'above' && content.image && (
+                      <div className="mb-4 flex justify-center md:justify-start">
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                      </div>
+                    )}
+                    <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                       {content.title || 'Bem-vindo'}
                     </h2>
+                    {imagePosition === 'between' && content.image && (
+                      <div className="mb-4 flex justify-center md:justify-start">
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                      </div>
+                    )}
                     <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto md:mx-0 mb-6 text-white drop-shadow-md">
                       {content.subtitle || 'Sua mensagem aqui'}
                     </p>
-                    {content.image && (
-                      <div className="flex justify-center md:justify-start">
+                    {imagePosition === 'below' && content.image && (
+                      <div className="mt-4 flex justify-center md:justify-start">
                         <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
                       </div>
                     )}
@@ -201,8 +257,8 @@ export default function Home() {
               )}
 
               {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
-                <div className="text-center">
-                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                <div className={getAlignClass(heroTitleFont.align)}>
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                     {content.title || 'Bem-vindo'}
                   </h2>
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
@@ -213,8 +269,8 @@ export default function Home() {
 
               {/* Layout Grid */}
               {imageLayout === 'grid' && hasGridImages && (
-                <div className="text-center">
-                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                <div className={getAlignClass(heroTitleFont.align)}>
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                     {content.title || 'Bem-vindo'}
                   </h2>
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
@@ -236,8 +292,8 @@ export default function Home() {
               )}
 
               {imageLayout === 'grid' && !hasGridImages && (
-                <div className="text-center">
-                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                <div className={getAlignClass(heroTitleFont.align)}>
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroTitleFont.weight} mb-4 text-white drop-shadow-lg`}>
                     {content.title || 'Bem-vindo'}
                   </h2>
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
@@ -251,10 +307,11 @@ export default function Home() {
 
       case 'products':
         const productsBgStyle = getBackgroundStyle(styles);
-        const productsFont = getFontClasses(styles, 'medium', 'bold');
+        const productsTitleFont = getTitleFontClasses(styles, 'medium', 'bold');
+        const priceColor = styles?.priceColor || config?.cor_botao || '#000000';
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12" style={productsBgStyle}>
-            <h3 className={`sm:text-2xl ${productsFont.weight} text-center mb-8`} style={{ color: productsFont.color }}>
+            <h3 className={`sm:text-2xl ${productsTitleFont.weight} mb-8 ${getAlignClass(productsTitleFont.align)}`} style={{ color: productsTitleFont.color }}>
               {content.title || 'Nossos Produtos'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -264,9 +321,9 @@ export default function Home() {
                     <img src={produto.imagem_url || PLACEHOLDER} alt={produto.titulo} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-4">
-                    <h4 className={`font-bold ${productsFont.size}`} style={{ color: productsFont.color }}>{produto.titulo}</h4>
+                    <h4 className={`font-bold ${productsTitleFont.size}`} style={{ color: productsTitleFont.color }}>{produto.titulo}</h4>
                     {produto.preco && (
-                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>
+                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: priceColor }}>{produto.preco}</p>
                     )}
                   </div>
                 </div>
@@ -280,18 +337,15 @@ export default function Home() {
 
       case 'content':
         const contentBgStyle = getBackgroundStyle(styles);
-        const contentFont = getFontClasses(styles, 'medium', 'normal');
+        const contentTitleFont = getTitleFontClasses(styles, 'medium', 'semibold');
+        const contentTextFont = getTextFontClasses(styles, 'medium');
+        const contentImagePosition = styles?.imagePosition || 'above';
         const contentImageLayout = styles?.imageLayout || 'none';
         const hasContentGridImages = content.gridImages?.length > 0;
         return (
           <section key={section.id} className="py-8 sm:py-12 px-4" style={contentBgStyle}>
             <div className="max-w-4xl mx-auto">
-              <h3 className={`sm:text-xl ${contentFont.weight} mb-4`} style={{ color: contentFont.color }}>
-                {content.title || 'Seção'}
-              </h3>
-
-              {/* Layout Centro */}
-              {contentImageLayout === 'center' && content.image && (
+              {contentImagePosition === 'above' && content.image && contentImageLayout !== 'side' && (
                 <img 
                   src={content.image} 
                   alt={content.title || 'Imagem da seção'} 
@@ -299,11 +353,22 @@ export default function Home() {
                 />
               )}
 
-              {/* Layout Lateral */}
+              <h3 className={`sm:text-xl ${contentTitleFont.weight} mb-4 ${getAlignClass(contentTitleFont.align)}`} style={{ color: contentTitleFont.color }}>
+                {content.title || 'Seção'}
+              </h3>
+
+              {contentImagePosition === 'between' && content.image && contentImageLayout !== 'side' && (
+                <img 
+                  src={content.image} 
+                  alt={content.title || 'Imagem da seção'} 
+                  className="w-full h-64 object-cover rounded-lg my-4 shadow-md"
+                />
+              )}
+
               {contentImageLayout === 'side' && content.image && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-4">
-                  <div>
-                    {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
+                  <div className={getAlignClass(contentTextFont.align)}>
+                    {content.text && <p className={`${contentTextFont.size}`} style={{ color: contentTextFont.color }}>{content.text}</p>}
                   </div>
                   <div>
                     <img 
@@ -315,7 +380,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Layout Grid */}
               {contentImageLayout === 'grid' && hasContentGridImages && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 mb-4">
                   {content.gridImages.map((img, i) => (
@@ -331,9 +395,18 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Texto (exceto quando layout side) */}
               {contentImageLayout !== 'side' && content.text && (
-                <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>
+                <p className={`${contentTextFont.size} ${getAlignClass(contentTextFont.align)}`} style={{ color: contentTextFont.color }}>
+                  {content.text}
+                </p>
+              )}
+
+              {contentImagePosition === 'below' && content.image && contentImageLayout !== 'side' && (
+                <img 
+                  src={content.image} 
+                  alt={content.title || 'Imagem da seção'} 
+                  className="w-full h-64 object-cover rounded-lg mt-4 shadow-md"
+                />
               )}
             </div>
           </section>
@@ -341,21 +414,28 @@ export default function Home() {
 
       case 'contact':
         const contactBgStyle = getBackgroundStyle(styles);
-        const contactFont = getFontClasses(styles, 'medium', 'semibold');
+        const contactTitleFont = getTitleFontClasses(styles, 'medium', 'semibold');
+        const contactTextFont = getTextFontClasses(styles, 'medium');
         return (
           <section key={section.id} className="py-8 sm:py-12 px-4" style={contactBgStyle}>
-            <div className="max-w-4xl mx-auto text-center">
-              <h3 className={`sm:text-xl ${contactFont.weight} mb-4`} style={{ color: contactFont.color }}>
+            <div className="max-w-4xl mx-auto">
+              <h3 className={`sm:text-xl ${contactTitleFont.weight} mb-4 ${getAlignClass(contactTitleFont.align)}`} style={{ color: contactTitleFont.color }}>
                 {content.title || 'Contato'}
               </h3>
-              {content.text && <p className="text-gray-700 text-sm sm:text-base mb-4">{content.text}</p>}
+              {content.text && (
+                <p className={`${contactTextFont.size} ${getAlignClass(contactTextFont.align)} mb-4`} style={{ color: contactTextFont.color }}>
+                  {content.text}
+                </p>
+              )}
               {config?.whatsapp_numero && (
-                <a
-                  href={`https://wa.me/${config.whatsapp_numero}`}
-                  className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                >
-                  📱 Falar no WhatsApp
-                </a>
+                <div className={getAlignClass(contactTextFont.align)}>
+                  <a
+                    href={`https://wa.me/${config.whatsapp_numero}`}
+                    className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  >
+                    📱 Falar no WhatsApp
+                  </a>
+                </div>
               )}
             </div>
           </section>

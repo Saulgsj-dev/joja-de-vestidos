@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('sections');
   const [storeSlug, setStoreSlug] = useState(null);
+  const [activeAccordion, setActiveAccordion] = useState('content');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,11 +144,9 @@ export default function AdminDashboard() {
         console.warn('⚠️ Não foi possível extrair fileName de:', imageUrl);
         return;
       }
-      console.log('🗑️ Deletando imagem antiga:', fileName);
       await apiRequest(`/api/upload/${encodeURIComponent(fileName)}`, {
         method: 'DELETE'
       });
-      console.log('✅ Requisição de delete enviada');
     } catch (e) {
       console.warn('⚠️ Não foi possível deletar imagem antiga:', e.message);
     }
@@ -171,7 +170,6 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  // ✅ UPLOAD GENÉRICO PARA QUALQUER IMAGEM DA SEÇÃO
   const handleImageUpload = async (e, imageField, isStyle = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -183,7 +181,6 @@ export default function AdminDashboard() {
       const oldImageUrl = isStyle 
         ? selectedSection?.styles?.[imageField] 
         : selectedSection?.content?.[imageField];
-      alert('📤 Fazendo upload...');
       const { url: newUrl } = await uploadImage(file);
       
       const updateData = {
@@ -226,43 +223,35 @@ export default function AdminDashboard() {
   };
 
   const handleBackgroundTypeChange = (type) => {
-    const updatedSection = {
+    setSelectedSection({
       ...selectedSection,
-      styles: {
-        ...selectedSection.styles,
-        backgroundType: type
-      }
-    };
-    setSelectedSection(updatedSection);
+      styles: { ...selectedSection.styles, backgroundType: type }
+    });
   };
 
   const handleRemoveImage = (imageField, isStyle = false) => {
     if (!selectedSection) return;
-    const updated = {
+    setSelectedSection({
       ...selectedSection,
       [isStyle ? 'styles' : 'content']: {
         ...(isStyle ? selectedSection.styles : selectedSection.content),
         [imageField]: ''
       }
-    };
-    setSelectedSection(updated);
+    });
   };
 
-  // ✅ ADICIONAR NOVA IMAGEM AO ARRAY DE IMAGENS
   const handleAddImage = (imageArrayField) => {
     if (!selectedSection) return;
     const currentImages = selectedSection.content?.[imageArrayField] || [];
-    const updated = {
+    setSelectedSection({
       ...selectedSection,
       content: {
         ...selectedSection.content,
         [imageArrayField]: [...currentImages, '']
       }
-    };
-    setSelectedSection(updated);
+    });
   };
 
-  // ✅ UPLOAD PARA IMAGEM ESPECÍFICA DO ARRAY
   const handleImageArrayUpload = async (e, imageArrayField, index) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -272,36 +261,29 @@ export default function AdminDashboard() {
     }
     try {
       const oldImageUrl = selectedSection?.content?.[imageArrayField]?.[index];
-      alert('📤 Fazendo upload...');
       const { url: newUrl } = await uploadImage(file);
       
       const currentImages = selectedSection.content?.[imageArrayField] || [];
       const updatedImages = [...currentImages];
       updatedImages[index] = newUrl;
       
-      const updateData = {
-        id: selectedSection.id,
-        section_type: selectedSection.section_type,
-        section_order: selectedSection.section_order,
-        content: { ...selectedSection.content, [imageArrayField]: updatedImages },
-        styles: selectedSection.styles,
-        is_active: selectedSection.is_active
-      };
-
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({
+          id: selectedSection.id,
+          section_type: selectedSection.section_type,
+          section_order: selectedSection.section_order,
+          content: { ...selectedSection.content, [imageArrayField]: updatedImages },
+          styles: selectedSection.styles,
+          is_active: selectedSection.is_active
+        })
       });
 
-      const updatedSection = {
+      setSelectedSection({
         ...selectedSection,
-        content: {
-          ...selectedSection.content,
-          [imageArrayField]: updatedImages
-        }
-      };
-      setSelectedSection(updatedSection);
+        content: { ...selectedSection.content, [imageArrayField]: updatedImages }
+      });
       
       if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
@@ -312,19 +294,14 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ REMOVER IMAGEM DO ARRAY
   const handleRemoveImageFromArray = (imageArrayField, index) => {
     if (!selectedSection) return;
     const currentImages = selectedSection.content?.[imageArrayField] || [];
     const updatedImages = currentImages.filter((_, i) => i !== index);
-    const updated = {
+    setSelectedSection({
       ...selectedSection,
-      content: {
-        ...selectedSection.content,
-        [imageArrayField]: updatedImages
-      }
-    };
-    setSelectedSection(updated);
+      content: { ...selectedSection.content, [imageArrayField]: updatedImages }
+    });
   };
 
   if (loading) {
@@ -337,10 +314,28 @@ export default function AdminDashboard() {
 
   const publicSiteUrl = storeSlug ? `/${storeSlug}` : '/';
 
+  // ✅ Componente Accordion
+  const Accordion = ({ id, title, children, defaultOpen = false }) => (
+    <div className="border rounded-lg overflow-hidden mb-3">
+      <button
+        onClick={() => setActiveAccordion(activeAccordion === id ? null : id)}
+        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition"
+      >
+        <span className="font-semibold text-gray-700">{title}</span>
+        <svg className={`w-5 h-5 transition-transform ${activeAccordion === id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {(activeAccordion === id || defaultOpen) && (
+        <div className="p-4 bg-white">{children}</div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
       {/* Header fixo do admin */}
-      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
+      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{config.nome_loja || 'Minha loja de vestidos'}</h1>
           <div className="flex gap-2">
@@ -377,7 +372,7 @@ export default function AdminDashboard() {
               {sections.map((section, index) => (
                 <div key={section.id} className="relative group">
                   <button
-                    onClick={() => setSelectedSection(section)}
+                    onClick={() => { setSelectedSection(section); setActiveAccordion('content'); }}
                     className={`w-full p-3 rounded-lg text-left transition ${
                       selectedSection?.id === section.id
                         ? 'bg-purple-100 border-2 border-purple-500'
@@ -492,11 +487,10 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* ========== HEADER EDITOR (SEM ALTERAÇÕES) ========== */}
+              {/* ========== HEADER EDITOR ========== */}
               {selectedSection.section_type === 'header' && (
-                <div className="space-y-5">
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-purple-800 mb-3">🎨 Aparência do Header</h3>
+                <div className="space-y-3">
+                  <Accordion id="header-appearance" title="🎨 Aparência" defaultOpen={true}>
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => handleStyleUpdate('bgType', 'solid')}
@@ -558,9 +552,9 @@ export default function AdminDashboard() {
                         className="w-full h-10 rounded cursor-pointer"
                       />
                     </div>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-blue-800 mb-3">⬅️ Lado Esquerdo</h3>
+                  </Accordion>
+
+                  <Accordion id="header-left" title="⬅️ Lado Esquerdo">
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => handleStyleUpdate('leftType', 'text')}
@@ -597,525 +591,179 @@ export default function AdminDashboard() {
                         <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'logo', false)} className="w-full text-sm" />
                         {(selectedSection.content?.logo || selectedSection.styles?.leftLogo) && (
                           <div className="mt-2 relative inline-block">
-                            <img
-                              src={selectedSection.content?.logo || selectedSection.styles?.leftLogo}
-                              alt="Logo"
-                              className="h-12 object-contain rounded border"
-                            />
-                            <button
-                              onClick={() => { handleSectionUpdate('logo', ''); handleStyleUpdate('leftLogo', ''); }}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                            >
-                              ×
-                            </button>
+                            <img src={selectedSection.content?.logo || selectedSection.styles?.leftLogo} alt="Logo" className="h-12 object-contain rounded border" />
+                            <button onClick={() => { handleSectionUpdate('logo', ''); handleStyleUpdate('leftLogo', ''); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
+                  </Accordion>
                 </div>
               )}
 
               {/* ========== HERO EDITOR ========== */}
               {selectedSection.section_type === 'hero' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">📝 Conteúdo</h3>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título Principal</label>
-                    <input
-                      type="text"
-                      value={selectedSection.content.title || ''}
-                      onChange={(e) => handleSectionUpdate('title', e.target.value)}
-                      className="w-full p-2 border rounded text-xl"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Subtítulo/Descrição</label>
-                    <textarea
-                      value={selectedSection.content.subtitle || ''}
-                      onChange={(e) => handleSectionUpdate('subtitle', e.target.value)}
-                      className="w-full p-2 border rounded"
-                      rows="3"
-                    />
-                  </div>
-
-                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🔤 Estilo da Fonte</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles?.fontColor || '#ffffff'}
-                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
-                        className="w-full h-10 rounded cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tamanho</label>
-                      <select
-                        value={selectedSection.styles?.fontSize || 'large'}
-                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="small">Pequeno</option>
-                        <option value="medium">Médio</option>
-                        <option value="large">Grande</option>
-                        <option value="xlarge">Extra Grande</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Peso</label>
-                      <select
-                        value={selectedSection.styles?.fontWeight || 'bold'}
-                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="semibold">Semi-negrito</option>
-                        <option value="bold">Negrito</option>
-                        <option value="extrabold">Extra Negrito</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Imagem Principal (Centro)</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'image', false)}
-                      className="w-full"
-                    />
-                    {selectedSection.content.image && (
-                      <img
-                        src={selectedSection.content.image}
-                        alt="Principal"
-                        className="mt-2 w-full h-48 object-cover rounded"
-                      />
-                    )}
-                  </div>
-
-                  {/* 🎨 FUNDO */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🎨 Fundo</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleBackgroundTypeChange('color')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Cor de Fundo
-                    </button>
-                    <button
-                      onClick={() => handleBackgroundTypeChange('image')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Imagem de Fundo
-                    </button>
-                  </div>
-                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles.backgroundColor || '#faf5ff'}
-                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
-                        className="w-full h-10 rounded"
-                      />
-                    </div>
-                  )}
-                  {selectedSection.styles.backgroundType === 'image' && (
-                    <>
+                <div className="space-y-3">
+                  {/* 📝 CONTEÚDO */}
+                  <Accordion id="content" title="📝 Conteúdo" defaultOpen={true}>
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                        <label className="block text-sm font-medium mb-2">Título Principal</label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
-                          className="w-full"
-                        />
-                        {selectedSection.styles.backgroundImage && (
-                          <img
-                            src={selectedSection.styles.backgroundImage}
-                            alt="Fundo"
-                            className="mt-2 w-full h-48 object-cover rounded"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={selectedSection.styles.backgroundOpacity || 100}
-                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
-                          className="w-full"
+                          type="text"
+                          value={selectedSection.content.title || ''}
+                          onChange={(e) => handleSectionUpdate('title', e.target.value)}
+                          className="w-full p-2 border rounded text-xl"
+                          placeholder="Digite o título..."
                         />
                       </div>
-                    </>
-                  )}
-
-                  {/* 🖼️ LAYOUT DE IMAGENS */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🖼️ Layout de Imagens</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'center')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'center' || !selectedSection.styles?.imageLayout
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Centralizado
-                    </button>
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'sides')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'sides' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Laterais
-                    </button>
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'grid')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Grid
-                    </button>
-                  </div>
-
-                  {/* Imagens Laterais (apenas para layout sides) */}
-                  {(selectedSection.styles?.imageLayout === 'sides' || !selectedSection.styles?.imageLayout) && (
-                    <>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'leftImage', false)}
-                          className="w-full"
+                        <label className="block text-sm font-medium mb-2">Subtítulo/Descrição</label>
+                        <textarea
+                          value={selectedSection.content.subtitle || ''}
+                          onChange={(e) => handleSectionUpdate('subtitle', e.target.value)}
+                          className="w-full p-2 border rounded"
+                          rows="3"
+                          placeholder="Digite a descrição..."
                         />
-                        {selectedSection.content.leftImage && (
-                          <div className="mt-2 relative">
-                            <img
-                              src={selectedSection.content.leftImage}
-                              alt="Esquerda"
-                              className="w-full h-32 object-cover rounded"
-                            />
-                            <button
-                              onClick={() => handleRemoveImage('leftImage', false)}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  {/* 🎨 CORES DOS TEXTOS */}
+                  <Accordion id="text-colors" title="🎨 Cores dos Textos">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Título</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.titleColor || '#ffffff'}
+                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
+                        <label className="block text-sm font-medium mb-2">Cor da Descrição</label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'rightImage', false)}
-                          className="w-full"
+                          type="color"
+                          value={selectedSection.styles?.subtitleColor || '#e5e7eb'}
+                          onChange={(e) => handleStyleUpdate('subtitleColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
                         />
-                        {selectedSection.content.rightImage && (
-                          <div className="mt-2 relative">
-                            <img
-                              src={selectedSection.content.rightImage}
-                              alt="Direita"
-                              className="w-full h-32 object-cover rounded"
-                            />
-                            <button
-                              onClick={() => handleRemoveImage('rightImage', false)}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </Accordion>
 
-                  {/* Grid de Imagens (para layout grid) */}
-                  {selectedSection.styles?.imageLayout === 'grid' && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
-                      <div className="space-y-2">
-                        {(selectedSection.content.gridImages || []).map((img, index) => (
-                          <div key={index} className="flex gap-2 items-center">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)}
-                              className="flex-1 text-sm"
-                            />
-                            <button
-                              onClick={() => handleRemoveImageFromArray('gridImages', index)}
-                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => handleAddImage('gridImages')}
-                          className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500"
+                  {/* 🔤 ESTILO DA FONTE */}
+                  <Accordion id="font-styles" title="🔤 Estilo da Fonte">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontSize || 'large'}
+                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
                         >
-                          + Adicionar Imagem
-                        </button>
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                          <option value="xlarge">Extra Grande</option>
+                        </select>
                       </div>
-                      {selectedSection.content.gridImages?.length > 0 && (
-                        <div className="grid grid-cols-3 gap-2 mt-4">
-                          {selectedSection.content.gridImages.map((img, index) => (
-                            img && (
-                              <img
-                                key={index}
-                                src={img}
-                                alt={`Grid ${index}`}
-                                className="w-full h-24 object-cover rounded"
-                              />
-                            )
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Peso do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontWeight || 'bold'}
+                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="semibold">Semi-negrito</option>
+                          <option value="bold">Negrito</option>
+                          <option value="extrabold">Extra Negrito</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho da Descrição</label>
+                        <select
+                          value={selectedSection.styles?.subtitleFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('subtitleFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  {/* 📐 ALINHAMENTOS */}
+                  <Accordion id="alignments" title="📐 Alinhamentos">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Alinhamento do Título</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️ Esquerda' : align === 'center' ? '↕️ Centro' : '➡️ Direita'}
+                            </button>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ========== PRODUCTS SECTION EDITOR ========== */}
-              {selectedSection.section_type === 'products' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título da Seção</label>
-                    <input 
-                      type="text" 
-                      value={selectedSection.content.title || ''} 
-                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
-                      className="w-full p-2 border rounded" 
-                    />
-                  </div>
-                  
-                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
-                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
-                        className="w-full h-10 rounded cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tamanho</label>
-                      <select
-                        value={selectedSection.styles?.fontSize || 'medium'}
-                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="small">Pequeno</option>
-                        <option value="medium">Médio</option>
-                        <option value="large">Grande</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Peso</label>
-                      <select
-                        value={selectedSection.styles?.fontWeight || 'bold'}
-                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="semibold">Semi-negrito</option>
-                        <option value="bold">Negrito</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* 🎨 FUNDO */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleBackgroundTypeChange('color')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Cor de Fundo
-                    </button>
-                    <button
-                      onClick={() => handleBackgroundTypeChange('image')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Imagem de Fundo
-                    </button>
-                  </div>
-                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles.backgroundColor || '#ffffff'}
-                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
-                        className="w-full h-10 rounded"
-                      />
-                    </div>
-                  )}
-                  {selectedSection.styles.backgroundType === 'image' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
-                          className="w-full"
-                        />
-                        {selectedSection.styles.backgroundImage && (
-                          <img
-                            src={selectedSection.styles.backgroundImage}
-                            alt="Fundo"
-                            className="mt-2 w-full h-48 object-cover rounded"
-                          />
-                        )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={selectedSection.styles.backgroundOpacity || 100}
-                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
-                          className="w-full"
-                        />
+                        <label className="block text-sm font-medium mb-2">Alinhamento da Descrição</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('subtitleAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.subtitleAlign === align || (!selectedSection.styles?.subtitleAlign && align === 'center')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️ Esquerda' : align === 'center' ? '↕️ Centro' : '➡️ Direita'}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </>
-                  )}
-                  
-                  <p className="text-sm text-gray-500 mt-4">Esta seção mostra automaticamente os produtos cadastrados.</p>
-                </div>
-              )}
-
-              {/* ========== CONTENT SECTIONS EDITOR ========== */}
-              {selectedSection.section_type === 'content' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título</label>
-                    <input 
-                      type="text" 
-                      value={selectedSection.content.title || ''} 
-                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
-                      className="w-full p-2 border rounded" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Texto</label>
-                    <textarea 
-                      value={selectedSection.content.text || ''} 
-                      onChange={(e) => handleSectionUpdate('text', e.target.value)} 
-                      className="w-full p-2 border rounded" 
-                      rows="4" 
-                    />
-                  </div>
-                  
-                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
-                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
-                        className="w-full h-10 rounded cursor-pointer"
-                      />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tamanho</label>
-                      <select
-                        value={selectedSection.styles?.fontSize || 'medium'}
-                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="small">Pequeno</option>
-                        <option value="medium">Médio</option>
-                        <option value="large">Grande</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Peso</label>
-                      <select
-                        value={selectedSection.styles?.fontWeight || 'normal'}
-                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="semibold">Semi-negrito</option>
-                        <option value="bold">Negrito</option>
-                      </select>
-                    </div>
-                  </div>
+                  </Accordion>
 
-                  {/* 🖼️ LAYOUT DE IMAGENS */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🖼️ Layout de Imagens</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'none')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'none' || !selectedSection.styles?.imageLayout
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Sem Imagem
-                    </button>
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'center')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'center' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Centro
-                    </button>
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'side')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'side' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Lateral
-                    </button>
-                    <button
-                      onClick={() => handleStyleUpdate('imageLayout', 'grid')}
-                      className={`flex-1 py-2 rounded text-sm ${
-                        selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Grid
-                    </button>
-                  </div>
-
-                  {/* Imagem Única (center ou side) */}
-                  {(selectedSection.styles?.imageLayout === 'center' || selectedSection.styles?.imageLayout === 'side') && (
+                  {/* 🖼️ POSIÇÃO DA IMAGEM */}
+                  <Accordion id="image-position" title="🖼️ Posição da Imagem">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Imagem</label>
+                      <label className="block text-sm font-medium mb-2">Posição da Imagem Principal</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 'above', label: '📍 Acima do Título', icon: '⬆️' },
+                          { value: 'between', label: '📍 Entre Título e Descrição', icon: '↕️' },
+                          { value: 'below', label: '📍 Abaixo da Descrição', icon: '⬇️' }
+                        ].map(pos => (
+                          <button
+                            key={pos.value}
+                            onClick={() => handleStyleUpdate('imagePosition', pos.value)}
+                            className={`p-3 rounded-lg text-sm border-2 transition ${
+                              selectedSection.styles?.imagePosition === pos.value || (!selectedSection.styles?.imagePosition && pos.value === 'above')
+                                ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300'
+                            }`}
+                          >
+                            <div className="text-2xl mb-1">{pos.icon}</div>
+                            <div className="text-xs">{pos.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium mb-2">Imagem Principal</label>
                       <input
                         type="file"
                         accept="image/*"
@@ -1123,268 +771,724 @@ export default function AdminDashboard() {
                         className="w-full"
                       />
                       {selectedSection.content.image && (
-                        <div className="mt-2 relative inline-block">
-                          <img
-                            src={selectedSection.content.image}
-                            alt="Seção"
-                            className="w-full h-48 object-cover rounded"
-                          />
-                          <button
-                            onClick={() => handleRemoveImage('image', false)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                          >
-                            ×
-                          </button>
+                        <div className="mt-2 relative">
+                          <img src={selectedSection.content.image} alt="Principal" className="w-full h-48 object-cover rounded" />
+                          <button onClick={() => handleRemoveImage('image', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
                         </div>
                       )}
                     </div>
-                  )}
+                  </Accordion>
 
-                  {/* Grid de Imagens */}
-                  {selectedSection.styles?.imageLayout === 'grid' && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
-                      <div className="space-y-2">
-                        {(selectedSection.content.gridImages || []).map((img, index) => (
-                          <div key={index} className="flex gap-2 items-center">
+                  {/* 🎨 FUNDO */}
+                  <Accordion id="background" title="🎨 Fundo da Seção">
+                    <div className="space-y-4">
+                      <div className="flex gap-2 mb-4">
+                        <button
+                          onClick={() => handleBackgroundTypeChange('color')}
+                          className={`flex-1 py-2 rounded ${
+                            selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                              ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                          }`}
+                        >
+                          Cor de Fundo
+                        </button>
+                        <button
+                          onClick={() => handleBackgroundTypeChange('image')}
+                          className={`flex-1 py-2 rounded ${
+                            selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                          }`}
+                        >
+                          Imagem de Fundo
+                        </button>
+                      </div>
+                      {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                          <input
+                            type="color"
+                            value={selectedSection.styles.backgroundColor || '#faf5ff'}
+                            onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                            className="w-full h-10 rounded"
+                          />
+                        </div>
+                      )}
+                      {selectedSection.styles.backgroundType === 'image' && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)}
-                              className="flex-1 text-sm"
+                              onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
+                              className="w-full"
                             />
-                            <button
-                              onClick={() => handleRemoveImageFromArray('gridImages', index)}
-                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                            >
-                              ×
-                            </button>
+                            {selectedSection.styles.backgroundImage && (
+                              <img src={selectedSection.styles.backgroundImage} alt="Fundo" className="mt-2 w-full h-48 object-cover rounded" />
+                            )}
                           </div>
-                        ))}
-                        <button
-                          onClick={() => handleAddImage('gridImages')}
-                          className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500"
-                        >
-                          + Adicionar Imagem
-                        </button>
-                      </div>
-                      {selectedSection.content.gridImages?.length > 0 && (
-                        <div className="grid grid-cols-3 gap-2 mt-4">
-                          {selectedSection.content.gridImages.map((img, index) => (
-                            img && (
-                              <img
-                                key={index}
-                                src={img}
-                                alt={`Grid ${index}`}
-                                className="w-full h-24 object-cover rounded"
-                              />
-                            )
-                          ))}
-                        </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={selectedSection.styles.backgroundOpacity || 100}
+                              onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                              className="w-full"
+                            />
+                          </div>
+                        </>
                       )}
                     </div>
-                  )}
-                  
-                  {/* 🎨 FUNDO */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleBackgroundTypeChange('color')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Cor de Fundo
-                    </button>
-                    <button
-                      onClick={() => handleBackgroundTypeChange('image')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Imagem de Fundo
-                    </button>
-                  </div>
-                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles.backgroundColor || '#faf5ff'}
-                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
-                        className="w-full h-10 rounded"
-                      />
+                  </Accordion>
+
+                  {/* 🖼️ LAYOUT DE IMAGENS */}
+                  <Accordion id="image-layout" title="🖼️ Layout de Imagens">
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'center' || !selectedSection.styles?.imageLayout
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Centralizado
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'sides')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'sides' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Laterais
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Grid
+                      </button>
                     </div>
-                  )}
-                  {selectedSection.styles.backgroundType === 'image' && (
-                    <>
+                    {(selectedSection.styles?.imageLayout === 'sides' || !selectedSection.styles?.imageLayout) && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'leftImage', false)} className="w-full" />
+                          {selectedSection.content.leftImage && (
+                            <div className="mt-2 relative">
+                              <img src={selectedSection.content.leftImage} alt="Esquerda" className="w-full h-32 object-cover rounded" />
+                              <button onClick={() => handleRemoveImage('leftImage', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'rightImage', false)} className="w-full" />
+                          {selectedSection.content.rightImage && (
+                            <div className="mt-2 relative">
+                              <img src={selectedSection.content.rightImage} alt="Direita" className="w-full h-32 object-cover rounded" />
+                              <button onClick={() => handleRemoveImage('rightImage', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                    {selectedSection.styles?.imageLayout === 'grid' && (
                       <div>
-                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
-                          className="w-full"
-                        />
-                        {selectedSection.styles.backgroundImage && (
-                          <img
-                            src={selectedSection.styles.backgroundImage}
-                            alt="Fundo"
-                            className="mt-2 w-full h-48 object-cover rounded"
-                          />
+                        <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
+                        <div className="space-y-2">
+                          {(selectedSection.content.gridImages || []).map((img, index) => (
+                            <div key={index} className="flex gap-2 items-center">
+                              <input type="file" accept="image/*" onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)} className="flex-1 text-sm" />
+                              <button onClick={() => handleRemoveImageFromArray('gridImages', index)} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
+                            </div>
+                          ))}
+                          <button onClick={() => handleAddImage('gridImages')} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
+                        </div>
+                        {selectedSection.content.gridImages?.length > 0 && (
+                          <div className="grid grid-cols-3 gap-2 mt-4">
+                            {selectedSection.content.gridImages.map((img, index) => (
+                              img && <img key={index} src={img} alt={`Grid ${index}`} className="w-full h-24 object-cover rounded" />
+                            ))}
+                          </div>
                         )}
                       </div>
+                    )}
+                  </Accordion>
+                </div>
+              )}
+
+              {/* ========== PRODUCTS SECTION EDITOR ========== */}
+              {selectedSection.section_type === 'products' && (
+                <div className="space-y-3">
+                  <Accordion id="products-content" title="📝 Conteúdo" defaultOpen={true}>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Título da Seção</label>
+                      <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="products-text-colors" title="🎨 Cores dos Textos">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
-                        </label>
+                        <label className="block text-sm font-medium mb-2">Cor do Título</label>
                         <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={selectedSection.styles.backgroundOpacity || 100}
-                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
-                          className="w-full"
+                          type="color"
+                          value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
+                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
                         />
                       </div>
-                    </>
-                  )}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Preço</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.priceColor || config.cor_botao || '#000000'}
+                          onChange={(e) => handleStyleUpdate('priceColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="products-alignments" title="📐 Alinhamentos">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Alinhamento do Título</label>
+                      <div className="flex gap-2">
+                        {['left', 'center', 'right'].map(align => (
+                          <button
+                            key={align}
+                            onClick={() => handleStyleUpdate('titleAlign', align)}
+                            className={`flex-1 py-2 rounded text-sm ${
+                              selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
+                                ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                            }`}
+                          >
+                            {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="products-font" title="🔤 Estilo da Fonte">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Peso do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontWeight || 'bold'}
+                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="semibold">Semi-negrito</option>
+                          <option value="bold">Negrito</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="products-background" title="🎨 Fundo da Seção">
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleBackgroundTypeChange('color')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Cor de Fundo
+                      </button>
+                      <button
+                        onClick={() => handleBackgroundTypeChange('image')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Imagem de Fundo
+                      </button>
+                    </div>
+                    {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles.backgroundColor || '#ffffff'}
+                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          className="w-full h-10 rounded"
+                        />
+                      </div>
+                    )}
+                    {selectedSection.styles.backgroundType === 'image' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage', true)} className="w-full" />
+                          {selectedSection.styles.backgroundImage && (
+                            <img src={selectedSection.styles.backgroundImage} alt="Fundo" className="mt-2 w-full h-48 object-cover rounded" />
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                        </div>
+                      </>
+                    )}
+                  </Accordion>
+
+                  <p className="text-sm text-gray-500 mt-4">Esta seção mostra automaticamente os produtos cadastrados.</p>
+                </div>
+              )}
+
+              {/* ========== CONTENT SECTIONS EDITOR ========== */}
+              {selectedSection.section_type === 'content' && (
+                <div className="space-y-3">
+                  <Accordion id="content-text" title="📝 Texto" defaultOpen={true}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Título</label>
+                        <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Texto/Descrição</label>
+                        <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="content-text-colors" title="🎨 Cores dos Textos">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Título</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
+                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Texto</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.textColor || '#374151'}
+                          onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="content-alignments" title="📐 Alinhamentos">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Alinhamento do Título</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'left')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Alinhamento do Texto</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('textAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.textAlign === align || (!selectedSection.styles?.textAlign && align === 'left')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="content-font" title="🔤 Estilo da Fonte">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Peso do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontWeight || 'semibold'}
+                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="semibold">Semi-negrito</option>
+                          <option value="bold">Negrito</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
+                        <select
+                          value={selectedSection.styles?.textFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="content-image-position" title="🖼️ Posição da Imagem">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Posição da Imagem</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[
+                          { value: 'none', label: '❌ Sem Imagem' },
+                          { value: 'above', label: '⬆️ Acima' },
+                          { value: 'between', label: '↕️ Entre' },
+                          { value: 'below', label: '⬇️ Abaixo' }
+                        ].map(pos => (
+                          <button
+                            key={pos.value}
+                            onClick={() => handleStyleUpdate('imagePosition', pos.value)}
+                            className={`p-2 rounded-lg text-xs border-2 transition ${
+                              selectedSection.styles?.imagePosition === pos.value || (!selectedSection.styles?.imagePosition && pos.value === 'above')
+                                ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300'
+                            }`}
+                          >
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {(selectedSection.styles?.imagePosition !== 'none') && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium mb-2">Imagem</label>
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'image', false)} className="w-full" />
+                        {selectedSection.content.image && (
+                          <div className="mt-2 relative inline-block">
+                            <img src={selectedSection.content.image} alt="Seção" className="w-full h-48 object-cover rounded" />
+                            <button onClick={() => handleRemoveImage('image', false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Accordion>
+
+                  <Accordion id="content-image-layout" title="🖼️ Layout de Imagens">
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'none')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'none' || !selectedSection.styles?.imageLayout
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Sem Layout
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'center' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Centro
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'side')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'side' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Lateral
+                      </button>
+                      <button
+                        onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                        className={`flex-1 py-2 rounded text-sm ${
+                          selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Grid
+                      </button>
+                    </div>
+                    {selectedSection.styles?.imageLayout === 'grid' && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
+                        <div className="space-y-2">
+                          {(selectedSection.content.gridImages || []).map((img, index) => (
+                            <div key={index} className="flex gap-2 items-center">
+                              <input type="file" accept="image/*" onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)} className="flex-1 text-sm" />
+                              <button onClick={() => handleRemoveImageFromArray('gridImages', index)} className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600">×</button>
+                            </div>
+                          ))}
+                          <button onClick={() => handleAddImage('gridImages')} className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500">+ Adicionar Imagem</button>
+                        </div>
+                        {selectedSection.content.gridImages?.length > 0 && (
+                          <div className="grid grid-cols-3 gap-2 mt-4">
+                            {selectedSection.content.gridImages.map((img, index) => (
+                              img && <img key={index} src={img} alt={`Grid ${index}`} className="w-full h-24 object-cover rounded" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Accordion>
+
+                  <Accordion id="content-background" title="🎨 Fundo da Seção">
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleBackgroundTypeChange('color')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Cor de Fundo
+                      </button>
+                      <button
+                        onClick={() => handleBackgroundTypeChange('image')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Imagem de Fundo
+                      </button>
+                    </div>
+                    {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles.backgroundColor || '#faf5ff'}
+                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          className="w-full h-10 rounded"
+                        />
+                      </div>
+                    )}
+                    {selectedSection.styles.backgroundType === 'image' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage', true)} className="w-full" />
+                          {selectedSection.styles.backgroundImage && (
+                            <img src={selectedSection.styles.backgroundImage} alt="Fundo" className="mt-2 w-full h-48 object-cover rounded" />
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                        </div>
+                      </>
+                    )}
+                  </Accordion>
                 </div>
               )}
 
               {/* ========== CONTACT SECTION EDITOR ========== */}
               {selectedSection.section_type === 'contact' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título</label>
-                    <input 
-                      type="text" 
-                      value={selectedSection.content.title || ''} 
-                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
-                      className="w-full p-2 border rounded" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Texto</label>
-                    <textarea 
-                      value={selectedSection.content.text || ''} 
-                      onChange={(e) => handleSectionUpdate('text', e.target.value)} 
-                      className="w-full p-2 border rounded" 
-                      rows="4" 
-                    />
-                  </div>
-                  
-                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
-                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
-                        className="w-full h-10 rounded cursor-pointer"
-                      />
+                <div className="space-y-3">
+                  <Accordion id="contact-content" title="📝 Conteúdo" defaultOpen={true}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Título</label>
+                        <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Texto</label>
+                        <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tamanho</label>
-                      <select
-                        value={selectedSection.styles?.fontSize || 'medium'}
-                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="small">Pequeno</option>
-                        <option value="medium">Médio</option>
-                        <option value="large">Grande</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Peso</label>
-                      <select
-                        value={selectedSection.styles?.fontWeight || 'semibold'}
-                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="semibold">Semi-negrito</option>
-                        <option value="bold">Negrito</option>
-                      </select>
-                    </div>
-                  </div>
+                  </Accordion>
 
-                  {/* 🎨 FUNDO */}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => handleBackgroundTypeChange('color')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
-                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Cor de Fundo
-                    </button>
-                    <button
-                      onClick={() => handleBackgroundTypeChange('image')}
-                      className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
-                      }`}
-                    >
-                      Imagem de Fundo
-                    </button>
-                  </div>
-                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
-                      <input
-                        type="color"
-                        value={selectedSection.styles.backgroundColor || '#f9fafb'}
-                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
-                        className="w-full h-10 rounded"
-                      />
+                  <Accordion id="contact-text-colors" title="🎨 Cores dos Textos">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Título</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.titleColor || config.cor_texto || '#000000'}
+                          onChange={(e) => handleStyleUpdate('titleColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor do Texto</label>
+                        <input
+                          type="color"
+                          value={selectedSection.styles?.textColor || '#374151'}
+                          onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+                          className="w-full h-10 rounded cursor-pointer"
+                        />
+                      </div>
                     </div>
-                  )}
-                  {selectedSection.styles.backgroundType === 'image' && (
-                    <>
+                  </Accordion>
+
+                  <Accordion id="contact-alignments" title="📐 Alinhamentos">
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
-                          className="w-full"
-                        />
-                        {selectedSection.styles.backgroundImage && (
-                          <img
-                            src={selectedSection.styles.backgroundImage}
-                            alt="Fundo"
-                            className="mt-2 w-full h-48 object-cover rounded"
-                          />
-                        )}
+                        <label className="block text-sm font-medium mb-2">Alinhamento do Título</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('titleAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.titleAlign === align || (!selectedSection.styles?.titleAlign && align === 'center')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
-                        </label>
+                        <label className="block text-sm font-medium mb-2">Alinhamento do Texto</label>
+                        <div className="flex gap-2">
+                          {['left', 'center', 'right'].map(align => (
+                            <button
+                              key={align}
+                              onClick={() => handleStyleUpdate('textAlign', align)}
+                              className={`flex-1 py-2 rounded text-sm ${
+                                selectedSection.styles?.textAlign === align || (!selectedSection.styles?.textAlign && align === 'center')
+                                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                              }`}
+                            >
+                              {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="contact-font" title="🔤 Estilo da Fonte">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Peso do Título</label>
+                        <select
+                          value={selectedSection.styles?.titleFontWeight || 'semibold'}
+                          onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="semibold">Semi-negrito</option>
+                          <option value="bold">Negrito</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
+                        <select
+                          value={selectedSection.styles?.textFontSize || 'medium'}
+                          onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="small">Pequeno</option>
+                          <option value="medium">Médio</option>
+                          <option value="large">Grande</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  <Accordion id="contact-background" title="🎨 Fundo da Seção">
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => handleBackgroundTypeChange('color')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Cor de Fundo
+                      </button>
+                      <button
+                        onClick={() => handleBackgroundTypeChange('image')}
+                        className={`flex-1 py-2 rounded ${
+                          selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                        }`}
+                      >
+                        Imagem de Fundo
+                      </button>
+                    </div>
+                    {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
                         <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={selectedSection.styles.backgroundOpacity || 100}
-                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
-                          className="w-full"
+                          type="color"
+                          value={selectedSection.styles.backgroundColor || '#f9fafb'}
+                          onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                          className="w-full h-10 rounded"
                         />
                       </div>
-                    </>
-                  )}
+                    )}
+                    {selectedSection.styles.backgroundType === 'image' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'backgroundImage', true)} className="w-full" />
+                          {selectedSection.styles.backgroundImage && (
+                            <img src={selectedSection.styles.backgroundImage} alt="Fundo" className="mt-2 w-full h-48 object-cover rounded" />
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Opacidade: {selectedSection.styles.backgroundOpacity || 100}%</label>
+                          <input type="range" min="0" max="100" value={selectedSection.styles.backgroundOpacity || 100} onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))} className="w-full" />
+                        </div>
+                      </>
+                    )}
+                  </Accordion>
                 </div>
               )}
 
-              <button 
-                onClick={() => salvarSection(selectedSection)} 
-                className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-              >
+              <button onClick={() => salvarSection(selectedSection)} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full font-semibold">
                 💾 Salvar Alterações
               </button>
             </div>
@@ -1397,11 +1501,7 @@ export default function AdminDashboard() {
 
         {/* Preview em Tempo Real */}
         <div className="flex-1 min-w-0 bg-cyan-200 rounded-2xl p-6">
-          <SitePreview
-            config={config}
-            sections={sections}
-            selectedSection={selectedSection}
-          />
+          <SitePreview config={config} sections={sections} selectedSection={selectedSection} />
         </div>
       </div>
     </div>

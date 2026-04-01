@@ -89,7 +89,7 @@ export default function SitePreview({ config, sections, selectedSection }) {
   );
 }
 
-// ✅ HERO PREVIEW COM FONTES E LAYOUTS PERSONALIZADOS
+// ✅ HERO PREVIEW COM CORES, ALINHAMENTOS E POSIÇÃO DE IMAGEM
 function HeroPreview({ section, config }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -107,17 +107,28 @@ function HeroPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
-  // Configurar fonte
-  const fontSizes = { small: 'text-lg', medium: 'text-xl', large: 'text-2xl', xlarge: 'text-3xl' };
-  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
-  const titleSize = fontSizes[styles?.fontSize || 'large'];
-  const titleWeight = fontWeights[styles?.fontWeight || 'bold'];
-  const fontColor = styles?.fontColor || '#ffffff';
+  // Configurar fontes
+  const titleFontSizes = { small: 'text-lg', medium: 'text-xl', large: 'text-2xl', xlarge: 'text-3xl' };
+  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
+  const subtitleFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
 
+  const titleSize = titleFontSizes[styles?.titleFontSize || 'large'];
+  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'bold'];
+  const titleColor = styles?.titleColor || '#ffffff';
+  const titleAlign = styles?.titleAlign || 'center';
+
+  const subtitleSize = subtitleFontSizes[styles?.subtitleFontSize || 'medium'];
+  const subtitleColor = styles?.subtitleColor || '#e5e7eb';
+  const subtitleAlign = styles?.subtitleAlign || 'center';
+
+  // Posição da imagem
+  const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'center';
   const hasLeftImage = content.leftImage;
   const hasRightImage = content.rightImage;
   const hasGridImages = content.gridImages?.length > 0;
+
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
   return (
     <section className="py-8 sm:py-12 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
@@ -125,14 +136,31 @@ function HeroPreview({ section, config }) {
       <div className="relative z-10">
         {/* Layout Centralizado */}
         {imageLayout === 'center' && (
-          <div className="text-center">
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+          <div className={alignClasses[titleAlign]}>
+            {/* Imagem ACIMA do título */}
+            {imagePosition === 'above' && content.image && (
+              <div className="mb-4 flex justify-center">
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+              </div>
+            )}
+
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
               {content.title || 'Coleção de Vestidos'}
             </h2>
-            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2" style={{ color: fontColor }}>
+
+            {/* Imagem ENTRE título e descrição */}
+            {imagePosition === 'between' && content.image && (
+              <div className="mb-4 flex justify-center">
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+              </div>
+            )}
+
+            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Elegância e estilo para você'}
             </p>
-            {content.image && (
+
+            {/* Imagem ABAIXO da descrição */}
+            {imagePosition === 'below' && content.image && (
               <div className="mt-4 flex justify-center">
                 <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
               </div>
@@ -146,14 +174,24 @@ function HeroPreview({ section, config }) {
             <div className="hidden lg:block">
               <img src={content.leftImage} alt="Esquerda" className="w-full h-auto max-h-64 object-contain rounded-lg shadow-xl" />
             </div>
-            <div className="text-center">
-              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+            <div className={alignClasses[titleAlign]}>
+              {imagePosition === 'above' && content.image && (
+                <div className="mb-4 flex justify-center">
+                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                </div>
+              )}
+              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
                 {content.title || 'Coleção de Vestidos'}
               </h2>
-              <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2" style={{ color: fontColor }}>
+              {imagePosition === 'between' && content.image && (
+                <div className="mb-4 flex justify-center">
+                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                </div>
+              )}
+              <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2`} style={{ color: subtitleColor }}>
                 {content.subtitle || 'Elegância e estilo para você'}
               </p>
-              {content.image && (
+              {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center">
                   <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
                 </div>
@@ -167,14 +205,24 @@ function HeroPreview({ section, config }) {
 
         {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className="text-center md:text-left">
-              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+            <div className={alignClasses[titleAlign]}>
+              {imagePosition === 'above' && content.image && (
+                <div className="mb-4 flex justify-center md:justify-start">
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
+                </div>
+              )}
+              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
                 {content.title || 'Coleção de Vestidos'}
               </h2>
-              <p className="text-xs sm:text-sm opacity-90 drop-shadow-md" style={{ color: fontColor }}>
+              {imagePosition === 'between' && content.image && (
+                <div className="mb-4 flex justify-center md:justify-start">
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
+                </div>
+              )}
+              <p className={`${subtitleSize} opacity-90 drop-shadow-md`} style={{ color: subtitleColor }}>
                 {content.subtitle || 'Elegância e estilo para você'}
               </p>
-              {content.image && (
+              {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center md:justify-start">
                   <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
                 </div>
@@ -187,14 +235,24 @@ function HeroPreview({ section, config }) {
         )}
 
         {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
-          <div className="text-center">
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: fontColor }}>
+          <div className={alignClasses[titleAlign]}>
+            {imagePosition === 'above' && content.image && (
+              <div className="mb-4 flex justify-center">
+                <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
+              </div>
+            )}
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: titleColor }}>
               {content.title || 'Coleção de Vestidos'}
             </h2>
-            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-4" style={{ color: fontColor }}>
+            {imagePosition === 'between' && content.image && (
+              <div className="mb-4 flex justify-center">
+                <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
+              </div>
+            )}
+            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-4`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Elegância e estilo para você'}
             </p>
-            {content.image && (
+            {imagePosition === 'below' && content.image && (
               <div className="mt-4 flex justify-center">
                 <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
               </div>
@@ -204,11 +262,11 @@ function HeroPreview({ section, config }) {
 
         {/* Layout Grid */}
         {imageLayout === 'grid' && hasGridImages && (
-          <div className="text-center">
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+          <div className={alignClasses[titleAlign]}>
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
               {content.title || 'Coleção de Vestidos'}
             </h2>
-            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2 mb-4" style={{ color: fontColor }}>
+            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2 mb-4`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Elegância e estilo para você'}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
@@ -227,11 +285,11 @@ function HeroPreview({ section, config }) {
         )}
 
         {imageLayout === 'grid' && !hasGridImages && (
-          <div className="text-center">
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: fontColor }}>
+          <div className={alignClasses[titleAlign]}>
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: titleColor }}>
               {content.title || 'Coleção de Vestidos'}
             </h2>
-            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-4" style={{ color: fontColor }}>
+            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-4`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Elegância e estilo para você'}
             </p>
           </div>
@@ -241,9 +299,9 @@ function HeroPreview({ section, config }) {
   );
 }
 
-// ✅ PRODUCTS PREVIEW COM FONTES PERSONALIZADAS
+// ✅ PRODUCTS PREVIEW COM CORES E ALINHAMENTOS
 function ProductsPreview({ section, config }) {
-  const { styles } = section;
+  const { styles, content } = section;
   const backgroundStyle = {};
 
   if (styles.backgroundType === 'image' && styles.backgroundImage) {
@@ -256,16 +314,20 @@ function ProductsPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#ffffff';
   }
 
-  const fontSizes = { small: 'text-base', medium: 'text-lg', large: 'text-xl' };
-  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const titleSize = fontSizes[styles?.fontSize || 'medium'];
-  const titleWeight = fontWeights[styles?.fontWeight || 'bold'];
-  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+  const titleFontSizes = { small: 'text-base', medium: 'text-lg', large: 'text-xl' };
+  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
+  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'bold'];
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const titleAlign = styles?.titleAlign || 'center';
+  const priceColor = styles?.priceColor || config?.cor_botao || '#000000';
+
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-8" style={backgroundStyle}>
-      <h3 className={`${titleSize} ${titleWeight} text-center mb-6`} style={{ color: fontColor }}>
-        {section.content.title || 'Nossos Vestidos'}
+      <h3 className={`${titleSize} ${titleWeight} mb-6 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+        {content.title || 'Nossos Vestidos'}
       </h3>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {[1, 2, 3].map(i => (
@@ -276,8 +338,8 @@ function ProductsPreview({ section, config }) {
               </div>
             </div>
             <div className="p-3">
-              <h4 className="font-semibold text-sm" style={{ color: fontColor }}>Vestido Exemplo {i}</h4>
-              <p className="font-bold text-sm mt-1" style={{ color: config?.cor_botao }}>R$ 199,90</p>
+              <h4 className="font-semibold text-sm" style={{ color: titleColor }}>Vestido Exemplo {i}</h4>
+              <p className="font-bold text-sm mt-1" style={{ color: priceColor }}>R$ 199,90</p>
             </div>
           </div>
         ))}
@@ -286,7 +348,7 @@ function ProductsPreview({ section, config }) {
   );
 }
 
-// ✅ CONTENT PREVIEW COM FONTES E LAYOUTS PERSONALIZADOS
+// ✅ CONTENT PREVIEW COM CORES, ALINHAMENTOS E POSIÇÃO DE IMAGEM
 function ContentPreview({ section, config, index }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -301,43 +363,60 @@ function ContentPreview({ section, config, index }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
-  const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
-  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const titleSize = fontSizes[styles?.fontSize || 'medium'];
-  const titleWeight = fontWeights[styles?.fontWeight || 'normal'];
-  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+  const titleFontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
+  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const textFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
 
+  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
+  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'normal'];
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const titleAlign = styles?.titleAlign || 'left';
+
+  const textSize = textFontSizes[styles?.textFontSize || 'medium'];
+  const textColor = styles?.textColor || '#374151';
+  const textAlign = styles?.textAlign || 'left';
+
+  const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'none';
   const hasGridImages = content.gridImages?.length > 0;
+
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
   return (
     <section className="py-6 px-4" style={backgroundStyle}>
       <div className="max-w-3xl mx-auto">
-        <h3 className={`${titleSize} ${titleWeight} mb-2`} style={{ color: fontColor }}>
-          {section.content.title || `Sessão ${index + 1}`}
-        </h3>
-
-        {/* Layout Centro */}
-        {imageLayout === 'center' && content.image && (
+        {/* Imagem ACIMA do título */}
+        {imagePosition === 'above' && content.image && imageLayout !== 'side' && (
           <img 
             src={content.image} 
-            alt={section.content.title || 'Imagem'} 
+            alt={content.title || 'Imagem'} 
             className="w-full h-48 object-cover rounded-lg mb-4 shadow-md"
+          />
+        )}
+
+        <h3 className={`${titleSize} ${titleWeight} mb-2 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+          {content.title || `Sessão ${index + 1}`}
+        </h3>
+
+        {/* Imagem ENTRE título e texto */}
+        {imagePosition === 'between' && content.image && imageLayout !== 'side' && (
+          <img 
+            src={content.image} 
+            alt={content.title || 'Imagem'} 
+            className="w-full h-48 object-cover rounded-lg my-4 shadow-md"
           />
         )}
 
         {/* Layout Lateral */}
         {imageLayout === 'side' && content.image && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center mt-4">
-            <div>
-              {section.content.text && (
-                <p className="text-gray-700 text-xs sm:text-sm">{section.content.text}</p>
-              )}
+            <div className={alignClasses[textAlign]}>
+              <p className={`${textSize}`} style={{ color: textColor }}>{content.text}</p>
             </div>
             <div>
               <img 
                 src={content.image} 
-                alt={section.content.title || 'Imagem'} 
+                alt={content.title || 'Imagem'} 
                 className="w-full h-48 object-cover rounded-lg shadow-md"
               />
             </div>
@@ -360,16 +439,27 @@ function ContentPreview({ section, config, index }) {
           </div>
         )}
 
-        {/* Texto (exceto quando layout side - já renderizado acima) */}
-        {imageLayout !== 'side' && section.content.text && (
-          <p className="text-gray-700 text-xs sm:text-sm">{section.content.text}</p>
+        {/* Texto (exceto quando layout side) */}
+        {imageLayout !== 'side' && content.text && (
+          <p className={`${textSize} ${alignClasses[textAlign]}`} style={{ color: textColor }}>
+            {content.text}
+          </p>
+        )}
+
+        {/* Imagem ABAIXO do texto */}
+        {imagePosition === 'below' && content.image && imageLayout !== 'side' && (
+          <img 
+            src={content.image} 
+            alt={content.title || 'Imagem'} 
+            className="w-full h-48 object-cover rounded-lg mt-4 shadow-md"
+          />
         )}
       </div>
     </section>
   );
 }
 
-// ✅ CONTACT PREVIEW COM FONTES PERSONALIZADAS
+// ✅ CONTACT PREVIEW COM CORES E ALINHAMENTOS
 function ContactPreview({ section, config }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -384,28 +474,41 @@ function ContactPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#f9fafb';
   }
 
-  const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
-  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const titleSize = fontSizes[styles?.fontSize || 'medium'];
-  const titleWeight = fontWeights[styles?.fontWeight || 'semibold'];
-  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+  const titleFontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
+  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const textFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
+
+  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
+  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'semibold'];
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const titleAlign = styles?.titleAlign || 'center';
+
+  const textSize = textFontSizes[styles?.textFontSize || 'medium'];
+  const textColor = styles?.textColor || '#374151';
+  const textAlign = styles?.textAlign || 'center';
+
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
   return (
-    <section className="py-8 px-4 text-center" style={backgroundStyle}>
+    <section className="py-8 px-4" style={backgroundStyle}>
       <div className="max-w-4xl mx-auto">
-        <h3 className={`${titleSize} ${titleWeight} mb-4`} style={{ color: fontColor }}>
+        <h3 className={`${titleSize} ${titleWeight} mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
           {content.title || 'Contato'}
         </h3>
         {content.text && (
-          <p className="text-gray-700 text-sm sm:text-base mb-4">{content.text}</p>
+          <p className={`${textSize} ${alignClasses[textAlign]} mb-4`} style={{ color: textColor }}>
+            {content.text}
+          </p>
         )}
         {config?.whatsapp_numero && (
-          <a
-            href={`https://wa.me/${config.whatsapp_numero}`}
-            className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
-          >
-            📱 Falar no WhatsApp
-          </a>
+          <div className={alignClasses[textAlign]}>
+            <a
+              href={`https://wa.me/${config.whatsapp_numero}`}
+              className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              📱 Falar no WhatsApp
+            </a>
+          </div>
         )}
       </div>
     </section>
