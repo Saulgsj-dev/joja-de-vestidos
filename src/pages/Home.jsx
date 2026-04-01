@@ -86,7 +86,7 @@ export default function Home() {
 
   const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="16" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ESem imagem%3C/text%3E%3C/svg%3E`;
 
-  // ✅ FUNÇÃO PARA GERAR ESTILO DE FUNDO (COMPATÍVEL COM TODAS SEÇÕES)
+  // ✅ FUNÇÃO PARA GERAR ESTILO DE FUNDO
   const getBackgroundStyle = (styles) => {
     const backgroundStyle = {};
     if (styles?.backgroundType === 'image' && styles?.backgroundImage) {
@@ -103,6 +103,17 @@ export default function Home() {
     return backgroundStyle;
   };
 
+  // ✅ FUNÇÃO PARA OBTER CLASSES DE FONTE
+  const getFontClasses = (styles, defaultSize = 'medium', defaultWeight = 'normal') => {
+    const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg', xlarge: 'text-xl' };
+    const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
+    return {
+      size: fontSizes[styles?.fontSize || defaultSize],
+      weight: fontWeights[styles?.fontWeight || defaultWeight],
+      color: styles?.fontColor || config?.cor_texto || '#000000'
+    };
+  };
+
   const renderSection = (section) => {
     const { content, styles, section_type } = section;
 
@@ -111,25 +122,46 @@ export default function Home() {
         return null;
 
       case 'hero':
+        const heroBgStyle = getBackgroundStyle(styles);
+        const heroFont = getFontClasses(styles, 'large', 'bold');
+        const imageLayout = styles?.imageLayout || 'center';
         const hasLeftImage = content.leftImage;
         const hasRightImage = content.rightImage;
-        const backgroundStyle = getBackgroundStyle(styles);
+        const hasGridImages = content.gridImages?.length > 0;
 
         return (
           <section
             key={section.id}
             className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 relative overflow-hidden"
-            style={backgroundStyle}
+            style={heroBgStyle}
           >
             <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
             <div className="max-w-7xl mx-auto relative z-10">
-              {hasLeftImage && hasRightImage ? (
+              {/* Layout Centralizado */}
+              {imageLayout === 'center' && (
+                <div className="text-center">
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                    {content.title || 'Bem-vindo'}
+                  </h2>
+                  <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+                    {content.subtitle || 'Sua mensagem aqui'}
+                  </p>
+                  {content.image && (
+                    <div className="flex justify-center">
+                      <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Layout Laterais */}
+              {imageLayout === 'sides' && hasLeftImage && hasRightImage && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                   <div className="hidden lg:block">
                     <img src={content.leftImage} alt="Lateral Esquerda" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
                   </div>
                   <div className="text-center">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                    <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
                       {content.title || 'Bem-vindo'}
                     </h2>
                     <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-6 text-white drop-shadow-md">
@@ -145,9 +177,67 @@ export default function Home() {
                     <img src={content.rightImage} alt="Lateral Direita" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="text-center md:text-left">
+                    <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                      {content.title || 'Bem-vindo'}
+                    </h2>
+                    <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto md:mx-0 mb-6 text-white drop-shadow-md">
+                      {content.subtitle || 'Sua mensagem aqui'}
+                    </p>
+                    {content.image && (
+                      <div className="flex justify-center md:justify-start">
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-64 object-cover rounded-lg shadow-xl" />
+                  </div>
+                </div>
+              )}
+
+              {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
                 <div className="text-center">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                    {content.title || 'Bem-vindo'}
+                  </h2>
+                  <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+                    {content.subtitle || 'Sua mensagem aqui'}
+                  </p>
+                </div>
+              )}
+
+              {/* Layout Grid */}
+              {imageLayout === 'grid' && hasGridImages && (
+                <div className="text-center">
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
+                    {content.title || 'Bem-vindo'}
+                  </h2>
+                  <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+                    {content.subtitle || 'Sua mensagem aqui'}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {content.gridImages.map((img, index) => (
+                      img && (
+                        <img
+                          key={index}
+                          src={img}
+                          alt={`Grid ${index}`}
+                          className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
+                        />
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {imageLayout === 'grid' && !hasGridImages && (
+                <div className="text-center">
+                  <h2 className={`sm:text-3xl lg:text-4xl ${heroFont.weight} mb-4 text-white drop-shadow-lg`}>
                     {content.title || 'Bem-vindo'}
                   </h2>
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
@@ -161,9 +251,10 @@ export default function Home() {
 
       case 'products':
         const productsBgStyle = getBackgroundStyle(styles);
+        const productsFont = getFontClasses(styles, 'medium', 'bold');
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12" style={productsBgStyle}>
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-8" style={{ color: config?.cor_texto }}>
+            <h3 className={`sm:text-2xl ${productsFont.weight} text-center mb-8`} style={{ color: productsFont.color }}>
               {content.title || 'Nossos Produtos'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -173,7 +264,7 @@ export default function Home() {
                     <img src={produto.imagem_url || PLACEHOLDER} alt={produto.titulo} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-4">
-                    <h4 className="font-bold text-base sm:text-lg" style={{ color: config?.cor_texto }}>{produto.titulo}</h4>
+                    <h4 className={`font-bold ${productsFont.size}`} style={{ color: productsFont.color }}>{produto.titulo}</h4>
                     {produto.preco && (
                       <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>
                     )}
@@ -189,30 +280,72 @@ export default function Home() {
 
       case 'content':
         const contentBgStyle = getBackgroundStyle(styles);
+        const contentFont = getFontClasses(styles, 'medium', 'normal');
+        const contentImageLayout = styles?.imageLayout || 'none';
+        const hasContentGridImages = content.gridImages?.length > 0;
         return (
           <section key={section.id} className="py-8 sm:py-12 px-4" style={contentBgStyle}>
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: config?.cor_texto }}>
+              <h3 className={`sm:text-xl ${contentFont.weight} mb-4`} style={{ color: contentFont.color }}>
                 {content.title || 'Seção'}
               </h3>
-              {content.image && (
+
+              {/* Layout Centro */}
+              {contentImageLayout === 'center' && content.image && (
                 <img 
                   src={content.image} 
                   alt={content.title || 'Imagem da seção'} 
                   className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
                 />
               )}
-              {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
+
+              {/* Layout Lateral */}
+              {contentImageLayout === 'side' && content.image && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-4">
+                  <div>
+                    {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
+                  </div>
+                  <div>
+                    <img 
+                      src={content.image} 
+                      alt={content.title || 'Imagem da seção'} 
+                      className="w-full h-64 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Layout Grid */}
+              {contentImageLayout === 'grid' && hasContentGridImages && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 mb-4">
+                  {content.gridImages.map((img, i) => (
+                    img && (
+                      <img
+                        key={i}
+                        src={img}
+                        alt={`Grid ${i}`}
+                        className="w-full h-32 object-cover rounded shadow"
+                      />
+                    )
+                  ))}
+                </div>
+              )}
+
+              {/* Texto (exceto quando layout side) */}
+              {contentImageLayout !== 'side' && content.text && (
+                <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>
+              )}
             </div>
           </section>
         );
 
       case 'contact':
         const contactBgStyle = getBackgroundStyle(styles);
+        const contactFont = getFontClasses(styles, 'medium', 'semibold');
         return (
           <section key={section.id} className="py-8 sm:py-12 px-4" style={contactBgStyle}>
             <div className="max-w-4xl mx-auto text-center">
-              <h3 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: config?.cor_texto }}>
+              <h3 className={`sm:text-xl ${contactFont.weight} mb-4`} style={{ color: contactFont.color }}>
                 {content.title || 'Contato'}
               </h3>
               {content.text && <p className="text-gray-700 text-sm sm:text-base mb-4">{content.text}</p>}

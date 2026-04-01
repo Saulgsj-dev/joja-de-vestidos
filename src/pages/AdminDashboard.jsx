@@ -248,6 +248,85 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
+  // ✅ ADICIONAR NOVA IMAGEM AO ARRAY DE IMAGENS
+  const handleAddImage = (imageArrayField) => {
+    if (!selectedSection) return;
+    const currentImages = selectedSection.content?.[imageArrayField] || [];
+    const updated = {
+      ...selectedSection,
+      content: {
+        ...selectedSection.content,
+        [imageArrayField]: [...currentImages, '']
+      }
+    };
+    setSelectedSection(updated);
+  };
+
+  // ✅ UPLOAD PARA IMAGEM ESPECÍFICA DO ARRAY
+  const handleImageArrayUpload = async (e, imageArrayField, index) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('❌ Imagem muito grande. Máximo 10MB.');
+      return;
+    }
+    try {
+      const oldImageUrl = selectedSection?.content?.[imageArrayField]?.[index];
+      alert('📤 Fazendo upload...');
+      const { url: newUrl } = await uploadImage(file);
+      
+      const currentImages = selectedSection.content?.[imageArrayField] || [];
+      const updatedImages = [...currentImages];
+      updatedImages[index] = newUrl;
+      
+      const updateData = {
+        id: selectedSection.id,
+        section_type: selectedSection.section_type,
+        section_order: selectedSection.section_order,
+        content: { ...selectedSection.content, [imageArrayField]: updatedImages },
+        styles: selectedSection.styles,
+        is_active: selectedSection.is_active
+      };
+
+      await apiRequest('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      const updatedSection = {
+        ...selectedSection,
+        content: {
+          ...selectedSection.content,
+          [imageArrayField]: updatedImages
+        }
+      };
+      setSelectedSection(updatedSection);
+      
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
+      await carregarSections(user.id);
+      alert('✅ Imagem atualizada com sucesso!');
+    } catch (e) {
+      console.error('❌ Erro no upload:', e);
+      alert('❌ Erro: ' + e.message);
+    }
+  };
+
+  // ✅ REMOVER IMAGEM DO ARRAY
+  const handleRemoveImageFromArray = (imageArrayField, index) => {
+    if (!selectedSection) return;
+    const currentImages = selectedSection.content?.[imageArrayField] || [];
+    const updatedImages = currentImages.filter((_, i) => i !== index);
+    const updated = {
+      ...selectedSection,
+      content: {
+        ...selectedSection.content,
+        [imageArrayField]: updatedImages
+      }
+    };
+    setSelectedSection(updated);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -281,9 +360,9 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-4 flex gap-4">
+      <div className="max-w-7xl mx-auto p-4 flex gap-4 flex-wrap lg:flex-nowrap">
         {/* Sidebar */}
-        <div className="w-80 bg-white rounded-2xl p-4 shadow-lg">
+        <div className="w-full lg:w-80 bg-white rounded-2xl p-4 shadow-lg">
           <div className="flex gap-2 mb-4">
             <button onClick={() => setActiveTab('sections')} className={`flex-1 py-2 rounded ${activeTab === 'sections' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>
               Seções
@@ -310,7 +389,7 @@ export default function AdminDashboard() {
                         {section.section_type === 'header' && 'Header'}
                         {section.section_type === 'hero' && 'Hero Section'}
                         {section.section_type === 'products' && 'Produtos'}
-                        {section.section_type === 'content' && `Sessão ${index + 1}`}
+                        {section.section_type === 'content' && `Conteúdo ${index + 1}`}
                         {section.section_type === 'contact' && 'Contato'}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${
@@ -398,7 +477,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Editor */}
-        <div className="flex-1 bg-white rounded-2xl p-6 shadow-lg">
+        <div className="flex-1 min-w-0 bg-white rounded-2xl p-6 shadow-lg">
           {selectedSection ? (
             <div>
               <div className="flex justify-between items-center mb-6">
@@ -559,6 +638,47 @@ export default function AdminDashboard() {
                       rows="3"
                     />
                   </div>
+
+                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🔤 Estilo da Fonte</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles?.fontColor || '#ffffff'}
+                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
+                        className="w-full h-10 rounded cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Tamanho</label>
+                      <select
+                        value={selectedSection.styles?.fontSize || 'large'}
+                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio</option>
+                        <option value="large">Grande</option>
+                        <option value="xlarge">Extra Grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Peso</label>
+                      <select
+                        value={selectedSection.styles?.fontWeight || 'bold'}
+                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="semibold">Semi-negrito</option>
+                        <option value="bold">Negrito</option>
+                        <option value="extrabold">Extra Negrito</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-2">Imagem Principal (Centro)</label>
                     <input
@@ -575,6 +695,8 @@ export default function AdminDashboard() {
                       />
                     )}
                   </div>
+
+                  {/* 🎨 FUNDO */}
                   <h3 className="text-lg font-semibold border-b pb-2 mt-6">🎨 Fundo</h3>
                   <div className="flex gap-2 mb-4">
                     <button
@@ -639,59 +761,139 @@ export default function AdminDashboard() {
                       </div>
                     </>
                   )}
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🖼️ Imagens Laterais</h3>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'leftImage', false)}
-                      className="w-full"
-                    />
-                    {selectedSection.content.leftImage && (
-                      <div className="mt-2 relative">
-                        <img
-                          src={selectedSection.content.leftImage}
-                          alt="Esquerda"
-                          className="w-full h-32 object-cover rounded"
+
+                  {/* 🖼️ LAYOUT DE IMAGENS */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-6">🖼️ Layout de Imagens</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'center' || !selectedSection.styles?.imageLayout
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Centralizado
+                    </button>
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'sides')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'sides' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Laterais
+                    </button>
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Grid
+                    </button>
+                  </div>
+
+                  {/* Imagens Laterais (apenas para layout sides) */}
+                  {(selectedSection.styles?.imageLayout === 'sides' || !selectedSection.styles?.imageLayout) && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'leftImage', false)}
+                          className="w-full"
                         />
+                        {selectedSection.content.leftImage && (
+                          <div className="mt-2 relative">
+                            <img
+                              src={selectedSection.content.leftImage}
+                              alt="Esquerda"
+                              className="w-full h-32 object-cover rounded"
+                            />
+                            <button
+                              onClick={() => handleRemoveImage('leftImage', false)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'rightImage', false)}
+                          className="w-full"
+                        />
+                        {selectedSection.content.rightImage && (
+                          <div className="mt-2 relative">
+                            <img
+                              src={selectedSection.content.rightImage}
+                              alt="Direita"
+                              className="w-full h-32 object-cover rounded"
+                            />
+                            <button
+                              onClick={() => handleRemoveImage('rightImage', false)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Grid de Imagens (para layout grid) */}
+                  {selectedSection.styles?.imageLayout === 'grid' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
+                      <div className="space-y-2">
+                        {(selectedSection.content.gridImages || []).map((img, index) => (
+                          <div key={index} className="flex gap-2 items-center">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)}
+                              className="flex-1 text-sm"
+                            />
+                            <button
+                              onClick={() => handleRemoveImageFromArray('gridImages', index)}
+                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
                         <button
-                          onClick={() => handleRemoveImage('leftImage', false)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                          onClick={() => handleAddImage('gridImages')}
+                          className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500"
                         >
-                          ×
+                          + Adicionar Imagem
                         </button>
                       </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'rightImage', false)}
-                      className="w-full"
-                    />
-                    {selectedSection.content.rightImage && (
-                      <div className="mt-2 relative">
-                        <img
-                          src={selectedSection.content.rightImage}
-                          alt="Direita"
-                          className="w-full h-32 object-cover rounded"
-                        />
-                        <button
-                          onClick={() => handleRemoveImage('rightImage', false)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                      {selectedSection.content.gridImages?.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-4">
+                          {selectedSection.content.gridImages.map((img, index) => (
+                            img && (
+                              <img
+                                key={index}
+                                src={img}
+                                alt={`Grid ${index}`}
+                                className="w-full h-24 object-cover rounded"
+                              />
+                            )
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* ========== PRODUCTS SECTION EDITOR (ATUALIZADO) ========== */}
+              {/* ========== PRODUCTS SECTION EDITOR ========== */}
               {selectedSection.section_type === 'products' && (
                 <div className="space-y-4">
                   <div>
@@ -704,6 +906,45 @@ export default function AdminDashboard() {
                     />
                   </div>
                   
+                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
+                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
+                        className="w-full h-10 rounded cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Tamanho</label>
+                      <select
+                        value={selectedSection.styles?.fontSize || 'medium'}
+                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio</option>
+                        <option value="large">Grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Peso</label>
+                      <select
+                        value={selectedSection.styles?.fontWeight || 'bold'}
+                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="semibold">Semi-negrito</option>
+                        <option value="bold">Negrito</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 🎨 FUNDO */}
                   <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
                   <div className="flex gap-2 mb-4">
                     <button
@@ -773,7 +1014,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* ========== CONTENT SECTIONS EDITOR (ATUALIZADO) ========== */}
+              {/* ========== CONTENT SECTIONS EDITOR ========== */}
               {selectedSection.section_type === 'content' && (
                 <div className="space-y-4">
                   <div>
@@ -795,6 +1036,156 @@ export default function AdminDashboard() {
                     />
                   </div>
                   
+                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
+                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
+                        className="w-full h-10 rounded cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Tamanho</label>
+                      <select
+                        value={selectedSection.styles?.fontSize || 'medium'}
+                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio</option>
+                        <option value="large">Grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Peso</label>
+                      <select
+                        value={selectedSection.styles?.fontWeight || 'normal'}
+                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="semibold">Semi-negrito</option>
+                        <option value="bold">Negrito</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 🖼️ LAYOUT DE IMAGENS */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🖼️ Layout de Imagens</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'none')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'none' || !selectedSection.styles?.imageLayout
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Sem Imagem
+                    </button>
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'center')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'center' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Centro
+                    </button>
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'side')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'side' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Lateral
+                    </button>
+                    <button
+                      onClick={() => handleStyleUpdate('imageLayout', 'grid')}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        selectedSection.styles?.imageLayout === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Grid
+                    </button>
+                  </div>
+
+                  {/* Imagem Única (center ou side) */}
+                  {(selectedSection.styles?.imageLayout === 'center' || selectedSection.styles?.imageLayout === 'side') && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Imagem</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, 'image', false)}
+                        className="w-full"
+                      />
+                      {selectedSection.content.image && (
+                        <div className="mt-2 relative inline-block">
+                          <img
+                            src={selectedSection.content.image}
+                            alt="Seção"
+                            className="w-full h-48 object-cover rounded"
+                          />
+                          <button
+                            onClick={() => handleRemoveImage('image', false)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Grid de Imagens */}
+                  {selectedSection.styles?.imageLayout === 'grid' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
+                      <div className="space-y-2">
+                        {(selectedSection.content.gridImages || []).map((img, index) => (
+                          <div key={index} className="flex gap-2 items-center">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageArrayUpload(e, 'gridImages', index)}
+                              className="flex-1 text-sm"
+                            />
+                            <button
+                              onClick={() => handleRemoveImageFromArray('gridImages', index)}
+                              className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => handleAddImage('gridImages')}
+                          className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500 hover:text-purple-500"
+                        >
+                          + Adicionar Imagem
+                        </button>
+                      </div>
+                      {selectedSection.content.gridImages?.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-4">
+                          {selectedSection.content.gridImages.map((img, index) => (
+                            img && (
+                              <img
+                                key={index}
+                                src={img}
+                                alt={`Grid ${index}`}
+                                className="w-full h-24 object-cover rounded"
+                              />
+                            )
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* 🎨 FUNDO */}
                   <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
                   <div className="flex gap-2 mb-4">
                     <button
@@ -859,36 +1250,10 @@ export default function AdminDashboard() {
                       </div>
                     </>
                   )}
-                  
-                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🖼️ Imagem da Seção (Opcional)</h3>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Imagem</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'image', false)}
-                      className="w-full"
-                    />
-                    {selectedSection.content.image && (
-                      <div className="mt-2 relative inline-block">
-                        <img
-                          src={selectedSection.content.image}
-                          alt="Seção"
-                          className="w-full h-48 object-cover rounded"
-                        />
-                        <button
-                          onClick={() => handleRemoveImage('image', false)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
-              {/* ========== CONTACT SECTION EDITOR (ATUALIZADO) ========== */}
+              {/* ========== CONTACT SECTION EDITOR ========== */}
               {selectedSection.section_type === 'contact' && (
                 <div className="space-y-4">
                   <div>
@@ -910,6 +1275,45 @@ export default function AdminDashboard() {
                     />
                   </div>
                   
+                  {/* 🎨 CONFIGURAÇÕES DE FONTE */}
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🔤 Estilo da Fonte</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor da Fonte</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles?.fontColor || config.cor_texto || '#000000'}
+                        onChange={(e) => handleStyleUpdate('fontColor', e.target.value)}
+                        className="w-full h-10 rounded cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Tamanho</label>
+                      <select
+                        value={selectedSection.styles?.fontSize || 'medium'}
+                        onChange={(e) => handleStyleUpdate('fontSize', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio</option>
+                        <option value="large">Grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Peso</label>
+                      <select
+                        value={selectedSection.styles?.fontWeight || 'semibold'}
+                        onChange={(e) => handleStyleUpdate('fontWeight', e.target.value)}
+                        className="w-full p-2 border rounded"
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="semibold">Semi-negrito</option>
+                        <option value="bold">Negrito</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 🎨 FUNDO */}
                   <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
                   <div className="flex gap-2 mb-4">
                     <button
@@ -992,7 +1396,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Preview em Tempo Real */}
-        <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
+        <div className="flex-1 min-w-0 bg-cyan-200 rounded-2xl p-6">
           <SitePreview
             config={config}
             sections={sections}

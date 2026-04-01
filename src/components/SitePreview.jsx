@@ -89,13 +89,12 @@ export default function SitePreview({ config, sections, selectedSection }) {
   );
 }
 
-// ✅ HERO PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
+// ✅ HERO PREVIEW COM FONTES E LAYOUTS PERSONALIZADOS
 function HeroPreview({ section, config }) {
   const { content, styles } = section;
-  const hasLeftImage = content.leftImage;
-  const hasRightImage = content.rightImage;
   const backgroundStyle = {};
 
+  // Configurar fundo
   if (styles.backgroundType === 'image' && styles.backgroundImage) {
     const opacity = (styles.backgroundOpacity || 100) / 100;
     backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
@@ -108,20 +107,50 @@ function HeroPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
+  // Configurar fonte
+  const fontSizes = { small: 'text-lg', medium: 'text-xl', large: 'text-2xl', xlarge: 'text-3xl' };
+  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
+  const titleSize = fontSizes[styles?.fontSize || 'large'];
+  const titleWeight = fontWeights[styles?.fontWeight || 'bold'];
+  const fontColor = styles?.fontColor || '#ffffff';
+
+  const imageLayout = styles?.imageLayout || 'center';
+  const hasLeftImage = content.leftImage;
+  const hasRightImage = content.rightImage;
+  const hasGridImages = content.gridImages?.length > 0;
+
   return (
     <section className="py-8 sm:py-12 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
       <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
       <div className="relative z-10">
-        {hasLeftImage && hasRightImage ? (
+        {/* Layout Centralizado */}
+        {imageLayout === 'center' && (
+          <div className="text-center">
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+              {content.title || 'Coleção de Vestidos'}
+            </h2>
+            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2" style={{ color: fontColor }}>
+              {content.subtitle || 'Elegância e estilo para você'}
+            </p>
+            {content.image && (
+              <div className="mt-4 flex justify-center">
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Layout Laterais */}
+        {imageLayout === 'sides' && hasLeftImage && hasRightImage && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
             <div className="hidden lg:block">
               <img src={content.leftImage} alt="Esquerda" className="w-full h-auto max-h-64 object-contain rounded-lg shadow-xl" />
             </div>
             <div className="text-center">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 text-white drop-shadow-lg">
+              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
                 {content.title || 'Coleção de Vestidos'}
               </h2>
-              <p className="text-xs sm:text-sm opacity-90 text-white drop-shadow-md px-2">
+              <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2" style={{ color: fontColor }}>
                 {content.subtitle || 'Elegância e estilo para você'}
               </p>
               {content.image && (
@@ -134,17 +163,19 @@ function HeroPreview({ section, config }) {
               <img src={content.rightImage} alt="Direita" className="w-full h-auto max-h-64 object-contain rounded-lg shadow-xl" />
             </div>
           </div>
-        ) : hasLeftImage || hasRightImage ? (
+        )}
+
+        {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div className="text-center md:text-left">
-              <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white drop-shadow-lg">
+              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
                 {content.title || 'Coleção de Vestidos'}
               </h2>
-              <p className="text-xs sm:text-sm opacity-90 text-white drop-shadow-md">
+              <p className="text-xs sm:text-sm opacity-90 drop-shadow-md" style={{ color: fontColor }}>
                 {content.subtitle || 'Elegância e estilo para você'}
               </p>
               {content.image && (
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-center md:justify-start">
                   <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
                 </div>
               )}
@@ -153,12 +184,14 @@ function HeroPreview({ section, config }) {
               <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-40 object-cover rounded-lg shadow-xl" />
             </div>
           </div>
-        ) : (
+        )}
+
+        {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
           <div className="text-center">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 text-white drop-shadow-lg px-2">
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: fontColor }}>
               {content.title || 'Coleção de Vestidos'}
             </h2>
-            <p className="text-xs sm:text-sm opacity-90 text-white drop-shadow-md px-4">
+            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-4" style={{ color: fontColor }}>
               {content.subtitle || 'Elegância e estilo para você'}
             </p>
             {content.image && (
@@ -168,12 +201,47 @@ function HeroPreview({ section, config }) {
             )}
           </div>
         )}
+
+        {/* Layout Grid */}
+        {imageLayout === 'grid' && hasGridImages && (
+          <div className="text-center">
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: fontColor }}>
+              {content.title || 'Coleção de Vestidos'}
+            </h2>
+            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-2 mb-4" style={{ color: fontColor }}>
+              {content.subtitle || 'Elegância e estilo para você'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+              {content.gridImages.map((img, index) => (
+                img && (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`Grid ${index}`}
+                    className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
+                  />
+                )
+              ))}
+            </div>
+          </div>
+        )}
+
+        {imageLayout === 'grid' && !hasGridImages && (
+          <div className="text-center">
+            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: fontColor }}>
+              {content.title || 'Coleção de Vestidos'}
+            </h2>
+            <p className="text-xs sm:text-sm opacity-90 drop-shadow-md px-4" style={{ color: fontColor }}>
+              {content.subtitle || 'Elegância e estilo para você'}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-// ✅ PRODUCTS PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
+// ✅ PRODUCTS PREVIEW COM FONTES PERSONALIZADAS
 function ProductsPreview({ section, config }) {
   const { styles } = section;
   const backgroundStyle = {};
@@ -188,9 +256,15 @@ function ProductsPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#ffffff';
   }
 
+  const fontSizes = { small: 'text-base', medium: 'text-lg', large: 'text-xl' };
+  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const titleSize = fontSizes[styles?.fontSize || 'medium'];
+  const titleWeight = fontWeights[styles?.fontWeight || 'bold'];
+  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+
   return (
     <section className="max-w-4xl mx-auto px-4 py-8" style={backgroundStyle}>
-      <h3 className="text-lg sm:text-xl font-bold text-center mb-6" style={{ color: config?.cor_texto }}>
+      <h3 className={`${titleSize} ${titleWeight} text-center mb-6`} style={{ color: fontColor }}>
         {section.content.title || 'Nossos Vestidos'}
       </h3>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -202,7 +276,7 @@ function ProductsPreview({ section, config }) {
               </div>
             </div>
             <div className="p-3">
-              <h4 className="font-semibold text-sm" style={{ color: config?.cor_texto }}>Vestido Exemplo {i}</h4>
+              <h4 className="font-semibold text-sm" style={{ color: fontColor }}>Vestido Exemplo {i}</h4>
               <p className="font-bold text-sm mt-1" style={{ color: config?.cor_botao }}>R$ 199,90</p>
             </div>
           </div>
@@ -212,7 +286,7 @@ function ProductsPreview({ section, config }) {
   );
 }
 
-// ✅ CONTENT PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR + IMAGEM DA SEÇÃO)
+// ✅ CONTENT PREVIEW COM FONTES E LAYOUTS PERSONALIZADOS
 function ContentPreview({ section, config, index }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -227,20 +301,67 @@ function ContentPreview({ section, config, index }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
+  const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
+  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const titleSize = fontSizes[styles?.fontSize || 'medium'];
+  const titleWeight = fontWeights[styles?.fontWeight || 'normal'];
+  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+
+  const imageLayout = styles?.imageLayout || 'none';
+  const hasGridImages = content.gridImages?.length > 0;
+
   return (
     <section className="py-6 px-4" style={backgroundStyle}>
       <div className="max-w-3xl mx-auto">
-        <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ color: config?.cor_texto }}>
+        <h3 className={`${titleSize} ${titleWeight} mb-2`} style={{ color: fontColor }}>
           {section.content.title || `Sessão ${index + 1}`}
         </h3>
-        {content.image && (
+
+        {/* Layout Centro */}
+        {imageLayout === 'center' && content.image && (
           <img 
             src={content.image} 
             alt={section.content.title || 'Imagem'} 
             className="w-full h-48 object-cover rounded-lg mb-4 shadow-md"
           />
         )}
-        {section.content.text && (
+
+        {/* Layout Lateral */}
+        {imageLayout === 'side' && content.image && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center mt-4">
+            <div>
+              {section.content.text && (
+                <p className="text-gray-700 text-xs sm:text-sm">{section.content.text}</p>
+              )}
+            </div>
+            <div>
+              <img 
+                src={content.image} 
+                alt={section.content.title || 'Imagem'} 
+                className="w-full h-48 object-cover rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Layout Grid */}
+        {imageLayout === 'grid' && hasGridImages && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4 mb-4">
+            {content.gridImages.map((img, i) => (
+              img && (
+                <img
+                  key={i}
+                  src={img}
+                  alt={`Grid ${i}`}
+                  className="w-full h-24 object-cover rounded shadow"
+                />
+              )
+            ))}
+          </div>
+        )}
+
+        {/* Texto (exceto quando layout side - já renderizado acima) */}
+        {imageLayout !== 'side' && section.content.text && (
           <p className="text-gray-700 text-xs sm:text-sm">{section.content.text}</p>
         )}
       </div>
@@ -248,7 +369,7 @@ function ContentPreview({ section, config, index }) {
   );
 }
 
-// ✅ CONTACT PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
+// ✅ CONTACT PREVIEW COM FONTES PERSONALIZADAS
 function ContactPreview({ section, config }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -263,10 +384,16 @@ function ContactPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#f9fafb';
   }
 
+  const fontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
+  const fontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
+  const titleSize = fontSizes[styles?.fontSize || 'medium'];
+  const titleWeight = fontWeights[styles?.fontWeight || 'semibold'];
+  const fontColor = styles?.fontColor || config?.cor_texto || '#000000';
+
   return (
     <section className="py-8 px-4 text-center" style={backgroundStyle}>
       <div className="max-w-4xl mx-auto">
-        <h3 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: config?.cor_texto }}>
+        <h3 className={`${titleSize} ${titleWeight} mb-4`} style={{ color: fontColor }}>
           {content.title || 'Contato'}
         </h3>
         {content.text && (
