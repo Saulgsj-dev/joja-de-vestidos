@@ -1,17 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    visualizer({ 
-      open: false, 
-      filename: 'dist/stats.html',
-      gzipSize: true,
-      brotliSize: true
-    })
-  ],
+  plugins: [react()],
   build: {
     target: 'esnext',
     minify: 'terser',
@@ -20,8 +11,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'supabase': ['@supabase/supabase-js'],
-          'utils': ['./src/utils/styleHelpers', './src/utils/sectionHelpers']
+          'supabase': ['@supabase/supabase-js']
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -34,9 +24,7 @@ export default defineConfig({
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug']
       },
-      format: {
-        comments: false
-      }
+      format: { comments: false }
     }
   },
   server: {
