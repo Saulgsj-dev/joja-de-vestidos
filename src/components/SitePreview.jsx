@@ -17,7 +17,7 @@ export default function SitePreview({ config, sections, selectedSection }) {
   return (
     <div className="h-full flex flex-col bg-gray-100 rounded-xl overflow-hidden shadow-2xl">
       {/* Header do Preview */}
-      <div className="bg-white px-4 py-3 border-b flex items-center justify-between shadow-sm">
+      <div className="bg-white px-4 py-3 border-b flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-full bg-red-400"></div>
@@ -59,27 +59,11 @@ export default function SitePreview({ config, sections, selectedSection }) {
       </div>
 
       {/* Área de Preview com Scroll */}
-      <div className="flex-1 overflow-y-auto bg-gray-200 p-4 sm:p-8">
-        <div className="flex justify-center min-h-full">
-          {/* Container do Preview */}
-          <div 
-            className={`
-              bg-white shadow-2xl transition-all duration-500 ease-in-out
-              ${viewMode === 'mobile' 
-                ? 'w-[375px] min-h-[667px] rounded-[3rem] border-8 border-gray-800 overflow-hidden' 
-                : 'w-full max-w-7xl rounded-lg overflow-hidden'
-              }
-            `}
-          >
-            {/* Barra de status do mobile (apenas no modo mobile) */}
-            {viewMode === 'mobile' && (
-              <div className="bg-gray-800 h-6 flex items-center justify-center">
-                <div className="w-20 h-4 bg-black rounded-full"></div>
-              </div>
-            )}
-            
-            {/* Conteúdo do Site */}
-            <div className={`${viewMode === 'mobile' ? 'h-[calc(100%-1.5rem)]' : 'h-full'} overflow-y-auto`}>
+      <div className="flex-1 overflow-hidden bg-gray-200 relative">
+        {viewMode === 'desktop' ? (
+          /* DESKTOP PREVIEW - Largura total como o site real */
+          <div className="h-full overflow-y-auto">
+            <div className="min-h-full bg-white">
               {headerSection ? (
                 <Header config={config} sections={[headerSection]} isPreview={true} />
               ) : (
@@ -107,26 +91,65 @@ export default function SitePreview({ config, sections, selectedSection }) {
               <FooterPreview config={config} />
               <div className="h-8"></div>
             </div>
-
-            {/* Home indicator do mobile (apenas no modo mobile) */}
-            {viewMode === 'mobile' && (
-              <div className="bg-gray-800 h-1 flex justify-center items-end pb-1">
-                <div className="w-32 h-1 bg-white rounded-full"></div>
-              </div>
-            )}
           </div>
-        </div>
+        ) : (
+          /* MOBILE PREVIEW - Layout de celular */
+          <div className="h-full overflow-y-auto p-4 sm:p-8">
+            <div className="flex justify-center min-h-full">
+              <div className="w-[375px] min-h-[667px] bg-white rounded-[3rem] border-8 border-gray-800 overflow-hidden shadow-2xl">
+                {/* Barra de status do mobile */}
+                <div className="bg-gray-800 h-6 flex items-center justify-center">
+                  <div className="w-20 h-4 bg-black rounded-full"></div>
+                </div>
+                
+                {/* Conteúdo do Site */}
+                <div className="h-[calc(100%-1.5rem)] overflow-y-auto">
+                  {headerSection ? (
+                    <Header config={config} sections={[headerSection]} isPreview={true} />
+                  ) : (
+                    <div className="bg-gray-200 p-4 text-center text-sm text-gray-500">
+                      Header não configurado
+                    </div>
+                  )}
+
+                  {heroSection && (
+                    <HeroPreview section={heroSection} config={config} />
+                  )}
+
+                  {productsSection && (
+                    <ProductsPreview section={productsSection} config={config} />
+                  )}
+
+                  {contentSections.map((section, index) => (
+                    <ContentPreview key={section.id} section={section} config={config} index={index} />
+                  ))}
+
+                  {contactSection && (
+                    <ContactPreview section={contactSection} config={config} />
+                  )}
+
+                  <FooterPreview config={config} />
+                  <div className="h-8"></div>
+                </div>
+
+                {/* Home indicator do mobile */}
+                <div className="bg-gray-800 h-1 flex justify-center items-end pb-1">
+                  <div className="w-32 h-1 bg-white rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ✅ HERO PREVIEW COM CORES, ALINHAMENTOS E POSIÇÃO DE IMAGEM
+// ✅ HERO PREVIEW - Mesma estrutura do site real
 function HeroPreview({ section, config }) {
   const { content, styles } = section;
   const backgroundStyle = {};
 
-  // Configurar fundo
   if (styles.backgroundType === 'image' && styles.backgroundImage) {
     const opacity = (styles.backgroundOpacity || 100) / 100;
     backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
@@ -139,62 +162,38 @@ function HeroPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
-  // Configurar fontes
-  const titleFontSizes = { small: 'text-lg', medium: 'text-xl', large: 'text-2xl', xlarge: 'text-3xl' };
-  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold', extrabold: 'font-extrabold' };
-  const subtitleFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
-
-  const titleSize = titleFontSizes[styles?.titleFontSize || 'large'];
-  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'bold'];
-  const titleColor = styles?.titleColor || '#ffffff';
-  const titleAlign = styles?.titleAlign || 'center';
-
-  const subtitleSize = subtitleFontSizes[styles?.subtitleFontSize || 'medium'];
-  const subtitleColor = styles?.subtitleColor || '#e5e7eb';
-  const subtitleAlign = styles?.subtitleAlign || 'center';
-
-  // Posição da imagem
   const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'center';
   const hasLeftImage = content.leftImage;
   const hasRightImage = content.rightImage;
   const hasGridImages = content.gridImages?.length > 0;
 
-  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
-
   return (
-    <section className="py-8 sm:py-12 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
+    <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
       <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
-      <div className="relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Layout Centralizado */}
         {imageLayout === 'center' && (
-          <div className={alignClasses[titleAlign]}>
-            {/* Imagem ACIMA do título */}
+          <div className="text-center">
             {imagePosition === 'above' && content.image && (
               <div className="mb-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
-
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
-              {content.title || 'Coleção de Vestidos'}
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
             </h2>
-
-            {/* Imagem ENTRE título e descrição */}
             {imagePosition === 'between' && content.image && (
               <div className="mb-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
-
-            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2`} style={{ color: subtitleColor }}>
-              {content.subtitle || 'Elegância e estilo para você'}
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
             </p>
-
-            {/* Imagem ABAIXO da descrição */}
             {imagePosition === 'below' && content.image && (
               <div className="mt-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
               </div>
             )}
           </div>
@@ -202,106 +201,91 @@ function HeroPreview({ section, config }) {
 
         {/* Layout Laterais */}
         {imageLayout === 'sides' && hasLeftImage && hasRightImage && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
             <div className="hidden lg:block">
-              <img src={content.leftImage} alt="Esquerda" className="w-full h-auto max-h-64 object-contain rounded-lg shadow-xl" />
+              <img src={content.leftImage} alt="Lateral Esquerda" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
             </div>
-            <div className={alignClasses[titleAlign]}>
+            <div className="text-center">
               {imagePosition === 'above' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
-              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
-                {content.title || 'Coleção de Vestidos'}
+              <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                {content.title || 'Bem-vindo'}
               </h2>
               {imagePosition === 'between' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
-              <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2`} style={{ color: subtitleColor }}>
-                {content.subtitle || 'Elegância e estilo para você'}
+              <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-6 text-white drop-shadow-md">
+                {content.subtitle || 'Sua mensagem aqui'}
               </p>
               {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '300px' }} />
                 </div>
               )}
             </div>
             <div className="hidden lg:block">
-              <img src={content.rightImage} alt="Direita" className="w-full h-auto max-h-64 object-contain rounded-lg shadow-xl" />
+              <img src={content.rightImage} alt="Lateral Direita" className="w-full h-auto max-h-80 object-contain rounded-lg shadow-xl" />
             </div>
           </div>
         )}
 
         {imageLayout === 'sides' && (hasLeftImage || hasRightImage) && !(hasLeftImage && hasRightImage) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className={alignClasses[titleAlign]}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div className="text-center md:text-left">
               {imagePosition === 'above' && content.image && (
                 <div className="mb-4 flex justify-center md:justify-start">
-                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
                 </div>
               )}
-              <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
-                {content.title || 'Coleção de Vestidos'}
+              <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                {content.title || 'Bem-vindo'}
               </h2>
               {imagePosition === 'between' && content.image && (
                 <div className="mb-4 flex justify-center md:justify-start">
-                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
                 </div>
               )}
-              <p className={`${subtitleSize} opacity-90 drop-shadow-md`} style={{ color: subtitleColor }}>
-                {content.subtitle || 'Elegância e estilo para você'}
+              <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto md:mx-0 mb-6 text-white drop-shadow-md">
+                {content.subtitle || 'Sua mensagem aqui'}
               </p>
               {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center md:justify-start">
-                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '150px' }} />
+                  <img src={content.image} alt="Principal" className="w-full max-w-xs h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '200px' }} />
                 </div>
               )}
             </div>
             <div>
-              <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-40 object-cover rounded-lg shadow-xl" />
+              <img src={hasLeftImage ? content.leftImage : content.rightImage} alt="Lateral" className="w-full h-64 object-cover rounded-lg shadow-xl" />
             </div>
           </div>
         )}
 
         {imageLayout === 'sides' && !hasLeftImage && !hasRightImage && (
-          <div className={alignClasses[titleAlign]}>
-            {imagePosition === 'above' && content.image && (
-              <div className="mb-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
-              </div>
-            )}
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: titleColor }}>
-              {content.title || 'Coleção de Vestidos'}
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
             </h2>
-            {imagePosition === 'between' && content.image && (
-              <div className="mb-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
-              </div>
-            )}
-            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-4`} style={{ color: subtitleColor }}>
-              {content.subtitle || 'Elegância e estilo para você'}
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
             </p>
-            {imagePosition === 'below' && content.image && (
-              <div className="mt-4 flex justify-center">
-                <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: '250px' }} />
-              </div>
-            )}
           </div>
         )}
 
         {/* Layout Grid */}
         {imageLayout === 'grid' && hasGridImages && (
-          <div className={alignClasses[titleAlign]}>
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg`} style={{ color: titleColor }}>
-              {content.title || 'Coleção de Vestidos'}
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
             </h2>
-            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-2 mb-4`} style={{ color: subtitleColor }}>
-              {content.subtitle || 'Elegância e estilo para você'}
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {content.gridImages.map((img, index) => (
                 img && (
                   <img
@@ -317,12 +301,12 @@ function HeroPreview({ section, config }) {
         )}
 
         {imageLayout === 'grid' && !hasGridImages && (
-          <div className={alignClasses[titleAlign]}>
-            <h2 className={`${titleSize} ${titleWeight} mb-2 drop-shadow-lg px-2`} style={{ color: titleColor }}>
-              {content.title || 'Coleção de Vestidos'}
+          <div className="text-center">
+            <h2 className="sm:text-3xl lg:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              {content.title || 'Bem-vindo'}
             </h2>
-            <p className={`${subtitleSize} opacity-90 drop-shadow-md px-4`} style={{ color: subtitleColor }}>
-              {content.subtitle || 'Elegância e estilo para você'}
+            <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 text-white drop-shadow-md">
+              {content.subtitle || 'Sua mensagem aqui'}
             </p>
           </div>
         )}
@@ -331,7 +315,7 @@ function HeroPreview({ section, config }) {
   );
 }
 
-// ✅ PRODUCTS PREVIEW COM CORES E ALINHAMENTOS
+// ✅ PRODUCTS PREVIEW
 function ProductsPreview({ section, config }) {
   const { styles, content } = section;
   const backgroundStyle = {};
@@ -346,32 +330,27 @@ function ProductsPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#ffffff';
   }
 
-  const titleFontSizes = { small: 'text-base', medium: 'text-lg', large: 'text-xl' };
-  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
-  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'bold'];
-  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const titleAlign = styles?.titleAlign || 'center';
+  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const priceColor = styles?.priceColor || config?.cor_botao || '#000000';
 
-  const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
-
   return (
-    <section className="max-w-4xl mx-auto px-4 py-8" style={backgroundStyle}>
-      <h3 className={`${titleSize} ${titleWeight} mb-6 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
-        {content.title || 'Nossos Vestidos'}
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12" style={backgroundStyle}>
+      <h3 className={`sm:text-2xl font-bold mb-8 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+        {content.title || 'Nossos Produtos'}
       </h3>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
+          <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
             <div className="aspect-square bg-gray-100">
               <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
                 Produto {i}
               </div>
             </div>
-            <div className="p-3">
-              <h4 className="font-semibold text-sm" style={{ color: titleColor }}>Vestido Exemplo {i}</h4>
-              <p className="font-bold text-sm mt-1" style={{ color: priceColor }}>R$ 199,90</p>
+            <div className="p-4">
+              <h4 className="font-bold text-base sm:text-lg" style={{ color: titleColor }}>Vestido Exemplo {i}</h4>
+              <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: priceColor }}>R$ 199,90</p>
             </div>
           </div>
         ))}
@@ -380,7 +359,7 @@ function ProductsPreview({ section, config }) {
   );
 }
 
-// ✅ CONTENT PREVIEW COM CORES, ALINHAMENTOS E POSIÇÃO DE IMAGEM
+// ✅ CONTENT PREVIEW
 function ContentPreview({ section, config, index }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -395,95 +374,79 @@ function ContentPreview({ section, config, index }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
   }
 
-  const titleFontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
-  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const textFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
-
-  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
-  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'normal'];
-  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
-  const titleAlign = styles?.titleAlign || 'left';
-
-  const textSize = textFontSizes[styles?.textFontSize || 'medium'];
-  const textColor = styles?.textColor || '#374151';
-  const textAlign = styles?.textAlign || 'left';
-
   const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'none';
   const hasGridImages = content.gridImages?.length > 0;
-
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const textColor = styles?.textColor || '#374151';
+  const titleAlign = styles?.titleAlign || 'left';
+  const textAlign = styles?.textAlign || 'left';
   const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
   return (
-    <section className="py-6 px-4" style={backgroundStyle}>
-      <div className="max-w-3xl mx-auto">
-        {/* Imagem ACIMA do título */}
+    <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
+      <div className="max-w-4xl mx-auto">
         {imagePosition === 'above' && content.image && imageLayout !== 'side' && (
           <img 
             src={content.image} 
-            alt={content.title || 'Imagem'} 
-            className="w-full h-48 object-cover rounded-lg mb-4 shadow-md"
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
           />
         )}
 
-        <h3 className={`${titleSize} ${titleWeight} mb-2 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
-          {content.title || `Sessão ${index + 1}`}
+        <h3 className={`sm:text-xl font-semibold mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+          {content.title || 'Seção'}
         </h3>
 
-        {/* Imagem ENTRE título e texto */}
         {imagePosition === 'between' && content.image && imageLayout !== 'side' && (
           <img 
             src={content.image} 
-            alt={content.title || 'Imagem'} 
-            className="w-full h-48 object-cover rounded-lg my-4 shadow-md"
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg my-4 shadow-md"
           />
         )}
 
-        {/* Layout Lateral */}
         {imageLayout === 'side' && content.image && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-4">
             <div className={alignClasses[textAlign]}>
-              <p className={`${textSize}`} style={{ color: textColor }}>{content.text}</p>
+              {content.text && <p className="text-sm sm:text-base" style={{ color: textColor }}>{content.text}</p>}
             </div>
             <div>
               <img 
                 src={content.image} 
-                alt={content.title || 'Imagem'} 
-                className="w-full h-48 object-cover rounded-lg shadow-md"
+                alt={content.title || 'Imagem da seção'} 
+                className="w-full h-64 object-cover rounded-lg shadow-md"
               />
             </div>
           </div>
         )}
 
-        {/* Layout Grid */}
         {imageLayout === 'grid' && hasGridImages && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 mb-4">
             {content.gridImages.map((img, i) => (
               img && (
                 <img
                   key={i}
                   src={img}
                   alt={`Grid ${i}`}
-                  className="w-full h-24 object-cover rounded shadow"
+                  className="w-full h-32 object-cover rounded shadow"
                 />
               )
             ))}
           </div>
         )}
 
-        {/* Texto (exceto quando layout side) */}
         {imageLayout !== 'side' && content.text && (
-          <p className={`${textSize} ${alignClasses[textAlign]}`} style={{ color: textColor }}>
+          <p className={`text-sm sm:text-base ${alignClasses[textAlign]}`} style={{ color: textColor }}>
             {content.text}
           </p>
         )}
 
-        {/* Imagem ABAIXO do texto */}
         {imagePosition === 'below' && content.image && imageLayout !== 'side' && (
           <img 
             src={content.image} 
-            alt={content.title || 'Imagem'} 
-            className="w-full h-48 object-cover rounded-lg mt-4 shadow-md"
+            alt={content.title || 'Imagem da seção'} 
+            className="w-full h-64 object-cover rounded-lg mt-4 shadow-md"
           />
         )}
       </div>
@@ -491,7 +454,7 @@ function ContentPreview({ section, config, index }) {
   );
 }
 
-// ✅ CONTACT PREVIEW COM CORES E ALINHAMENTOS
+// ✅ CONTACT PREVIEW
 function ContactPreview({ section, config }) {
   const { content, styles } = section;
   const backgroundStyle = {};
@@ -506,29 +469,20 @@ function ContactPreview({ section, config }) {
     backgroundStyle.backgroundColor = styles.backgroundColor || '#f9fafb';
   }
 
-  const titleFontSizes = { small: 'text-sm', medium: 'text-base', large: 'text-lg' };
-  const titleFontWeights = { normal: 'font-normal', semibold: 'font-semibold', bold: 'font-bold' };
-  const textFontSizes = { small: 'text-xs', medium: 'text-sm', large: 'text-base' };
-
-  const titleSize = titleFontSizes[styles?.titleFontSize || 'medium'];
-  const titleWeight = titleFontWeights[styles?.titleFontWeight || 'semibold'];
-  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const titleAlign = styles?.titleAlign || 'center';
-
-  const textSize = textFontSizes[styles?.textFontSize || 'medium'];
-  const textColor = styles?.textColor || '#374151';
   const textAlign = styles?.textAlign || 'center';
-
   const alignClasses = { left: 'text-left', center: 'text-center', right: 'text-right' };
+  const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
+  const textColor = styles?.textColor || '#374151';
 
   return (
-    <section className="py-8 px-4" style={backgroundStyle}>
+    <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
       <div className="max-w-4xl mx-auto">
-        <h3 className={`${titleSize} ${titleWeight} mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
+        <h3 className={`sm:text-xl font-semibold mb-4 ${alignClasses[titleAlign]}`} style={{ color: titleColor }}>
           {content.title || 'Contato'}
         </h3>
         {content.text && (
-          <p className={`${textSize} ${alignClasses[textAlign]} mb-4`} style={{ color: textColor }}>
+          <p className={`text-sm sm:text-base ${alignClasses[textAlign]} mb-4`} style={{ color: textColor }}>
             {content.text}
           </p>
         )}
