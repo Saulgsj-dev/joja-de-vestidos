@@ -1,9 +1,8 @@
-// frontend/src/components/Header.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ config, sections, isPreview = false }) {
+export default function Header({ config, sections, isPreview = false, storeSlug = null }) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,10 +22,10 @@ export default function Header({ config, sections, isPreview = false }) {
   const handleLogin = () => navigate('/login');
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    navigate('/login');
   };
 
-  const isPublicSite = location.pathname === '/';
+  const isPublicSite = location.pathname === '/' || location.pathname === `/${storeSlug}`;
 
   // ✅ ENCONTRAR A SEÇÃO HEADER nas sections
   const headerSection = sections?.find(s => s.section_type === 'header');
@@ -70,6 +69,15 @@ export default function Header({ config, sections, isPreview = false }) {
     backgroundStyle.backgroundColor = bgColor;
   }
 
+  // ✅ Função para navegar para a home com slug
+  const navigateHome = () => {
+    if (storeSlug) {
+      navigate(`/${storeSlug}`);
+    } else {
+      navigate('/');
+    }
+  };
+
  return (
   <header
     className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
@@ -86,7 +94,7 @@ export default function Header({ config, sections, isPreview = false }) {
           className={`w-auto object-contain cursor-pointer ${
             isPreview ? 'h-6 sm:h-8' : 'h-8 sm:h-10'
           }`}
-          onClick={() => navigate('/')}
+          onClick={navigateHome}
         />
       ) : (
         <h1
@@ -95,7 +103,7 @@ export default function Header({ config, sections, isPreview = false }) {
               ? 'text-sm sm:text-base' 
               : 'text-lg sm:text-xl lg:text-2xl'
           }`}
-          onClick={() => navigate('/')}
+          onClick={navigateHome}
           style={{ color: textColor }}
         >
           {leftText || config?.nome_loja || '👗 Minha Loja'}

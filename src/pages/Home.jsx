@@ -12,10 +12,12 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [profileId, setProfileId] = useState(null);
     const [notFound, setNotFound] = useState(false);
+    const [storeSlug, setStoreSlug] = useState(null);
 
     useEffect(() => {
         const getProfileId = async () => {
             if (storeId) {
+                setStoreSlug(storeId);
                 // ✅ BUSCAR profile_id pelo slug
                 try {
                     const profile = await apiRequest(`/api/profile/${storeId}`);
@@ -220,8 +222,8 @@ export default function Home() {
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-            {/* Header */}
-            <Header config={config} sections={sections} />
+            {/* ✅ Header com storeSlug */}
+            <Header config={config} sections={sections} storeSlug={storeSlug} />
             
             {/* Renderiza as seções (exceto header) */}
             {sections.length > 0 ? (

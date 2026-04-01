@@ -1,4 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -6,8 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import SitePreview from '../components/SitePreview';
 
 const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%23e5e7eb" width="64" height="64"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ESem imagem%3C/text%3E%3C/svg%3E`;
-
-// ... (imports permanecem os mesmos)
 
 export default function AdminDashboard() {
   const [config, setConfig] = useState({
@@ -24,6 +21,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('sections');
+  const [storeSlug, setStoreSlug] = useState(null); // ✅ NOVO: slug da loja
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +36,17 @@ export default function AdminDashboard() {
         return;
       }
       setUser(session.user);
+      
+      // ✅ BUSCAR SLUG DO PROFILE
+      try {
+        const profile = await apiRequest(`/api/profile/${session.user.id}`);
+        if (profile?.slug) {
+          setStoreSlug(profile.slug);
+        }
+      } catch (e) {
+        console.log('⚠️ Slug não encontrado, usando fallback');
+      }
+      
       await Promise.all([
         carregarConfig(session.user.id),
         carregarSections(session.user.id)
@@ -92,8 +101,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // ... (resto das funções permanecem as mesmas até salvarSection)
-
   const salvarSection = async (sectionData) => {
     try {
       await apiRequest('/api/sections', {
@@ -107,8 +114,6 @@ export default function AdminDashboard() {
       alert('❌ Erro ao salvar: ' + e.message);
     }
   };
-
-  // ... (togglePublish e deleteOldImage permanecem iguais)
 
   const togglePublish = async (section, newStatus) => {
     try {
@@ -132,9 +137,7 @@ export default function AdminDashboard() {
   };
 
   const deleteOldImage = async (imageUrl) => {
-    if (!imageUrl || typeof imageUrl !== 'string') {
-      return;
-    }
+    if (!imageUrl || typeof imageUrl !== 'string') return;
     try {
       const urlObj = new URL(imageUrl);
       const pathParts = urlObj.pathname.split('/').filter(p => p);
@@ -171,8 +174,6 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  // ... (handlers de upload permanecem iguais)
-
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -182,10 +183,8 @@ export default function AdminDashboard() {
     }
     try {
       const oldImageUrl = selectedSection?.content?.logo;
-      console.log('🔄 Iniciando upload - URL antiga:', oldImageUrl);
       alert('📤 Fazendo upload...');
       const { url: newUrl, fileName } = await uploadImage(file);
-      console.log('✅ Upload concluído:', newUrl);
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,10 +202,7 @@ export default function AdminDashboard() {
         content: { ...selectedSection.content, logo: newUrl }
       };
       setSelectedSection(updatedSection);
-      if (oldImageUrl) {
-        console.log('🗑️ Tentando deletar antiga...');
-        await deleteOldImage(oldImageUrl);
-      }
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
       alert('✅ Logo atualizada com sucesso!');
     } catch (e) {
@@ -214,8 +210,6 @@ export default function AdminDashboard() {
       alert('❌ Erro: ' + e.message);
     }
   };
-
-  // ... (handleHeroImageUpload, handleBackgroundImageUpload, handleLeftImageUpload, handleRightImageUpload permanecem iguais)
 
   const handleHeroImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -226,10 +220,8 @@ export default function AdminDashboard() {
     }
     try {
       const oldImageUrl = selectedSection?.content?.image;
-      console.log('🔄 Iniciando upload - URL antiga:', oldImageUrl);
       alert('📤 Fazendo upload...');
       const { url: newUrl, fileName } = await uploadImage(file);
-      console.log('✅ Upload concluído:', newUrl);
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,10 +239,7 @@ export default function AdminDashboard() {
         content: { ...selectedSection.content, image: newUrl }
       };
       setSelectedSection(updatedSection);
-      if (oldImageUrl) {
-        console.log('🗑️ Tentando deletar antiga...');
-        await deleteOldImage(oldImageUrl);
-      }
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
       alert('✅ Imagem principal atualizada com sucesso!');
     } catch (e) {
@@ -270,7 +259,6 @@ export default function AdminDashboard() {
       const oldImageUrl = selectedSection?.styles?.backgroundImage;
       alert('📤 Fazendo upload da imagem de fundo...');
       const { url: newUrl } = await uploadImage(file);
-      console.log('✅ Upload de fundo concluído:', newUrl);
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -288,9 +276,7 @@ export default function AdminDashboard() {
         styles: { ...selectedSection.styles, backgroundImage: newUrl }
       };
       setSelectedSection(updatedSection);
-      if (oldImageUrl) {
-        await deleteOldImage(oldImageUrl);
-      }
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
       alert('✅ Imagem de fundo atualizada!');
     } catch (e) {
@@ -327,9 +313,7 @@ export default function AdminDashboard() {
         content: { ...selectedSection.content, leftImage: newUrl }
       };
       setSelectedSection(updatedSection);
-      if (oldImageUrl) {
-        await deleteOldImage(oldImageUrl);
-      }
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
       alert('✅ Imagem esquerda atualizada!');
     } catch (e) {
@@ -366,9 +350,7 @@ export default function AdminDashboard() {
         content: { ...selectedSection.content, rightImage: newUrl }
       };
       setSelectedSection(updatedSection);
-      if (oldImageUrl) {
-        await deleteOldImage(oldImageUrl);
-      }
+      if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
       alert('✅ Imagem direita atualizada!');
     } catch (e) {
@@ -396,17 +378,27 @@ export default function AdminDashboard() {
     );
   }
 
+  // ✅ URL do site público com slug
+  const publicSiteUrl = storeSlug ? `/${storeSlug}` : '/';
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
       {/* Header fixo do admin */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Minha loja de vestidos</h1>
+          <h1 className="text-2xl font-bold">{config.nome_loja || 'Minha loja de vestidos'}</h1>
           <div className="flex gap-2">
-            <button onClick={() => navigate('/')} className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800">
+            {/* ✅ BOTÃO "VER SITE" AGORA USA O SLUG */}
+            <button 
+              onClick={() => navigate(publicSiteUrl)} 
+              className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800"
+            >
               Ver Site
             </button>
-            <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800">
+            <button 
+              onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} 
+              className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800"
+            >
               Sair
             </button>
           </div>
@@ -445,23 +437,16 @@ export default function AdminDashboard() {
                         {section.section_type === 'content' && `Sessão ${index + 1}`}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${
-                        section.is_active === 1
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-400 text-white'
+                        section.is_active === 1 ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'
                       }`}>
                         {section.is_active === 1 ? '✓' : '○'}
                       </span>
                     </div>
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePublish(section, section.is_active === 0);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); togglePublish(section, section.is_active === 0); }}
                     className={`absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition px-2 py-1 rounded text-xs ${
-                      section.is_active === 1
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                        : 'bg-green-500 hover:bg-green-600 text-white'
+                      section.is_active === 1 ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
                     }`}
                   >
                     {section.is_active === 1 ? 'Despublicar' : 'Publicar'}
@@ -550,9 +535,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => togglePublish(selectedSection, selectedSection.is_active === 0)}
                   className={`px-4 py-2 rounded-lg font-medium ${
-                    selectedSection.is_active === 1
-                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                      : 'bg-green-500 hover:bg-green-600 text-white'
+                    selectedSection.is_active === 1 ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
                   }`}
                 >
                   {selectedSection.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}
@@ -571,8 +554,7 @@ export default function AdminDashboard() {
                         onClick={() => handleStyleUpdate('bgType', 'solid')}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.bgType === 'solid' || !selectedSection.styles?.bgType
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-200'
+                            ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
                       >
                         Cor Sólida
@@ -580,9 +562,7 @@ export default function AdminDashboard() {
                       <button
                         onClick={() => handleStyleUpdate('bgType', 'gradient')}
                         className={`flex-1 py-2 rounded text-sm ${
-                          selectedSection.styles?.bgType === 'gradient'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-200'
+                          selectedSection.styles?.bgType === 'gradient' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                         }`}
                       >
                         Gradiente
@@ -644,8 +624,7 @@ export default function AdminDashboard() {
                         onClick={() => handleStyleUpdate('leftType', 'text')}
                         className={`flex-1 py-2 rounded text-sm ${
                           selectedSection.styles?.leftType === 'text' || !selectedSection.styles?.leftType
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200'
+                            ? 'bg-blue-600 text-white' : 'bg-gray-200'
                         }`}
                       >
                         Texto
@@ -653,9 +632,7 @@ export default function AdminDashboard() {
                       <button
                         onClick={() => handleStyleUpdate('leftType', 'logo')}
                         className={`flex-1 py-2 rounded text-sm ${
-                          selectedSection.styles?.leftType === 'logo'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200'
+                          selectedSection.styles?.leftType === 'logo' ? 'bg-blue-600 text-white' : 'bg-gray-200'
                         }`}
                       >
                         Logo
@@ -685,10 +662,7 @@ export default function AdminDashboard() {
                               className="h-12 object-contain rounded border"
                             />
                             <button
-                              onClick={() => {
-                                handleSectionUpdate('logo', '');
-                                handleStyleUpdate('leftLogo', '');
-                              }}
+                              onClick={() => { handleSectionUpdate('logo', ''); handleStyleUpdate('leftLogo', ''); }}
                               className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                             >
                               ×
@@ -801,8 +775,7 @@ export default function AdminDashboard() {
                       onClick={() => handleBackgroundTypeChange('color')}
                       className={`flex-1 py-2 rounded ${
                         selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-200'
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
                       }`}
                     >
                       Cor de Fundo
@@ -810,9 +783,7 @@ export default function AdminDashboard() {
                     <button
                       onClick={() => handleBackgroundTypeChange('image')}
                       className={`flex-1 py-2 rounded ${
-                        selectedSection.styles.backgroundType === 'image'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-200'
+                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
                       }`}
                     >
                       Imagem de Fundo
@@ -955,15 +926,14 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Preview */}
-       {/* Preview em Tempo Real */}
-<div className="flex-1 bg-cyan-200 rounded-2xl p-6">
-  <SitePreview 
-    config={config} 
-    sections={sections} 
-    selectedSection={selectedSection}
-  />
-</div>
+        {/* Preview em Tempo Real */}
+        <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
+          <SitePreview 
+            config={config} 
+            sections={sections} 
+            selectedSection={selectedSection}
+          />
+        </div>
       </div>
     </div>
   );
