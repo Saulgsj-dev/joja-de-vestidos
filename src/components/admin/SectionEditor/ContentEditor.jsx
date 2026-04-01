@@ -21,9 +21,9 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
     const buttons = section.content?.buttons || [];
     onUpdateSection({
       ...section,
-      content: { 
-        ...section.content, 
-        buttons: [...buttons, { text: '', link: '', color: config?.cor_botao || '#000000' }] 
+      content: {
+        ...section.content,
+        buttons: [...buttons, { text: '', link: '', color: config?.cor_botao || '#000000' }]
       }
     });
   };
@@ -115,13 +115,32 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
               </div>
             </div>
           ))}
-          
           <button
             onClick={handleAddButton}
             className="w-full py-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:bg-purple-50 transition font-medium"
           >
             + Adicionar Botão
           </button>
+
+          {/* 📐 ALINHAMENTO DOS BOTÕES */}
+          <div className="pt-4 border-t">
+            <label className="block text-sm font-medium mb-2">📐 Alinhamento dos Botões</label>
+            <div className="flex gap-2">
+              {['left', 'center', 'right'].map(align => (
+                <button
+                  key={align}
+                  onClick={() => handleStyleUpdate('buttonsAlign', align)}
+                  className={`flex-1 py-2 rounded text-sm ${
+                    section.styles?.buttonsAlign === align || (!section.styles?.buttonsAlign && align === 'left')
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-200'
+                  }`}
+                >
+                  {align === 'left' ? '⬅️ Esquerda' : align === 'center' ? '↕️ Centro' : '➡️ Direita'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </SectionAccordion>
 
@@ -213,7 +232,8 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
                   onClick={() => handleStyleUpdate('titleAlign', align)}
                   className={`flex-1 py-2 rounded text-sm ${
                     section.styles?.titleAlign === align || (!section.styles?.titleAlign && align === 'left')
-                    ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-200'
                   }`}
                 >
                   {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
@@ -230,7 +250,8 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
                   onClick={() => handleStyleUpdate('textAlign', align)}
                   className={`flex-1 py-2 rounded text-sm ${
                     section.styles?.textAlign === align || (!section.styles?.textAlign && align === 'left')
-                    ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-200'
                   }`}
                 >
                   {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
@@ -256,7 +277,8 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
                 onClick={() => handleStyleUpdate('imagePosition', pos.value)}
                 className={`p-2 rounded-lg text-xs border-2 transition ${
                   section.styles?.imagePosition === pos.value || (!section.styles?.imagePosition && pos.value === 'above')
-                  ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-purple-300'
+                    ? 'border-purple-600 bg-purple-50 text-purple-700'
+                    : 'border-gray-200 hover:border-purple-300'
                 }`}
               >
                 {pos.label}
@@ -282,7 +304,8 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
             onClick={() => handleStyleUpdate('backgroundType', 'color')}
             className={`flex-1 py-2 rounded ${
               section.styles.backgroundType === 'color' || !section.styles.backgroundType
-              ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200'
             }`}
           >
             Cor de Fundo

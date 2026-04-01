@@ -20,9 +20,9 @@ export default function ProductsEditor({ section, config, activeAccordion, onUpd
     const buttons = section.content?.buttons || [];
     onUpdateSection({
       ...section,
-      content: { 
-        ...section.content, 
-        buttons: [...buttons, { text: '', link: '', color: config?.cor_botao || '#000000' }] 
+      content: {
+        ...section.content,
+        buttons: [...buttons, { text: '', link: '', color: config?.cor_botao || '#000000' }]
       }
     });
   };
@@ -106,13 +106,32 @@ export default function ProductsEditor({ section, config, activeAccordion, onUpd
               </div>
             </div>
           ))}
-          
           <button
             onClick={handleAddButton}
             className="w-full py-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:bg-purple-50 transition font-medium"
           >
             + Adicionar Botão
           </button>
+
+          {/* 📐 ALINHAMENTO DOS BOTÕES */}
+          <div className="pt-4 border-t">
+            <label className="block text-sm font-medium mb-2">📐 Alinhamento dos Botões</label>
+            <div className="flex gap-2">
+              {['left', 'center', 'right'].map(align => (
+                <button
+                  key={align}
+                  onClick={() => handleStyleUpdate('buttonsAlign', align)}
+                  className={`flex-1 py-2 rounded text-sm ${
+                    section.styles?.buttonsAlign === align || (!section.styles?.buttonsAlign && align === 'center')
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-200'
+                  }`}
+                >
+                  {align === 'left' ? '⬅️ Esquerda' : align === 'center' ? '↕️ Centro' : '➡️ Direita'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </SectionAccordion>
 
@@ -167,7 +186,8 @@ export default function ProductsEditor({ section, config, activeAccordion, onUpd
                 onClick={() => handleStyleUpdate('titleAlign', align)}
                 className={`flex-1 py-2 rounded text-sm ${
                   section.styles?.titleAlign === align || (!section.styles?.titleAlign && align === 'center')
-                  ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200'
                 }`}
               >
                 {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
@@ -183,7 +203,8 @@ export default function ProductsEditor({ section, config, activeAccordion, onUpd
             onClick={() => handleStyleUpdate('backgroundType', 'color')}
             className={`flex-1 py-2 rounded ${
               section.styles.backgroundType === 'color' || !section.styles.backgroundType
-              ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-200'
             }`}
           >
             Cor de Fundo

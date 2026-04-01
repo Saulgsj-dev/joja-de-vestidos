@@ -1,3 +1,4 @@
+// frontend/src/components/preview/PreviewFrame.jsx
 export default function PreviewFrame({ viewMode, children }) {
   if (viewMode === 'desktop') {
     return (
