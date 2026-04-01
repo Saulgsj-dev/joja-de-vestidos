@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ config, sections }) {
+export default function Header({ config, sections, isPreview = false }) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();

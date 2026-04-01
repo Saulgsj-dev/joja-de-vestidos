@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { supabase } from '../lib/supabaseClient';
+import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 
 export default function Home() {
+  const { storeId } = useParams(); // ✅ Pega o ID da loja da URL
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -11,7 +13,13 @@ export default function Home() {
   const [profileId, setProfileId] = useState(null);
 
   useEffect(() => {
+    // ✅ Prioriza storeId da URL, senão tenta pegar da sessão
     const getProfileId = async () => {
+      if (storeId) {
+        setProfileId(storeId);
+        return;
+      }
+      
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const id = session?.user?.id || null;
@@ -22,7 +30,7 @@ export default function Home() {
     };
 
     getProfileId();
-  }, []);
+  }, [storeId]);
 
   useEffect(() => {
     if (profileId) {
