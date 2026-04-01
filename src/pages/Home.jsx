@@ -1,3 +1,4 @@
+// frontend/src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiRequest } from '../lib/apiClient';
@@ -18,29 +19,6 @@ export default function Home() {
   const [notFound, setNotFound] = useState(false);
   const [storeSlug, setStoreSlug] = useState(null);
 
-  // ✅ Atualiza meta tags dinamicamente
-  useEffect(() => {
-    if (config?.nome_loja) {
-      document.title = `${config.nome_loja} | Loja de Vestidos`;
-      
-      // Meta description
-      let metaDesc = document.querySelector('meta[name="description"]');
-      if (!metaDesc) {
-        metaDesc = document.createElement('meta');
-        metaDesc.name = 'description';
-        document.head.appendChild(metaDesc);
-      }
-      metaDesc.content = config.footer_texto || `Compre vestidos exclusivos na ${config.nome_loja}`;
-      
-      // Open Graph
-      let ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.content = config.nome_loja;
-      
-      let ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.content = config.footer_texto || '';
-    }
-  }, [config]);
-
   useEffect(() => {
     const getProfileId = async () => {
       if (storeId) {
@@ -59,6 +37,7 @@ export default function Home() {
       }
       setNotFound(true);
     };
+
     getProfileId();
   }, [storeId]);
 
@@ -75,6 +54,7 @@ export default function Home() {
         apiRequest(`/api/config?profile_id=${profileId}`).catch(() => ({})),
         apiRequest(`/api/produtos?profile_id=${profileId}`).catch(() => [])
       ]);
+
       setSections(sectionsData || []);
       setConfig(configData || {});
       setProdutos(produtosData || []);
@@ -99,8 +79,8 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
           <p className="text-gray-600 text-lg">Site não encontrado</p>
-          <button
-            onClick={() => window.location.href = '/'}
+          <button 
+            onClick={() => window.location.href = '/'} 
             className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Voltar ao início
@@ -122,8 +102,7 @@ export default function Home() {
   };
 
   return (
-    // ✅ Landmark principal para acessibilidade
-    <main id="main-content" role="main" className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
+    <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
       <Header config={config} sections={sections} storeSlug={storeSlug} />
       
       {sections.length > 0 ? (
@@ -140,6 +119,6 @@ export default function Home() {
       )}
       
       <Footer config={config} sections={sections} />
-    </main>
+    </div>
   );
 }

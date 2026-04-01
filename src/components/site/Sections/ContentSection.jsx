@@ -1,3 +1,4 @@
+// frontend/src/components/site/Sections/ContactSection.jsx
 import { getBackgroundStyle, getAlignClass } from '../../../utils/styleHelpers';
 
 export default function ContentSection({ section, config }) {
@@ -36,14 +37,14 @@ export default function ContentSection({ section, config }) {
     return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'left')}`;
   };
 
-  // 🔹 Tamanhos de Imagem (5 opções) - com width/height para evitar CLS
+  // 🔹 Tamanhos de Imagem (5 opções)
   const getImageSizeClasses = () => {
     const sizes = {
-      pequeno: { class: 'h-48', width: 192, height: 192 },
-      medio: { class: 'h-64', width: 256, height: 256 },
-      grande: { class: 'h-80', width: 320, height: 320 },
-      extra_grande: { class: 'h-96', width: 384, height: 384 },
-      mega_grande: { class: 'h-[32rem]', width: 512, height: 512 }
+      pequeno: 'h-48',
+      medio: 'h-64',
+      grande: 'h-80',
+      extra_grande: 'h-96',
+      mega_grande: 'h-[32rem]'
     };
     return sizes[styles?.imageSize || 'medio'];
   };
@@ -54,7 +55,6 @@ export default function ContentSection({ section, config }) {
     const isWhatsapp = btn.link?.includes('wa.me') || btn.link?.includes('whatsapp');
     const defaultColor = isWhatsapp ? '#25D366' : styles?.buttonColor || config?.cor_botao || '#000000';
     const bgColor = btn.color || defaultColor;
-    
     return (
       <a
         key={index}
@@ -77,50 +77,48 @@ export default function ContentSection({ section, config }) {
     return 'justify-center';
   };
 
-  // ✅ Função para renderizar imagem com atributos de performance
-  const renderImage = (src, alt, position) => {
-    if (!src) return null;
-    const { class: sizeClass, width, height } = getImageSizeClasses();
-    
-    return (
-      <img
-        src={src}
-        alt={alt || 'Imagem da seção'}
-        width={width}
-        height={height}
-        loading="lazy"
-        decoding="async"
-        className={`w-full ${sizeClass} object-cover rounded-lg shadow-md ${
-          position === 'above' ? 'mb-4' : position === 'between' ? 'my-4' : 'mt-4'
-        }`}
-      />
-    );
-  };
-
   return (
     <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
       <div className="max-w-4xl mx-auto">
         {/* ✅ IMAGEM ACIMA DO TÍTULO */}
-        {content.image && styles?.imagePosition === 'above' && renderImage(content.image, content.title, 'above')}
-        
+        {content.image && styles?.imagePosition === 'above' && (
+          <img 
+            src={content.image} 
+            alt={content.title} 
+            className={`w-full ${getImageSizeClasses()} object-cover rounded-lg mb-4 shadow-md`} 
+          />
+        )}
+
         {/* ✅ TÍTULO */}
         <h3 className={`${getTitleClasses()} mb-4`} style={{ color: titleColor }}>
           {content.title || 'Seção'}
         </h3>
-        
-        {/* ✅ IMAGEM ENTRE TÍTULO E TEXTO */}
-        {content.image && styles?.imagePosition === 'between' && renderImage(content.image, content.title, 'between')}
-        
+
+        {/* ✅ IMAGEM ENTRE TÍTULO E TEXTO (CORRIGIDO) */}
+        {content.image && styles?.imagePosition === 'between' && (
+          <img 
+            src={content.image} 
+            alt={content.title} 
+            className={`w-full ${getImageSizeClasses()} object-cover rounded-lg my-4 shadow-md`} 
+          />
+        )}
+
         {/* ✅ TEXTO/DESCRIÇÃO */}
         {content.text && (
           <p className={`${getTextClasses()} mb-6`} style={{ color: textColor }}>
             {content.text}
           </p>
         )}
-        
+
         {/* ✅ IMAGEM ABAIXO DO TEXTO */}
-        {content.image && styles?.imagePosition === 'below' && renderImage(content.image, content.title, 'below')}
-        
+        {content.image && styles?.imagePosition === 'below' && (
+          <img 
+            src={content.image} 
+            alt={content.title} 
+            className={`w-full ${getImageSizeClasses()} object-cover rounded-lg mt-4 shadow-md`} 
+          />
+        )}
+
         {/* ✅ BOTÕES */}
         {content.buttons?.length > 0 && (
           <div className={`${getButtonsAlignClass()} mt-6 flex flex-wrap gap-4`}>
