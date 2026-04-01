@@ -1,4 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +18,7 @@ export default function AdminDashboard() {
   const [activeAccordion, setActiveAccordion] = useState('content');
   const [storeSlug, setStoreSlug] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false); // Mobile toggle
 
   const { sections, loading: sectionsLoading, loadSections, saveSection, togglePublish } = useSections(user?.id);
   const { config, loading: configLoading, saveConfig, loadConfig, setConfig } = useConfig(user?.id);
@@ -82,8 +82,8 @@ export default function AdminDashboard() {
 
   if (authLoading || sectionsLoading || configLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -91,67 +91,124 @@ export default function AdminDashboard() {
   const publicSiteUrl = storeSlug ? `/${storeSlug}` : '/';
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
-      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{config.nome_loja || 'Minha loja de vestidos'}</h1>
+    <div className="min-h-screen bg-gray-50" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
+      {/* 🔹 HEADER RESPONSIVO */}
+      <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 sm:p-4 sticky top-0 z-50 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-3">
+          <h1 className="text-lg sm:text-2xl font-bold truncate flex-1">
+            {config.nome_loja || 'Minha loja de vestidos'}
+          </h1>
           <div className="flex gap-2">
-            <button onClick={() => navigate(publicSiteUrl)} className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800">
-              Ver Site
+            <button 
+              onClick={() => navigate(publicSiteUrl)} 
+              className="px-3 sm:px-4 py-2 bg-purple-700 hover:bg-purple-800 rounded-lg text-xs sm:text-sm font-medium transition shadow-md"
+            >
+              <span className="hidden sm:inline">Ver Site</span>
+              <span className="sm:hidden">👁️</span>
             </button>
-            <button onClick={signOut} className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800">
-              Sair
+            <button 
+              onClick={signOut} 
+              className="px-3 sm:px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded-lg text-xs sm:text-sm font-medium transition shadow-md"
+            >
+              <span className="hidden sm:inline">Sair</span>
+              <span className="sm:hidden">🚪</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-4 flex gap-4 flex-wrap lg:flex-nowrap">
-        <AdminSidebar
-          sections={sections}
-          selectedSection={selectedSection}
-          activeTab={activeTab}
-          activeAccordion={activeAccordion}
-          onSelectSection={setSelectedSection}
-          onToggleTab={setActiveTab}
-          onToggleAccordion={setActiveAccordion}
-          onTogglePublish={handleTogglePublish}
-          onLoadSections={loadSections}
-        />
-
-        <div className="flex-1 min-w-0 bg-white rounded-2xl p-6 shadow-lg">
-          {activeTab === 'config' ? (
-            <AdminConfig
-              config={config}
-              setConfig={setConfig}
-              onSave={handleSaveConfig}
-              saving={saving}
-            />
-          ) : selectedSection ? (
-            <SectionEditor
-              section={selectedSection}
-              config={config}
-              activeAccordion={activeAccordion}
-              onSave={handleSaveSection}
-              onTogglePublish={handleTogglePublish}
-              onUpdateSection={handleUpdateSection}
-              onSetActiveAccordion={setActiveAccordion}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
-              <p>Selecione uma seção para editar</p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0 bg-cyan-200 rounded-2xl p-6">
-  <SitePreview 
-    config={config} 
-    sections={sections} 
-    selectedSection={selectedSection}
-  />
-</div>
+      {/* 🔹 BOTÃO MOBILE PARA TOGGLE SIDEBAR */}
+      <div className="lg:hidden p-3 bg-white border-b shadow-sm sticky top-[60px] z-40">
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition flex items-center justify-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          {showSidebar ? 'Ocultar Menu' : 'Mostrar Menu'}
+        </button>
       </div>
+
+      {/* 🔹 LAYOUT PRINCIPAL - 3 COLUNAS (DESKTOP) / 1 COLUNA (MOBILE) */}
+      <div className="max-w-[1800px] mx-auto p-3 sm:p-4 lg:p-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          
+          {/* 📱 SIDEBAR - Mobile: Toggle / Desktop: Sempre visível */}
+          <div className={`lg:block ${showSidebar ? 'block' : 'hidden'} w-full lg:w-80 flex-shrink-0`}>
+            <div className="sticky top-[120px] lg:top-[100px]">
+              <AdminSidebar
+                sections={sections}
+                selectedSection={selectedSection}
+                activeTab={activeTab}
+                activeAccordion={activeAccordion}
+                onSelectSection={(section) => {
+                  setSelectedSection(section);
+                  setShowSidebar(false); // Fecha sidebar no mobile após seleção
+                }}
+                onToggleTab={setActiveTab}
+                onToggleAccordion={setActiveAccordion}
+                onTogglePublish={handleTogglePublish}
+                onLoadSections={loadSections}
+              />
+            </div>
+          </div>
+
+          {/*  EDITOR - Ocupa espaço disponível */}
+          <div className="flex-1 min-w-0 order-2 lg:order-2">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg min-h-[500px]">
+              {activeTab === 'config' ? (
+                <AdminConfig
+                  config={config}
+                  setConfig={setConfig}
+                  onSave={handleSaveConfig}
+                  saving={saving}
+                />
+              ) : selectedSection ? (
+                <SectionEditor
+                  section={selectedSection}
+                  config={config}
+                  activeAccordion={activeAccordion}
+                  onSave={handleSaveSection}
+                  onTogglePublish={handleTogglePublish}
+                  onUpdateSection={handleUpdateSection}
+                  onSetActiveAccordion={setActiveAccordion}
+                />
+              ) : (
+                <div className="h-64 flex flex-col items-center justify-center text-gray-400">
+                  <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <p className="text-lg font-medium">Selecione uma seção para editar</p>
+                  <p className="text-sm mt-2">Clique em uma seção na barra lateral</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 👁️ PREVIEW - Desktop: Lado direito / Mobile: Abaixo */}
+          <div className="flex-1 min-w-0 order-3 lg:order-3">
+            <div className="bg-cyan-100 rounded-2xl p-3 sm:p-6 shadow-lg">
+              <div className="bg-white rounded-xl p-2 sm:p-3">
+                <SitePreview 
+                  config={config} 
+                  sections={sections} 
+                  selectedSection={selectedSection}
+                />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 🔹 OVERLAY PARA MOBILE (fecha sidebar ao clicar fora) */}
+      {showSidebar && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
     </div>
   );
 }
