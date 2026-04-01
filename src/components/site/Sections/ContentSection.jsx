@@ -6,6 +6,49 @@ export default function ContentSection({ section, config }) {
   const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const textColor = styles?.textColor || '#374151';
 
+  // 🔹 Tamanhos de Fonte do Título (5 opções)
+  const getTitleClasses = () => {
+    const sizes = { 
+      pequeno: 'text-lg md:text-xl', 
+      medio: 'text-xl md:text-2xl', 
+      grande: 'text-2xl md:text-3xl', 
+      extra_grande: 'text-3xl md:text-4xl',
+      mega_grande: 'text-4xl md:text-5xl'
+    };
+    const weights = { 
+      normal: 'font-normal', 
+      semibold: 'font-semibold', 
+      bold: 'font-bold', 
+      extrabold: 'font-extrabold' 
+    };
+    return `${sizes[styles?.titleFontSize || 'medio']} ${weights[styles?.titleFontWeight || 'bold']} ${getAlignClass(styles?.titleAlign || 'left')}`;
+  };
+
+  // 🔹 Tamanhos de Fonte do Texto (5 opções)
+  const getTextClasses = () => {
+    const sizes = { 
+      pequeno: 'text-sm', 
+      medio: 'text-base', 
+      grande: 'text-lg', 
+      extra_grande: 'text-xl',
+      mega_grande: 'text-2xl'
+    };
+    return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'left')}`;
+  };
+
+  // 🔹 Tamanhos de Imagem (5 opções)
+  const getImageSizeClasses = () => {
+    const sizes = {
+      pequeno: 'h-48',
+      medio: 'h-64',
+      grande: 'h-80',
+      extra_grande: 'h-96',
+      mega_grande: 'h-[32rem]'
+    };
+    return sizes[styles?.imageSize || 'medio'];
+  };
+
+  // 🔘 Função para renderizar botão
   const renderButton = (btn, index) => {
     if (!btn?.text) return null;
     
@@ -31,24 +74,23 @@ export default function ContentSection({ section, config }) {
     <section className="py-8 sm:py-12 px-4" style={backgroundStyle}>
       <div className="max-w-4xl mx-auto">
         {content.image && styles?.imagePosition !== 'below' && (
-          <img src={content.image} alt={content.title} className="w-full h-64 object-cover rounded-lg mb-4 shadow-md" />
+          <img src={content.image} alt={content.title} className={`w-full ${getImageSizeClasses()} object-cover rounded-lg mb-4 shadow-md`} />
         )}
         
-        <h3 className={`text-xl sm:text-2xl font-semibold mb-4 ${getAlignClass(styles?.titleAlign || 'left')}`} style={{ color: titleColor }}>
+        <h3 className={`${getTitleClasses()} mb-4`} style={{ color: titleColor }}>
           {content.title || 'Seção'}
         </h3>
         
         {content.text && (
-          <p className={`text-sm sm:text-base ${getAlignClass(styles?.textAlign || 'left')} mb-6`} style={{ color: textColor }}>
+          <p className={`${getTextClasses()} mb-6`} style={{ color: textColor }}>
             {content.text}
           </p>
         )}
         
         {content.image && styles?.imagePosition === 'below' && (
-          <img src={content.image} alt={content.title} className="w-full h-64 object-cover rounded-lg mt-4 shadow-md" />
+          <img src={content.image} alt={content.title} className={`w-full ${getImageSizeClasses()} object-cover rounded-lg mt-4 shadow-md`} />
         )}
         
-        {/* 🔘 BOTÕES */}
         {content.buttons?.length > 0 && (
           <div className={`${getAlignClass(styles?.titleAlign || 'left')} mt-6 flex flex-wrap gap-4`}>
             {content.buttons.map((btn, index) => renderButton(btn, index))}

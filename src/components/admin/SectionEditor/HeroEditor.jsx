@@ -155,20 +155,21 @@ export default function HeroEditor({ section, config, activeAccordion, onUpdateS
         </div>
       </SectionAccordion>
 
-      {/* 🔤 ESTILO DA FONTE */}
-      <SectionAccordion id="font-styles" title="🔤 Estilo da Fonte">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 🔤 ESTILO DA FONTE - TÍTULO (5 tamanhos) */}
+      <SectionAccordion id="title-font" title="🔤 Tamanho do Título">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
             <select
-              value={section.styles?.titleFontSize || 'large'}
+              value={section.styles?.titleFontSize || 'grande'}
               onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
               className="w-full p-2 border rounded"
             >
-              <option value="small">Pequeno</option>
-              <option value="medium">Médio</option>
-              <option value="large">Grande</option>
-              <option value="xlarge">Extra Grande</option>
+              <option value="pequeno">Pequeno</option>
+              <option value="medio">Médio</option>
+              <option value="grande">Grande</option>
+              <option value="extra_grande">Extra Grande</option>
+              <option value="mega_grande">Mega Grande</option>
             </select>
           </div>
           <div>
@@ -184,18 +185,45 @@ export default function HeroEditor({ section, config, activeAccordion, onUpdateS
               <option value="extrabold">Extra Negrito</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Tamanho da Descrição</label>
-            <select
-              value={section.styles?.subtitleFontSize || 'medium'}
-              onChange={(e) => handleStyleUpdate('subtitleFontSize', e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="small">Pequeno</option>
-              <option value="medium">Médio</option>
-              <option value="large">Grande</option>
-            </select>
-          </div>
+        </div>
+      </SectionAccordion>
+
+      {/* 🔤 ESTILO DA FONTE - SUBTÍTULO (5 tamanhos) */}
+      <SectionAccordion id="subtitle-font" title="🔤 Tamanho da Descrição">
+        <div>
+          <label className="block text-sm font-medium mb-2">Tamanho da Descrição</label>
+          <select
+            value={section.styles?.subtitleFontSize || 'medio'}
+            onChange={(e) => handleStyleUpdate('subtitleFontSize', e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="pequeno">Pequeno</option>
+            <option value="medio">Médio</option>
+            <option value="grande">Grande</option>
+            <option value="extra_grande">Extra Grande</option>
+            <option value="mega_grande">Mega Grande</option>
+          </select>
+        </div>
+      </SectionAccordion>
+
+      {/* 🖼️ TAMANHO DA IMAGEM (5 opções) */}
+      <SectionAccordion id="image-size" title="🖼️ Tamanho da Imagem">
+        <div>
+          <label className="block text-sm font-medium mb-2">Tamanho da Imagem Principal</label>
+          <select
+            value={section.styles?.imageSize || 'grande'}
+            onChange={(e) => handleStyleUpdate('imageSize', e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="pequeno">Pequeno</option>
+            <option value="medio">Médio</option>
+            <option value="grande">Grande</option>
+            <option value="extra_grande">Extra Grande</option>
+            <option value="mega_grande">Mega Grande</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Isso controla o tamanho do logo/imagem principal
+          </p>
         </div>
       </SectionAccordion>
 

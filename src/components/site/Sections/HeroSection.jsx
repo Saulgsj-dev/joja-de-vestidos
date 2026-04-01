@@ -6,12 +6,14 @@ export default function HeroSection({ section, config }) {
   const imagePosition = styles?.imagePosition || 'above';
   const imageLayout = styles?.imageLayout || 'center';
 
+  // 🔹 Tamanhos de Fonte do Título (5 opções)
   const getTitleClasses = () => {
     const sizes = { 
-      small: 'text-xl md:text-2xl', 
-      medium: 'text-2xl md:text-3xl', 
-      large: 'text-3xl md:text-4xl lg:text-5xl', 
-      xlarge: 'text-4xl md:text-5xl lg:text-6xl' 
+      pequeno: 'text-xl md:text-2xl', 
+      medio: 'text-2xl md:text-3xl', 
+      grande: 'text-3xl md:text-4xl lg:text-5xl', 
+      extra_grande: 'text-4xl md:text-5xl lg:text-6xl',
+      mega_grande: 'text-5xl md:text-6xl lg:text-7xl'
     };
     const weights = { 
       normal: 'font-normal', 
@@ -19,16 +21,31 @@ export default function HeroSection({ section, config }) {
       bold: 'font-bold', 
       extrabold: 'font-extrabold' 
     };
-    return `${sizes[styles?.titleFontSize || 'large']} ${weights[styles?.titleFontWeight || 'bold']} ${getAlignClass(styles?.titleAlign || 'center')}`;
+    return `${sizes[styles?.titleFontSize || 'grande']} ${weights[styles?.titleFontWeight || 'bold']} ${getAlignClass(styles?.titleAlign || 'center')}`;
   };
 
+  // 🔹 Tamanhos de Fonte do Subtítulo (5 opções)
   const getSubtitleClasses = () => {
     const sizes = { 
-      small: 'text-sm md:text-base', 
-      medium: 'text-base md:text-lg', 
-      large: 'text-lg md:text-xl' 
+      pequeno: 'text-sm md:text-base', 
+      medio: 'text-base md:text-lg', 
+      grande: 'text-lg md:text-xl', 
+      extra_grande: 'text-xl md:text-2xl',
+      mega_grande: 'text-2xl md:text-3xl'
     };
-    return `${sizes[styles?.subtitleFontSize || 'medium']} ${getAlignClass(styles?.subtitleAlign || 'center')}`;
+    return `${sizes[styles?.subtitleFontSize || 'medio']} ${getAlignClass(styles?.subtitleAlign || 'center')}`;
+  };
+
+  // 🔹 Tamanhos de Imagem (5 opções)
+  const getImageSizeClasses = () => {
+    const sizes = {
+      pequeno: 'w-24 h-24 md:w-32 md:h-32',
+      medio: 'w-32 h-32 md:w-48 md:h-48',
+      grande: 'w-48 h-48 md:w-64 md:h-64',
+      extra_grande: 'w-64 h-64 md:w-80 md:h-80',
+      mega_grande: 'w-80 h-80 md:w-96 md:h-96'
+    };
+    return sizes[styles?.imageSize || 'grande'];
   };
 
   const titleColor = styles?.titleColor || '#ffffff';
@@ -71,7 +88,7 @@ export default function HeroSection({ section, config }) {
                 <img
                   src={content.image}
                   alt="Logo"
-                  className="w-32 h-32 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain drop-shadow-2xl"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
                 />
               </div>
             )}
@@ -88,7 +105,7 @@ export default function HeroSection({ section, config }) {
                 <img
                   src={content.image}
                   alt="Principal"
-                  className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-2xl"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
                 />
               </div>
             )}
@@ -105,12 +122,11 @@ export default function HeroSection({ section, config }) {
                 <img
                   src={content.image}
                   alt="Principal"
-                  className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-2xl"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
                 />
               </div>
             )}
 
-            {/* 🔘 BOTÕES */}
             {content.buttons?.length > 0 && (
               <div className={`${getAlignClass(styles?.titleAlign || 'center')} mt-6 md:mt-10 flex flex-wrap gap-4 justify-center`}>
                 {content.buttons.map((btn, index) => renderButton(btn, index))}
@@ -134,7 +150,7 @@ export default function HeroSection({ section, config }) {
             <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6`}>
               {imagePosition === 'above' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-2xl" />
+                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
                 </div>
               )}
               
@@ -144,7 +160,7 @@ export default function HeroSection({ section, config }) {
               
               {imagePosition === 'between' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-2xl" />
+                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
                 </div>
               )}
               
@@ -154,7 +170,7 @@ export default function HeroSection({ section, config }) {
               
               {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-2xl" />
+                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
                 </div>
               )}
               

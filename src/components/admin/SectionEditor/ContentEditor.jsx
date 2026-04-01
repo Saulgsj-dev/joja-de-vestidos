@@ -125,6 +125,60 @@ export default function ContentEditor({ section, config, activeAccordion, onUpda
         </div>
       </SectionAccordion>
 
+      {/* 🔤 TAMANHO DO TÍTULO (5 opções) */}
+      <SectionAccordion id="title-size" title="🔤 Tamanho do Título">
+        <div>
+          <label className="block text-sm font-medium mb-2">Tamanho do Título</label>
+          <select
+            value={section.styles?.titleFontSize || 'medio'}
+            onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="pequeno">Pequeno</option>
+            <option value="medio">Médio</option>
+            <option value="grande">Grande</option>
+            <option value="extra_grande">Extra Grande</option>
+            <option value="mega_grande">Mega Grande</option>
+          </select>
+        </div>
+      </SectionAccordion>
+
+      {/* 🔤 TAMANHO DO TEXTO (5 opções) */}
+      <SectionAccordion id="text-size" title="🔤 Tamanho do Texto">
+        <div>
+          <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
+          <select
+            value={section.styles?.textFontSize || 'medio'}
+            onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="pequeno">Pequeno</option>
+            <option value="medio">Médio</option>
+            <option value="grande">Grande</option>
+            <option value="extra_grande">Extra Grande</option>
+            <option value="mega_grande">Mega Grande</option>
+          </select>
+        </div>
+      </SectionAccordion>
+
+      {/* 🖼️ TAMANHO DA IMAGEM (5 opções) */}
+      <SectionAccordion id="image-size" title="🖼️ Tamanho da Imagem">
+        <div>
+          <label className="block text-sm font-medium mb-2">Tamanho da Imagem</label>
+          <select
+            value={section.styles?.imageSize || 'medio'}
+            onChange={(e) => handleStyleUpdate('imageSize', e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="pequeno">Pequeno (192px)</option>
+            <option value="medio">Médio (256px)</option>
+            <option value="grande">Grande (320px)</option>
+            <option value="extra_grande">Extra Grande (384px)</option>
+            <option value="mega_grande">Mega Grande (512px)</option>
+          </select>
+        </div>
+      </SectionAccordion>
+
       <SectionAccordion id="content-text-colors" title="🎨 Cores dos Textos">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
