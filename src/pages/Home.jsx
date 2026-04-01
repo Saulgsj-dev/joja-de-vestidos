@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Home() {
-  const { storeId } = useParams(); // ✅ Pega o ID da loja da URL
+  const { storeId } = useParams();
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -15,36 +15,50 @@ export default function Home() {
   const [profileId, setProfileId] = useState(null);
 
   useEffect(() => {
-    // ✅ Prioriza storeId da URL, senão tenta pegar da sessão
     const getProfileId = async () => {
+      // 1️⃣ Prioridade: Slug/ID na URL
       if (storeId) {
+        // Tenta buscar pelo slug primeiro
+        try {
+          const response = await fetch(`https://saas-vestidos-api.webpagesuporte.workers.dev/api/profiles/by-slug?slug=${storeId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProfileId(data.profile_id);
+            return;
+          }
+        } catch (e) {
+          console.log('Slug não encontrado, tentando como ID direto:', storeId);
+        }
+        // Se não for slug, usa como ID direto
         setProfileId(storeId);
         return;
       }
       
+      // 2️⃣ Fallback: Usuário logado
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const id = session?.user?.id || null;
-        
-        // ✅ Se não tem storeId e não está logado, permite carregar sem profileId
-        setProfileId(id);
+        if (session?.user?.id) {
+          setProfileId(session.user.id);
+          return;
+        }
       } catch (error) {
         console.error('Erro ao pegar session:', error);
-        setProfileId(null); // ✅ Garante que profileId seja definido mesmo com erro
       }
+      
+      // 3️⃣ Sem ID = página vazia/demo
+      setProfileId(null);
     };
     
     getProfileId();
   }, [storeId]);
 
   useEffect(() => {
-    // ✅ Carrega dados sempre, mesmo sem profileId (para visitantes)
     carregarDados();
   }, [profileId]);
 
   const carregarDados = async () => {
     try {
-      // ✅ Se não tem profileId, carrega dados vazios/demo
+      // Se não tem profileId, carrega valores padrão (visitante na raiz)
       if (!profileId) {
         setConfig({
           cor_fundo: '#ffffff',
@@ -55,6 +69,7 @@ export default function Home() {
         });
         setSections([]);
         setProdutos([]);
+        setLoading(false);
         return;
       }
 
@@ -69,7 +84,6 @@ export default function Home() {
       setProdutos(produtosData || []);
     } catch (e) {
       console.error('Erro ao carregar dados:', e);
-      // ✅ Mesmo com erro, define valores padrão
       setConfig({
         cor_fundo: '#ffffff',
         cor_texto: '#000000',
@@ -79,7 +93,7 @@ export default function Home() {
       setSections([]);
       setProdutos([]);
     } finally {
-      setLoading(false); // ✅ GARANTE que loading seja false
+      setLoading(false);
     }
   };
 
@@ -97,8 +111,7 @@ export default function Home() {
     const { content, styles, section_type } = section;
     
     switch (section_type) {
-      case 'header':
-        return null;
+      case 'header': return null;
       
       case 'hero':
         const hasLeftImage = content.leftImage;
@@ -118,110 +131,26 @@ export default function Home() {
         }
 
         return (
-          <section
-            key={section.id}
-            className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 relative overflow-hidden"
-            style={backgroundStyle}
-          >
+          <section key={section.id} className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 relative overflow-hidden" style={backgroundStyle}>
             <div className="absolute inset-0 bg-black/30 sm:bg-black/20 lg:bg-black/10 pointer-events-none"></div>
             <div className="max-w-7xl mx-auto relative z-10">
               {hasLeftImage && hasRightImage ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                   <div className="hidden lg:block order-2 lg:order-1">
-                    <img
-                      src={content.leftImage}
-                      alt="Lateral Esquerda"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
+                    <img src={content.leftImage} alt="Esquerda" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" />
                   </div>
                   <div className="order-1 lg:order-2 text-center">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
-                      {content.title || 'Coleção de Vestidos'}
-                    </h2>
-                    <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-4 sm:mb-6 px-2 text-white drop-shadow-md">
-                      {content.subtitle || 'Elegância e estilo para você'}
-                    </p>
-                    {content.image && (
-                      <div className="relative w-full flex justify-center mt-4 sm:mt-6">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 350px)' }}
-                        />
-                      </div>
-                    )}
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">{content.title || 'Coleção de Vestidos'}</h2>
+                    <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-4 sm:mb-6 px-2 text-white drop-shadow-md">{content.subtitle || 'Elegância e estilo para você'}</p>
+                    {content.image && <div className="relative w-full flex justify-center mt-4 sm:mt-6"><img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(40vh, 350px)' }} /></div>}
                   </div>
-                  <div className="hidden lg:block order-3">
-                    <img
-                      src={content.rightImage}
-                      alt="Lateral Direita"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
-                  </div>
-                  <div className="lg:hidden order-3 grid grid-cols-2 gap-3 sm:gap-4 mt-6">
-                    {hasLeftImage && (
-                      <img
-                        src={content.leftImage}
-                        alt="Lateral Esquerda"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
-                    {hasRightImage && (
-                      <img
-                        src={content.rightImage}
-                        alt="Lateral Direita"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
-                  </div>
-                </div>
-              ) : hasLeftImage || hasRightImage ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
-                  <div className={`text-center md:text-left ${hasRightImage ? 'md:order-2' : 'md:order-1'}`}>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
-                      {content.title || 'Coleção de Vestidos'}
-                    </h2>
-                    <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto md:mx-0 mb-4 sm:mb-6 text-white drop-shadow-md">
-                      {content.subtitle || 'Elegância e estilo para você'}
-                    </p>
-                    {content.image && (
-                      <div className="relative w-full flex justify-center">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 300px)' }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className={hasRightImage ? 'md:order-1' : 'md:order-2'}>
-                    <img
-                      src={hasLeftImage ? content.leftImage : content.rightImage}
-                      alt="Lateral"
-                      className="w-full h-48 sm:h-64 md:h-80 object-cover rounded-lg shadow-xl"
-                    />
-                  </div>
+                  <div className="hidden lg:block order-3"><img src={content.rightImage} alt="Direita" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" /></div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg px-2">
-                    {content.title || 'Coleção de Vestidos'}
-                  </h2>
-                  <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 sm:mb-8 px-4 text-white drop-shadow-md">
-                    {content.subtitle || 'Elegância e estilo para você'}
-                  </p>
-                  {content.image && (
-                    <div className="relative w-full flex justify-center">
-                      <img
-                        src={content.image}
-                        alt="Principal"
-                        className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
-                        style={{ maxHeight: 'min(50vh, 450px)' }}
-                      />
-                    </div>
-                  )}
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg px-2">{content.title || 'Coleção de Vestidos'}</h2>
+                  <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 sm:mb-8 px-4 text-white drop-shadow-md">{content.subtitle || 'Elegância e estilo para você'}</p>
+                  {content.image && <div className="relative w-full flex justify-center"><img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(50vh, 450px)' }} /></div>}
                 </div>
               )}
             </div>
@@ -231,29 +160,19 @@ export default function Home() {
       case 'products':
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>
-              {content.title || 'Nossos Vestidos'}
-            </h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>{content.title || 'Nossos Vestidos'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {produtos.map(produto => (
                 <div key={produto.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                  <div className="aspect-square bg-gray-100">
-                    <img src={produto.imagem_url || PLACEHOLDER} alt={produto.titulo} className="w-full h-full object-cover" />
-                  </div>
+                  <div className="aspect-square bg-gray-100"><img src={produto.imagem_url || PLACEHOLDER} alt={produto.titulo} className="w-full h-full object-cover" /></div>
                   <div className="p-4">
                     <h4 className="font-bold text-base sm:text-lg" style={{ color: config?.cor_texto }}>{produto.titulo}</h4>
-                    {produto.preco && (
-                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>
-                        {produto.preco}
-                      </p>
-                    )}
+                    {produto.preco && <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>}
                   </div>
                 </div>
               ))}
             </div>
-            {produtos.length === 0 && (
-              <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>
-            )}
+            {produtos.length === 0 && <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>}
           </section>
         );
       
@@ -261,43 +180,29 @@ export default function Home() {
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>
-                {content.title || 'Sessão'}
-              </h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>{content.title || 'Sessão'}</h3>
               {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
             </div>
           </section>
         );
       
-      default:
-        return null;
+      default: return null;
     }
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      {/* ✅ Header Component - Passando sections também */}
       <Header config={config} sections={sections} />
       
-      {/* Renderiza as seções (exceto header) */}
       {sections.length > 0 ? (
-        sections
-          .filter(section => section.section_type !== 'header')
-          .map(renderSection)
+        sections.filter(section => section.section_type !== 'header').map(renderSection)
       ) : (
-        <>
-          <section className="py-12 sm:py-16 px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
-              {config?.nome_loja || 'Minha Loja de Vestidos'}
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
-              Elegância e estilo para você
-            </p>
-          </section>
-        </>
+        <section className="py-12 sm:py-16 px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>{config?.nome_loja || 'Minha Loja de Vestidos'}</h2>
+          <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>Elegância e estilo para você</p>
+        </section>
       )}
       
-      {/* ✅ Footer Component */}
       <Footer config={config} />
     </div>
   );

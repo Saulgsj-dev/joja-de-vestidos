@@ -38,18 +38,18 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ✅ Rota pública com ID da loja */}
+        {/* 🌍 ROTAS PÚBLICAS */}
         <Route path="/:storeId" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        
+        {/* 🔐 ROTAS PROTEGIDAS */}
+        <Route path="/admin" element={
+          <ProtectedRoute><AdminDashboard /></ProtectedRoute>
+        } />
+        
+        {/* Rota não encontrada */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
