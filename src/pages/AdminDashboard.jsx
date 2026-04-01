@@ -1,4 +1,3 @@
-// frontend/src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -22,7 +21,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('sections');
-  const [storeSlug, setStoreSlug] = useState(null); // ✅ NOVO: slug da loja
+  const [storeSlug, setStoreSlug] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,8 +36,6 @@ export default function AdminDashboard() {
         return;
       }
       setUser(session.user);
-      
-      // ✅ BUSCAR SLUG DO PROFILE
       try {
         const profile = await apiRequest(`/api/profile/by-user/${session.user.id}`);
         if (profile?.slug) {
@@ -47,7 +44,6 @@ export default function AdminDashboard() {
       } catch (e) {
         console.log('⚠️ Slug não encontrado, usando fallback');
       }
-      
       await Promise.all([
         carregarConfig(session.user.id),
         carregarSections(session.user.id)
@@ -175,7 +171,8 @@ export default function AdminDashboard() {
     setSelectedSection(updated);
   };
 
-  const handleLogoUpload = async (e) => {
+  // ✅ UPLOAD GENÉRICO PARA QUALQUER IMAGEM DA SEÇÃO
+  const handleImageUpload = async (e, imageField, isStyle = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -183,177 +180,45 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const oldImageUrl = selectedSection?.content?.logo;
+      const oldImageUrl = isStyle 
+        ? selectedSection?.styles?.[imageField] 
+        : selectedSection?.content?.[imageField];
       alert('📤 Fazendo upload...');
-      const { url: newUrl, fileName } = await uploadImage(file);
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSection.id,
-          section_type: selectedSection.section_type,
-          section_order: selectedSection.section_order,
-          content: { ...selectedSection.content, logo: newUrl },
-          styles: selectedSection.styles,
-          is_active: selectedSection.is_active
-        })
-      });
-      const updatedSection = {
-        ...selectedSection,
-        content: { ...selectedSection.content, logo: newUrl }
-      };
-      setSelectedSection(updatedSection);
-      if (oldImageUrl) await deleteOldImage(oldImageUrl);
-      await carregarSections(user.id);
-      alert('✅ Logo atualizada com sucesso!');
-    } catch (e) {
-      console.error('❌ Erro no upload:', e);
-      alert('❌ Erro: ' + e.message);
-    }
-  };
-
-  const handleHeroImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert('❌ Imagem muito grande. Máximo 10MB.');
-      return;
-    }
-    try {
-      const oldImageUrl = selectedSection?.content?.image;
-      alert('📤 Fazendo upload...');
-      const { url: newUrl, fileName } = await uploadImage(file);
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSection.id,
-          section_type: selectedSection.section_type,
-          section_order: selectedSection.section_order,
-          content: { ...selectedSection.content, image: newUrl },
-          styles: selectedSection.styles,
-          is_active: selectedSection.is_active
-        })
-      });
-      const updatedSection = {
-        ...selectedSection,
-        content: { ...selectedSection.content, image: newUrl }
-      };
-      setSelectedSection(updatedSection);
-      if (oldImageUrl) await deleteOldImage(oldImageUrl);
-      await carregarSections(user.id);
-      alert('✅ Imagem principal atualizada com sucesso!');
-    } catch (e) {
-      console.error('❌ Erro no upload:', e);
-      alert('❌ Erro: ' + e.message);
-    }
-  };
-
-  const handleBackgroundImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert('❌ Imagem muito grande. Máximo 10MB.');
-      return;
-    }
-    try {
-      const oldImageUrl = selectedSection?.styles?.backgroundImage;
-      alert('📤 Fazendo upload da imagem de fundo...');
       const { url: newUrl } = await uploadImage(file);
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSection.id,
-          section_type: selectedSection.section_type,
-          section_order: selectedSection.section_order,
-          content: selectedSection.content,
-          styles: { ...selectedSection.styles, backgroundImage: newUrl },
-          is_active: selectedSection.is_active
-        })
-      });
-      const updatedSection = {
-        ...selectedSection,
-        styles: { ...selectedSection.styles, backgroundImage: newUrl }
+      
+      const updateData = {
+        id: selectedSection.id,
+        section_type: selectedSection.section_type,
+        section_order: selectedSection.section_order,
+        content: selectedSection.content,
+        styles: selectedSection.styles,
+        is_active: selectedSection.is_active
       };
-      setSelectedSection(updatedSection);
-      if (oldImageUrl) await deleteOldImage(oldImageUrl);
-      await carregarSections(user.id);
-      alert('✅ Imagem de fundo atualizada!');
-    } catch (e) {
-      console.error('❌ Erro no upload:', e);
-      alert('❌ Erro: ' + e.message);
-    }
-  };
 
-  const handleLeftImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert('❌ Imagem muito grande. Máximo 10MB.');
-      return;
-    }
-    try {
-      const oldImageUrl = selectedSection?.content?.leftImage;
-      alert('📤 Fazendo upload da imagem esquerda...');
-      const { url: newUrl } = await uploadImage(file);
-      await apiRequest('/api/sections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSection.id,
-          section_type: selectedSection.section_type,
-          section_order: selectedSection.section_order,
-          content: { ...selectedSection.content, leftImage: newUrl },
-          styles: selectedSection.styles,
-          is_active: selectedSection.is_active
-        })
-      });
-      const updatedSection = {
-        ...selectedSection,
-        content: { ...selectedSection.content, leftImage: newUrl }
-      };
-      setSelectedSection(updatedSection);
-      if (oldImageUrl) await deleteOldImage(oldImageUrl);
-      await carregarSections(user.id);
-      alert('✅ Imagem esquerda atualizada!');
-    } catch (e) {
-      console.error('❌ Erro no upload:', e);
-      alert('❌ Erro: ' + e.message);
-    }
-  };
+      if (isStyle) {
+        updateData.styles = { ...selectedSection.styles, [imageField]: newUrl };
+      } else {
+        updateData.content = { ...selectedSection.content, [imageField]: newUrl };
+      }
 
-  const handleRightImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert('❌ Imagem muito grande. Máximo 10MB.');
-      return;
-    }
-    try {
-      const oldImageUrl = selectedSection?.content?.rightImage;
-      alert('📤 Fazendo upload da imagem direita...');
-      const { url: newUrl } = await uploadImage(file);
       await apiRequest('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSection.id,
-          section_type: selectedSection.section_type,
-          section_order: selectedSection.section_order,
-          content: { ...selectedSection.content, rightImage: newUrl },
-          styles: selectedSection.styles,
-          is_active: selectedSection.is_active
-        })
+        body: JSON.stringify(updateData)
       });
+
       const updatedSection = {
         ...selectedSection,
-        content: { ...selectedSection.content, rightImage: newUrl }
+        [isStyle ? 'styles' : 'content']: {
+          ...(isStyle ? selectedSection.styles : selectedSection.content),
+          [imageField]: newUrl
+        }
       };
       setSelectedSection(updatedSection);
+      
       if (oldImageUrl) await deleteOldImage(oldImageUrl);
       await carregarSections(user.id);
-      alert('✅ Imagem direita atualizada!');
+      alert('✅ Imagem atualizada com sucesso!');
     } catch (e) {
       console.error('❌ Erro no upload:', e);
       alert('❌ Erro: ' + e.message);
@@ -371,6 +236,18 @@ export default function AdminDashboard() {
     setSelectedSection(updatedSection);
   };
 
+  const handleRemoveImage = (imageField, isStyle = false) => {
+    if (!selectedSection) return;
+    const updated = {
+      ...selectedSection,
+      [isStyle ? 'styles' : 'content']: {
+        ...(isStyle ? selectedSection.styles : selectedSection.content),
+        [imageField]: ''
+      }
+    };
+    setSelectedSection(updated);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -379,7 +256,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // ✅ URL do site público com slug
   const publicSiteUrl = storeSlug ? `/${storeSlug}` : '/';
 
   return (
@@ -389,15 +265,14 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{config.nome_loja || 'Minha loja de vestidos'}</h1>
           <div className="flex gap-2">
-            {/* ✅ BOTÃO "VER SITE" AGORA USA O SLUG */}
-            <button 
-              onClick={() => navigate(publicSiteUrl)} 
+            <button
+              onClick={() => navigate(publicSiteUrl)}
               className="px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-800"
             >
               Ver Site
             </button>
-            <button 
-              onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} 
+            <button
+              onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }}
               className="px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-800"
             >
               Sair
@@ -436,6 +311,7 @@ export default function AdminDashboard() {
                         {section.section_type === 'hero' && 'Hero Section'}
                         {section.section_type === 'products' && 'Produtos'}
                         {section.section_type === 'content' && `Sessão ${index + 1}`}
+                        {section.section_type === 'contact' && 'Contato'}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${
                         section.is_active === 1 ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'
@@ -463,7 +339,6 @@ export default function AdminDashboard() {
           {activeTab === 'config' && (
             <div className="space-y-4">
               <h3 className="font-bold text-lg">Configurações Gerais</h3>
-              
               <div>
                 <label className="block text-sm font-medium mb-1">Nome da Loja</label>
                 <input
@@ -474,7 +349,6 @@ export default function AdminDashboard() {
                   placeholder="Minha Loja"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Cor de Fundo</label>
                 <input
@@ -484,7 +358,6 @@ export default function AdminDashboard() {
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Cor do Texto</label>
                 <input
@@ -494,7 +367,6 @@ export default function AdminDashboard() {
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Cor do Botão/Footer</label>
                 <input
@@ -504,7 +376,6 @@ export default function AdminDashboard() {
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Texto do Footer</label>
                 <input
@@ -515,7 +386,6 @@ export default function AdminDashboard() {
                   placeholder="© 2024 Minha Loja"
                 />
               </div>
-
               <button
                 onClick={salvarConfig}
                 disabled={saving}
@@ -543,13 +413,11 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* ========== HEADER EDITOR ========== */}
+              {/* ========== HEADER EDITOR (SEM ALTERAÇÕES) ========== */}
               {selectedSection.section_type === 'header' && (
                 <div className="space-y-5">
-                  {/* 🔹 CONFIGURAÇÕES GERAIS */}
                   <div className="p-4 bg-purple-50 rounded-lg">
                     <h3 className="text-sm font-semibold text-purple-800 mb-3">🎨 Aparência do Header</h3>
-                    
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => handleStyleUpdate('bgType', 'solid')}
@@ -569,7 +437,6 @@ export default function AdminDashboard() {
                         Gradiente
                       </button>
                     </div>
-
                     {(selectedSection.styles?.bgType === 'solid' || !selectedSection.styles?.bgType) && (
                       <div className="mb-3">
                         <label className="block text-xs font-medium mb-1">Cor de Fundo</label>
@@ -581,7 +448,6 @@ export default function AdminDashboard() {
                         />
                       </div>
                     )}
-
                     {selectedSection.styles?.bgType === 'gradient' && (
                       <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
@@ -604,7 +470,6 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     )}
-
                     <div>
                       <label className="block text-xs font-medium mb-1">Cor do Texto</label>
                       <input
@@ -615,11 +480,8 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-
-                  {/* 🔹 LADO ESQUERDO */}
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <h3 className="text-sm font-semibold text-blue-800 mb-3">⬅️ Lado Esquerdo</h3>
-                    
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => handleStyleUpdate('leftType', 'text')}
@@ -639,7 +501,6 @@ export default function AdminDashboard() {
                         Logo
                       </button>
                     </div>
-
                     {(!selectedSection.styles?.leftType || selectedSection.styles?.leftType === 'text') ? (
                       <div>
                         <label className="block text-xs font-medium mb-1">Texto</label>
@@ -654,7 +515,7 @@ export default function AdminDashboard() {
                     ) : (
                       <div>
                         <label className="block text-xs font-medium mb-1">Logo</label>
-                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full text-sm" />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'logo', false)} className="w-full text-sm" />
                         {(selectedSection.content?.logo || selectedSection.styles?.leftLogo) && (
                           <div className="mt-2 relative inline-block">
                             <img
@@ -673,57 +534,6 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
-
-                  {/* 🔹 CENTRO */}
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-green-800 mb-3">⬇️ Centro (Opcional)</h3>
-                    
-                    <div className="flex items-center gap-2 mb-3">
-                      <input
-                        type="checkbox"
-                        id="showCenterText"
-                        checked={selectedSection.styles?.showCenterText !== false}
-                        onChange={(e) => handleStyleUpdate('showCenterText', e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <label htmlFor="showCenterText" className="text-sm">Mostrar texto central</label>
-                    </div>
-
-                    {selectedSection.styles?.showCenterText !== false && (
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Texto Central</label>
-                        <input
-                          type="text"
-                          value={selectedSection.content?.centerText || ''}
-                          onChange={(e) => handleSectionUpdate('centerText', e.target.value)}
-                          className="w-full p-2 border rounded text-sm"
-                          placeholder="Ex: Frete grátis para todo Brasil"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">* Oculto automaticamente em mobile</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Preview Miniatura */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">👁️ Preview</h3>
-                    <div
-                      className="p-3 rounded border flex items-center text-xs"
-                      style={selectedSection.styles?.bgType === 'gradient'
-                        ? { background: `linear-gradient(135deg, ${selectedSection.styles?.gradientStart || '#667eea'}, ${selectedSection.styles?.gradientEnd || '#764ba2'})` }
-                        : { backgroundColor: selectedSection.styles?.bgColor || config.cor_fundo }
-                      }
-                    >
-                      <span className="font-bold truncate max-w-20" style={{ color: selectedSection.styles?.textColor }}>
-                        {selectedSection.styles?.leftType === 'logo' ? '🖼️ Logo' : (selectedSection.content?.leftText || 'Minha Loja')}
-                      </span>
-                      {selectedSection.styles?.showCenterText !== false && selectedSection.content?.centerText && (
-                        <span className="hidden sm:inline mx-auto text-center flex-1" style={{ color: selectedSection.styles?.textColor }}>
-                          {selectedSection.content.centerText}
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -731,7 +541,6 @@ export default function AdminDashboard() {
               {selectedSection.section_type === 'hero' && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold border-b pb-2">📝 Conteúdo</h3>
-                  
                   <div>
                     <label className="block text-sm font-medium mb-2">Título Principal</label>
                     <input
@@ -741,7 +550,6 @@ export default function AdminDashboard() {
                       className="w-full p-2 border rounded text-xl"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Subtítulo/Descrição</label>
                     <textarea
@@ -751,13 +559,12 @@ export default function AdminDashboard() {
                       rows="3"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Imagem Principal (Centro)</label>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleHeroImageUpload}
+                      onChange={(e) => handleImageUpload(e, 'image', false)}
                       className="w-full"
                     />
                     {selectedSection.content.image && (
@@ -768,9 +575,7 @@ export default function AdminDashboard() {
                       />
                     )}
                   </div>
-
                   <h3 className="text-lg font-semibold border-b pb-2 mt-6">🎨 Fundo</h3>
-                  
                   <div className="flex gap-2 mb-4">
                     <button
                       onClick={() => handleBackgroundTypeChange('color')}
@@ -790,7 +595,6 @@ export default function AdminDashboard() {
                       Imagem de Fundo
                     </button>
                   </div>
-
                   {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
@@ -802,7 +606,6 @@ export default function AdminDashboard() {
                       />
                     </div>
                   )}
-
                   {selectedSection.styles.backgroundType === 'image' && (
                     <>
                       <div>
@@ -810,7 +613,7 @@ export default function AdminDashboard() {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={handleBackgroundImageUpload}
+                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
                           className="w-full"
                         />
                         {selectedSection.styles.backgroundImage && (
@@ -836,15 +639,13 @@ export default function AdminDashboard() {
                       </div>
                     </>
                   )}
-
                   <h3 className="text-lg font-semibold border-b pb-2 mt-6">🖼️ Imagens Laterais</h3>
-                  
                   <div>
                     <label className="block text-sm font-medium mb-2">Imagem Lateral Esquerda</label>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleLeftImageUpload}
+                      onChange={(e) => handleImageUpload(e, 'leftImage', false)}
                       className="w-full"
                     />
                     {selectedSection.content.leftImage && (
@@ -855,7 +656,7 @@ export default function AdminDashboard() {
                           className="w-full h-32 object-cover rounded"
                         />
                         <button
-                          onClick={() => handleSectionUpdate('leftImage', '')}
+                          onClick={() => handleRemoveImage('leftImage', false)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                         >
                           ×
@@ -863,13 +664,12 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Imagem Lateral Direita</label>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleRightImageUpload}
+                      onChange={(e) => handleImageUpload(e, 'rightImage', false)}
                       className="w-full"
                     />
                     {selectedSection.content.rightImage && (
@@ -880,7 +680,7 @@ export default function AdminDashboard() {
                           className="w-full h-32 object-cover rounded"
                         />
                         <button
-                          onClick={() => handleSectionUpdate('rightImage', '')}
+                          onClick={() => handleRemoveImage('rightImage', false)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                         >
                           ×
@@ -891,32 +691,296 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Products Section Editor */}
+              {/* ========== PRODUCTS SECTION EDITOR (ATUALIZADO) ========== */}
               {selectedSection.section_type === 'products' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Título da Seção</label>
-                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                    <input 
+                      type="text" 
+                      value={selectedSection.content.title || ''} 
+                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                    />
                   </div>
-                  <p className="text-sm text-gray-500">Esta seção mostra automaticamente os produtos cadastrados.</p>
+                  
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleBackgroundTypeChange('color')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Cor de Fundo
+                    </button>
+                    <button
+                      onClick={() => handleBackgroundTypeChange('image')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Imagem de Fundo
+                    </button>
+                  </div>
+                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles.backgroundColor || '#ffffff'}
+                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                        className="w-full h-10 rounded"
+                      />
+                    </div>
+                  )}
+                  {selectedSection.styles.backgroundType === 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
+                          className="w-full"
+                        />
+                        {selectedSection.styles.backgroundImage && (
+                          <img
+                            src={selectedSection.styles.backgroundImage}
+                            alt="Fundo"
+                            className="mt-2 w-full h-48 object-cover rounded"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={selectedSection.styles.backgroundOpacity || 100}
+                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <p className="text-sm text-gray-500 mt-4">Esta seção mostra automaticamente os produtos cadastrados.</p>
                 </div>
               )}
 
-              {/* Content Sections Editor */}
+              {/* ========== CONTENT SECTIONS EDITOR (ATUALIZADO) ========== */}
               {selectedSection.section_type === 'content' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Título</label>
-                    <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                    <input 
+                      type="text" 
+                      value={selectedSection.content.title || ''} 
+                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Texto</label>
-                    <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
+                    <textarea 
+                      value={selectedSection.content.text || ''} 
+                      onChange={(e) => handleSectionUpdate('text', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                      rows="4" 
+                    />
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleBackgroundTypeChange('color')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Cor de Fundo
+                    </button>
+                    <button
+                      onClick={() => handleBackgroundTypeChange('image')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Imagem de Fundo
+                    </button>
+                  </div>
+                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles.backgroundColor || '#faf5ff'}
+                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                        className="w-full h-10 rounded"
+                      />
+                    </div>
+                  )}
+                  {selectedSection.styles.backgroundType === 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
+                          className="w-full"
+                        />
+                        {selectedSection.styles.backgroundImage && (
+                          <img
+                            src={selectedSection.styles.backgroundImage}
+                            alt="Fundo"
+                            className="mt-2 w-full h-48 object-cover rounded"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={selectedSection.styles.backgroundOpacity || 100}
+                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🖼️ Imagem da Seção (Opcional)</h3>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Imagem</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'image', false)}
+                      className="w-full"
+                    />
+                    {selectedSection.content.image && (
+                      <div className="mt-2 relative inline-block">
+                        <img
+                          src={selectedSection.content.image}
+                          alt="Seção"
+                          className="w-full h-48 object-cover rounded"
+                        />
+                        <button
+                          onClick={() => handleRemoveImage('image', false)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              <button onClick={() => salvarSection(selectedSection)} className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+              {/* ========== CONTACT SECTION EDITOR (ATUALIZADO) ========== */}
+              {selectedSection.section_type === 'contact' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Título</label>
+                    <input 
+                      type="text" 
+                      value={selectedSection.content.title || ''} 
+                      onChange={(e) => handleSectionUpdate('title', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Texto</label>
+                    <textarea 
+                      value={selectedSection.content.text || ''} 
+                      onChange={(e) => handleSectionUpdate('text', e.target.value)} 
+                      className="w-full p-2 border rounded" 
+                      rows="4" 
+                    />
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold border-b pb-2 mt-4">🎨 Fundo da Seção</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => handleBackgroundTypeChange('color')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Cor de Fundo
+                    </button>
+                    <button
+                      onClick={() => handleBackgroundTypeChange('image')}
+                      className={`flex-1 py-2 rounded ${
+                        selectedSection.styles.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      Imagem de Fundo
+                    </button>
+                  </div>
+                  {(selectedSection.styles.backgroundType === 'color' || !selectedSection.styles.backgroundType) && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                      <input
+                        type="color"
+                        value={selectedSection.styles.backgroundColor || '#f9fafb'}
+                        onChange={(e) => handleStyleUpdate('backgroundColor', e.target.value)}
+                        className="w-full h-10 rounded"
+                      />
+                    </div>
+                  )}
+                  {selectedSection.styles.backgroundType === 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Imagem de Fundo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'backgroundImage', true)}
+                          className="w-full"
+                        />
+                        {selectedSection.styles.backgroundImage && (
+                          <img
+                            src={selectedSection.styles.backgroundImage}
+                            alt="Fundo"
+                            className="mt-2 w-full h-48 object-cover rounded"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Opacidade: {selectedSection.styles.backgroundOpacity || 100}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={selectedSection.styles.backgroundOpacity || 100}
+                          onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <button 
+                onClick={() => salvarSection(selectedSection)} 
+                className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
                 💾 Salvar Alterações
               </button>
             </div>
@@ -929,9 +993,9 @@ export default function AdminDashboard() {
 
         {/* Preview em Tempo Real */}
         <div className="flex-1 bg-cyan-200 rounded-2xl p-6">
-          <SitePreview 
-            config={config} 
-            sections={sections} 
+          <SitePreview
+            config={config}
+            sections={sections}
             selectedSection={selectedSection}
           />
         </div>

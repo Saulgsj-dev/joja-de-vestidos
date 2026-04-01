@@ -1,11 +1,9 @@
-// frontend/src/components/SitePreview.jsx
 import { useState } from 'react';
 import Header from './Header';
 
 export default function SitePreview({ config, sections, selectedSection }) {
-  const [viewMode, setViewMode] = useState('desktop'); // 'desktop' | 'mobile'
+  const [viewMode, setViewMode] = useState('desktop');
 
-  // Merge das sections com a seção sendo editada (se houver)
   const previewSections = selectedSection
     ? sections.map(s => s.id === selectedSection.id ? selectedSection : s)
     : sections;
@@ -14,13 +12,12 @@ export default function SitePreview({ config, sections, selectedSection }) {
   const heroSection = previewSections.find(s => s.section_type === 'hero');
   const productsSection = previewSections.find(s => s.section_type === 'products');
   const contentSections = previewSections.filter(s => s.section_type === 'content');
+  const contactSection = previewSections.find(s => s.section_type === 'contact');
 
-  // Largura do container baseado no modo
   const containerWidth = viewMode === 'mobile' ? 'max-w-md' : 'w-full';
 
   return (
     <div className="h-full flex flex-col bg-gray-100 rounded-xl overflow-hidden shadow-2xl">
-      {/* Barra de Controle - Desktop/Mobile */}
       <div className="bg-white px-4 py-3 border-b flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -30,8 +27,6 @@ export default function SitePreview({ config, sections, selectedSection }) {
           </div>
           <span className="text-sm font-semibold text-gray-700 ml-2">Preview ao vivo</span>
         </div>
-
-        {/* Toggle Desktop/Mobile */}
         <div className="flex bg-gray-200 rounded-lg p-1">
           <button
             onClick={() => setViewMode('desktop')}
@@ -60,10 +55,8 @@ export default function SitePreview({ config, sections, selectedSection }) {
         </div>
       </div>
 
-      {/* Área do Preview - Scrollável */}
       <div className="flex-1 overflow-y-auto bg-gray-200 p-4">
         <div className={`${containerWidth} mx-auto bg-white shadow-2xl transition-all duration-300`}>
-          {/* Header */}
           {headerSection ? (
             <Header config={config} sections={[headerSection]} isPreview={true} />
           ) : (
@@ -72,25 +65,23 @@ export default function SitePreview({ config, sections, selectedSection }) {
             </div>
           )}
 
-          {/* Hero Section */}
           {heroSection && (
             <HeroPreview section={heroSection} config={config} />
           )}
 
-          {/* Products Section */}
           {productsSection && (
             <ProductsPreview section={productsSection} config={config} />
           )}
 
-          {/* Content Sections */}
           {contentSections.map((section, index) => (
             <ContentPreview key={section.id} section={section} config={config} index={index} />
           ))}
 
-          {/* Footer */}
-          <FooterPreview config={config} />
+          {contactSection && (
+            <ContactPreview section={contactSection} config={config} />
+          )}
 
-          {/* Espaço extra no final */}
+          <FooterPreview config={config} />
           <div className="h-8"></div>
         </div>
       </div>
@@ -98,13 +89,13 @@ export default function SitePreview({ config, sections, selectedSection }) {
   );
 }
 
-// Componente Hero Preview
+// ✅ HERO PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
 function HeroPreview({ section, config }) {
   const { content, styles } = section;
   const hasLeftImage = content.leftImage;
   const hasRightImage = content.rightImage;
-
   const backgroundStyle = {};
+
   if (styles.backgroundType === 'image' && styles.backgroundImage) {
     const opacity = (styles.backgroundOpacity || 100) / 100;
     backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
@@ -182,10 +173,23 @@ function HeroPreview({ section, config }) {
   );
 }
 
-// Componente Products Preview
+// ✅ PRODUCTS PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
 function ProductsPreview({ section, config }) {
+  const { styles } = section;
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#ffffff';
+  }
+
   return (
-    <section className="max-w-4xl mx-auto px-4 py-8">
+    <section className="max-w-4xl mx-auto px-4 py-8" style={backgroundStyle}>
       <h3 className="text-lg sm:text-xl font-bold text-center mb-6" style={{ color: config?.cor_texto }}>
         {section.content.title || 'Nossos Vestidos'}
       </h3>
@@ -208,14 +212,34 @@ function ProductsPreview({ section, config }) {
   );
 }
 
-// Componente Content Preview
+// ✅ CONTENT PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR + IMAGEM DA SEÇÃO)
 function ContentPreview({ section, config, index }) {
+  const { content, styles } = section;
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#faf5ff';
+  }
+
   return (
-    <section className="py-6 px-4 bg-gradient-to-r from-green-50 to-blue-100">
+    <section className="py-6 px-4" style={backgroundStyle}>
       <div className="max-w-3xl mx-auto">
         <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ color: config?.cor_texto }}>
           {section.content.title || `Sessão ${index + 1}`}
         </h3>
+        {content.image && (
+          <img 
+            src={content.image} 
+            alt={section.content.title || 'Imagem'} 
+            className="w-full h-48 object-cover rounded-lg mb-4 shadow-md"
+          />
+        )}
         {section.content.text && (
           <p className="text-gray-700 text-xs sm:text-sm">{section.content.text}</p>
         )}
@@ -224,7 +248,44 @@ function ContentPreview({ section, config, index }) {
   );
 }
 
-// Componente Footer Preview
+// ✅ CONTACT PREVIEW (COM SUPORTE A FUNDO IMAGEM/COR)
+function ContactPreview({ section, config }) {
+  const { content, styles } = section;
+  const backgroundStyle = {};
+
+  if (styles.backgroundType === 'image' && styles.backgroundImage) {
+    const opacity = (styles.backgroundOpacity || 100) / 100;
+    backgroundStyle.backgroundImage = `url(${styles.backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(255, 255, 255, ${0.9 * opacity})`;
+  } else {
+    backgroundStyle.backgroundColor = styles.backgroundColor || '#f9fafb';
+  }
+
+  return (
+    <section className="py-8 px-4 text-center" style={backgroundStyle}>
+      <div className="max-w-4xl mx-auto">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: config?.cor_texto }}>
+          {content.title || 'Contato'}
+        </h3>
+        {content.text && (
+          <p className="text-gray-700 text-sm sm:text-base mb-4">{content.text}</p>
+        )}
+        {config?.whatsapp_numero && (
+          <a
+            href={`https://wa.me/${config.whatsapp_numero}`}
+            className="inline-block px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            📱 Falar no WhatsApp
+          </a>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ✅ FOOTER PREVIEW
 function FooterPreview({ config }) {
   return (
     <footer className="p-4 sm:p-6 text-center" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
