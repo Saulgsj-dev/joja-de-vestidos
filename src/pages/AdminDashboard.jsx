@@ -13,8 +13,15 @@ export default function AdminDashboard() {
     cor_botao: '#000000',
     footer_texto: '© 2024 Minha Loja',
     whatsapp_numero: '',
-    nome_loja: 'Minha Loja de Vestidos'
+    nome_loja: 'Minha Loja de Vestidos',
+    // 🎨 NOVO: Layout Geral
+    site_border_radius: '0',
+    site_container_width: 'full', // full, narrow, compact
+    site_side_padding: 'normal', // none, small, normal, large
+    site_animation: 'none', // none, fade, slide, zoom
+    site_animation_duration: '500'
   });
+  
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState(null);
   const [user, setUser] = useState(null);
@@ -61,7 +68,7 @@ export default function AdminDashboard() {
     try {
       const data = await apiRequest(`/api/config?profile_id=${profileId}`);
       if (data && Object.keys(data).length > 0) {
-        setConfig(data);
+        setConfig(prev => ({ ...prev, ...data }));
       }
     } catch (e) {
       console.error('Erro ao carregar config:', e);
@@ -304,6 +311,32 @@ export default function AdminDashboard() {
     });
   };
 
+  // 🔘 Handlers para Botão da Seção
+  const handleButtonUpdate = (field, value) => {
+    if (!selectedSection) return;
+    const updated = {
+      ...selectedSection,
+      content: { 
+        ...selectedSection.content, 
+        button: { ...(selectedSection.content.button || {}), [field]: value }
+      }
+    };
+    setSelectedSection(updated);
+  };
+
+  // 📐 Handlers para Padding da Seção
+  const handlePaddingUpdate = (field, value) => {
+    if (!selectedSection) return;
+    const updated = {
+      ...selectedSection,
+      styles: { 
+        ...selectedSection.styles, 
+        padding: { ...(selectedSection.styles.padding || {}), [field]: value }
+      }
+    };
+    setSelectedSection(updated);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -337,7 +370,6 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // Handler para inputs de cor com stopPropagation
   const handleColorChange = (e, field, isStyle = false, sectionField = null) => {
     e.stopPropagation();
     const color = e.target.value;
@@ -431,6 +463,8 @@ export default function AdminDashboard() {
           {activeTab === 'config' && (
             <div className="space-y-4">
               <h3 className="font-bold text-lg">Configurações Gerais</h3>
+              
+              {/* Configurações básicas existentes */}
               <div>
                 <label className="block text-sm font-medium mb-1">Nome da Loja</label>
                 <input
@@ -481,6 +515,84 @@ export default function AdminDashboard() {
                   placeholder="© 2024 Minha Loja"
                 />
               </div>
+
+              {/* 🎨 NOVO: Layout Geral do Site */}
+              <Accordion id="layout-geral" title="🎨 Layout Geral" defaultOpen={false}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Arredondamento das Bordas</label>
+                    <select
+                      value={config.site_border_radius || '0'}
+                      onChange={(e) => setConfig({...config, site_border_radius: e.target.value})}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="0">Sem arredondamento</option>
+                      <option value="4">Leve (4px)</option>
+                      <option value="8">Médio (8px)</option>
+                      <option value="16">Suave (16px)</option>
+                      <option value="24">Arredondado (24px)</option>
+                      <option value="999">Pílula</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Largura do Container</label>
+                    <select
+                      value={config.site_container_width || 'full'}
+                      onChange={(e) => setConfig({...config, site_container_width: e.target.value})}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="full">Largura total</option>
+                      <option value="narrow">Estreito (1200px)</option>
+                      <option value="compact">Compacto (900px)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Espaçamento Lateral</label>
+                    <select
+                      value={config.site_side_padding || 'normal'}
+                      onChange={(e) => setConfig({...config, site_side_padding: e.target.value})}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="none">Sem espaçamento</option>
+                      <option value="small">Pequeno</option>
+                      <option value="normal">Normal</option>
+                      <option value="large">Grande</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Animação de Entrada</label>
+                    <select
+                      value={config.site_animation || 'none'}
+                      onChange={(e) => setConfig({...config, site_animation: e.target.value})}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="none">Sem animação</option>
+                      <option value="fade">Fade In</option>
+                      <option value="slide">Slide Up</option>
+                      <option value="zoom">Zoom In</option>
+                    </select>
+                  </div>
+                  
+                  {config.site_animation !== 'none' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Duração da Animação: {config.site_animation_duration}ms</label>
+                      <input
+                        type="range"
+                        min="200"
+                        max="2000"
+                        step="100"
+                        value={config.site_animation_duration || '500'}
+                        onChange={(e) => setConfig({...config, site_animation_duration: e.target.value})}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              </Accordion>
+
               <button
                 onClick={salvarConfig}
                 disabled={saving}
@@ -652,10 +764,39 @@ export default function AdminDashboard() {
                           placeholder="Digite a descrição..."
                         />
                       </div>
+                      
+                      {/* 🔘 NOVO: Botão da Seção */}
+                      <div className="pt-4 border-t">
+                        <label className="block text-sm font-medium mb-2">🔘 Botão de Ação</label>
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={selectedSection.content.button?.text || ''}
+                            onChange={(e) => handleButtonUpdate('text', e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Texto do botão (ex: Comprar agora)"
+                          />
+                          <input
+                            type="text"
+                            value={selectedSection.content.button?.link || ''}
+                            onChange={(e) => handleButtonUpdate('link', e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Link ou WhatsApp (ex: https://wa.me/5542999999999)"
+                          />
+                          <select
+                            value={selectedSection.content.button?.type || 'link'}
+                            onChange={(e) => handleButtonUpdate('type', e.target.value)}
+                            className="w-full p-2 border rounded"
+                          >
+                            <option value="link">🔗 Link Externo</option>
+                            <option value="whatsapp">📱 WhatsApp</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </Accordion>
 
-                  {/* 🎨 CORES DOS TEXTOS - Apenas para Hero */}
+                  {/* 🎨 CORES DOS TEXTOS */}
                   <Accordion id="text-colors" title="🎨 Cores dos Textos">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -806,7 +947,7 @@ export default function AdminDashboard() {
                     </div>
                   </Accordion>
 
-                  {/* 🎨 FUNDO - Apenas para esta seção */}
+                  {/* 🎨 FUNDO */}
                   <Accordion id="background" title="🎨 Fundo da Seção">
                     <div className="space-y-4">
                       <div className="flex gap-2 mb-4">
@@ -870,7 +1011,7 @@ export default function AdminDashboard() {
                     </div>
                   </Accordion>
 
-                  {/* 🖼️ LAYOUT DE IMAGENS */}
+                  {/* 🖼️ LAYOUT DE IMAGENS - CORRIGIDO */}
                   <Accordion id="image-layout" title="🖼️ Layout de Imagens">
                     <div className="flex gap-2 mb-4">
                       <button
@@ -899,6 +1040,26 @@ export default function AdminDashboard() {
                         Grid
                       </button>
                     </div>
+                    
+                    {/* ✅ CORREÇÃO: Mostrar upload da imagem principal quando Centralizado */}
+                    {(selectedSection.styles?.imageLayout === 'center' || !selectedSection.styles?.imageLayout) && (
+                      <div className="p-3 bg-purple-50 rounded-lg mb-4">
+                        <label className="block text-sm font-medium mb-2 text-purple-700">📷 Imagem Centralizada</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'image', false)}
+                          className="w-full text-sm"
+                        />
+                        {selectedSection.content.image && (
+                          <div className="mt-2 relative inline-block">
+                            <img src={selectedSection.content.image} alt="Centralizada" className="h-24 object-contain rounded border" />
+                            <button onClick={(e) => { e.stopPropagation(); handleRemoveImage('image', false); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     {(selectedSection.styles?.imageLayout === 'sides' || !selectedSection.styles?.imageLayout) && (
                       <>
                         <div>
@@ -945,6 +1106,76 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </Accordion>
+
+                  {/* 📐 NOVO: Padding da Seção */}
+                  <Accordion id="section-padding" title="📐 Espaçamento da Seção">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Padding Superior: {selectedSection.styles?.padding?.top || 'py-8'}</label>
+                        <select
+                          value={selectedSection.styles?.padding?.top || 'py-8'}
+                          onChange={(e) => handlePaddingUpdate('top', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="py-2">Mínimo</option>
+                          <option value="py-4">Pequeno</option>
+                          <option value="py-8">Normal</option>
+                          <option value="py-12">Grande</option>
+                          <option value="py-16">Extra Grande</option>
+                          <option value="py-0">Sem padding</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Padding Inferior: {selectedSection.styles?.padding?.bottom || 'py-8'}</label>
+                        <select
+                          value={selectedSection.styles?.padding?.bottom || 'py-8'}
+                          onChange={(e) => handlePaddingUpdate('bottom', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="py-2">Mínimo</option>
+                          <option value="py-4">Pequeno</option>
+                          <option value="py-8">Normal</option>
+                          <option value="py-12">Grande</option>
+                          <option value="py-16">Extra Grande</option>
+                          <option value="py-0">Sem padding</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
+                  {/* ✨ NOVO: Animação da Seção */}
+                  <Accordion id="section-animation" title="✨ Animação da Seção">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Tipo de Animação</label>
+                        <select
+                          value={selectedSection.styles?.animation || 'none'}
+                          onChange={(e) => handleStyleUpdate('animation', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="none">Sem animação</option>
+                          <option value="fade">Fade In</option>
+                          <option value="slide-up">Slide Up</option>
+                          <option value="slide-left">Slide Esquerda</option>
+                          <option value="zoom">Zoom In</option>
+                        </select>
+                      </div>
+                      {selectedSection.styles?.animation !== 'none' && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Duração: {selectedSection.styles?.animationDuration || '500'}ms</label>
+                          <input
+                            type="range"
+                            min="200"
+                            max="2000"
+                            step="100"
+                            value={selectedSection.styles?.animationDuration || '500'}
+                            onChange={(e) => handleStyleUpdate('animationDuration', parseInt(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </Accordion>
                 </div>
               )}
 
@@ -955,6 +1186,35 @@ export default function AdminDashboard() {
                     <div>
                       <label className="block text-sm font-medium mb-2">Título da Seção</label>
                       <input type="text" value={selectedSection.content.title || ''} onChange={(e) => handleSectionUpdate('title', e.target.value)} className="w-full p-2 border rounded" />
+                    </div>
+                    
+                    {/* 🔘 Botão para Products */}
+                    <div className="pt-4 border-t">
+                      <label className="block text-sm font-medium mb-2">🔘 Botão de Ação</label>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={selectedSection.content.button?.text || ''}
+                          onChange={(e) => handleButtonUpdate('text', e.target.value)}
+                          className="w-full p-2 border rounded"
+                          placeholder="Texto do botão"
+                        />
+                        <input
+                          type="text"
+                          value={selectedSection.content.button?.link || ''}
+                          onChange={(e) => handleButtonUpdate('link', e.target.value)}
+                          className="w-full p-2 border rounded"
+                          placeholder="Link ou WhatsApp"
+                        />
+                        <select
+                          value={selectedSection.content.button?.type || 'link'}
+                          onChange={(e) => handleButtonUpdate('type', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="link">🔗 Link Externo</option>
+                          <option value="whatsapp">📱 WhatsApp</option>
+                        </select>
+                      </div>
                     </div>
                   </Accordion>
 
@@ -1081,6 +1341,26 @@ export default function AdminDashboard() {
                     )}
                   </Accordion>
 
+                  {/* 📐 Padding para Products */}
+                  <Accordion id="products-padding" title="📐 Espaçamento da Seção">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Padding Vertical</label>
+                        <select
+                          value={selectedSection.styles?.padding?.vertical || 'py-12'}
+                          onChange={(e) => handlePaddingUpdate('vertical', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="py-4">Pequeno</option>
+                          <option value="py-8">Normal</option>
+                          <option value="py-12">Grande</option>
+                          <option value="py-16">Extra Grande</option>
+                          <option value="py-0">Sem padding</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
+
                   <p className="text-sm text-gray-500 mt-4">Esta seção mostra automaticamente os produtos cadastrados.</p>
                 </div>
               )}
@@ -1097,6 +1377,35 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-sm font-medium mb-2">Texto/Descrição</label>
                         <textarea value={selectedSection.content.text || ''} onChange={(e) => handleSectionUpdate('text', e.target.value)} className="w-full p-2 border rounded" rows="4" />
+                      </div>
+                      
+                      {/* 🔘 Botão para Content */}
+                      <div className="pt-4 border-t">
+                        <label className="block text-sm font-medium mb-2">🔘 Botão de Ação</label>
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={selectedSection.content.button?.text || ''}
+                            onChange={(e) => handleButtonUpdate('text', e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Texto do botão"
+                          />
+                          <input
+                            type="text"
+                            value={selectedSection.content.button?.link || ''}
+                            onChange={(e) => handleButtonUpdate('link', e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Link ou WhatsApp"
+                          />
+                          <select
+                            value={selectedSection.content.button?.type || 'link'}
+                            onChange={(e) => handleButtonUpdate('type', e.target.value)}
+                            className="w-full p-2 border rounded"
+                          >
+                            <option value="link">🔗 Link Externo</option>
+                            <option value="whatsapp">📱 WhatsApp</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </Accordion>
@@ -1350,6 +1659,27 @@ export default function AdminDashboard() {
                       </>
                     )}
                   </Accordion>
+
+                  {/* 📐 Padding para Content */}
+                  <Accordion id="content-padding" title="📐 Espaçamento da Seção">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Padding Vertical</label>
+                        <select
+                          value={selectedSection.styles?.padding?.vertical || 'py-8'}
+                          onChange={(e) => handlePaddingUpdate('vertical', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="py-2">Mínimo</option>
+                          <option value="py-4">Pequeno</option>
+                          <option value="py-8">Normal</option>
+                          <option value="py-12">Grande</option>
+                          <option value="py-16">Extra Grande</option>
+                          <option value="py-0">Sem padding</option>
+                        </select>
+                      </div>
+                    </div>
+                  </Accordion>
                 </div>
               )}
 
@@ -1521,6 +1851,27 @@ export default function AdminDashboard() {
                         </div>
                       </>
                     )}
+                  </Accordion>
+
+                  {/* 📐 Padding para Contact */}
+                  <Accordion id="contact-padding" title="📐 Espaçamento da Seção">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Padding Vertical</label>
+                        <select
+                          value={selectedSection.styles?.padding?.vertical || 'py-8'}
+                          onChange={(e) => handlePaddingUpdate('vertical', e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="py-2">Mínimo</option>
+                          <option value="py-4">Pequeno</option>
+                          <option value="py-8">Normal</option>
+                          <option value="py-12">Grande</option>
+                          <option value="py-16">Extra Grande</option>
+                          <option value="py-0">Sem padding</option>
+                        </select>
+                      </div>
+                    </div>
                   </Accordion>
                 </div>
               )}
