@@ -1,3 +1,4 @@
+// frontend/src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { apiRequest, uploadImage } from '../lib/apiClient';
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
       
       // ✅ BUSCAR SLUG DO PROFILE
       try {
-        const profile = await apiRequest(`/api/profile/${session.user.id}`);
+        const profile = await apiRequest(`/api/profile/by-user/${session.user.id}`);
         if (profile?.slug) {
           setStoreSlug(profile.slug);
         }

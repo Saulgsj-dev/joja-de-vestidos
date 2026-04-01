@@ -1,3 +1,4 @@
+// frontend/src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../lib/apiClient';
 import { useParams } from 'react-router-dom';
