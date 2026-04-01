@@ -1,3 +1,4 @@
+// frontend/src/components/admin/SectionEditor/HeroEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 import ImageUploader from '../ImageUploader';
 

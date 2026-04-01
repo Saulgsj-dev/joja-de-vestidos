@@ -1,3 +1,4 @@
+// frontend/src/hooks/useConfig.js
 import { useState, useCallback } from 'react';
 import { apiRequest } from '../lib/apiClient';
 

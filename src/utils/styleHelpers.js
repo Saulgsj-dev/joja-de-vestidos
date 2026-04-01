@@ -1,3 +1,4 @@
+// frontend/src/utils/styleHelpers.js
 // 🔹 Funções utilitárias para estilos - styleHelpers.js
 
 /**

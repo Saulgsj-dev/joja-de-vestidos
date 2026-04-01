@@ -145,8 +145,12 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex-1 min-w-0 bg-cyan-200 rounded-2xl p-6">
-          <SitePreview config={config} sections={sections} selectedSection={selectedSection} />
-        </div>
+  <SitePreview 
+    config={config} 
+    sections={sections} 
+    selectedSection={selectedSection}
+  />
+</div>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+// frontend/src/components/site/Sections/HeroSection.jsx
 import { getBackgroundStyle, getAlignClass } from '../../../utils/styleHelpers';
 
 export default function HeroSection({ section, config }) {

@@ -1,4 +1,3 @@
-// frontend/src/components/site/Header.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -58,20 +57,27 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
 
   return (
     <header
-      className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${isPreview ? 'text-xs' : ''}`}
+      className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
+        isPreview ? 'text-xs' : ''
+      }`}
       style={{ ...backgroundStyle, color: textColor }}
     >
+      {/* Lado Esquerdo */}
       <div className="flex items-center min-w-0">
         {leftType === 'logo' && leftLogo ? (
           <img
             src={leftLogo}
             alt="Logo"
-            className={`w-auto object-contain cursor-pointer ${isPreview ? 'h-6 sm:h-8' : 'h-8 sm:h-10'}`}
+            className={`w-auto object-contain cursor-pointer ${
+              isPreview ? 'h-6 sm:h-8' : 'h-8 sm:h-10'
+            }`}
             onClick={navigateHome}
           />
         ) : (
           <h1
-            className={`font-bold cursor-pointer truncate ${isPreview ? 'text-sm sm:text-base' : 'text-lg sm:text-xl lg:text-2xl'}`}
+            className={`font-bold cursor-pointer truncate ${
+              isPreview ? 'text-sm sm:text-base' : 'text-lg sm:text-xl lg:text-2xl'
+            }`}
             onClick={navigateHome}
             style={{ color: textColor }}
           >
@@ -80,31 +86,67 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
         )}
       </div>
 
+      {/* Lado Direito */}
       <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-        {user ? (
+        {isPreview ? (
+          // No preview, mostra botões simulados
           <>
-            <span className={`hidden lg:inline truncate ${isPreview ? 'text-xs max-w-16' : 'text-xs sm:text-sm max-w-24'}`} style={{ color: textColor }}>
+            <span className={`hidden lg:inline truncate ${
+              isPreview ? 'text-xs max-w-16' : 'text-xs sm:text-sm max-w-24'
+            }`} style={{ color: textColor }}>
+              Olá, teste
+            </span>
+            <button
+              className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${
+                isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+              }`}
+              style={{ backgroundColor: buttonColor }}
+            >
+              Painel
+            </button>
+            <button
+              className={`border rounded transition whitespace-nowrap ${
+                isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+              } hover:bg-red-50`}
+              style={{ borderColor: textColor, color: textColor }}
+            >
+              Sair
+            </button>
+          </>
+        ) : user ? (
+          // Usuário logado (site real)
+          <>
+            <span className={`hidden lg:inline truncate ${
+              isPreview ? 'text-xs max-w-16' : 'text-xs sm:text-sm max-w-24'
+            }`} style={{ color: textColor }}>
               Olá, {user.email?.split('@')[0]}
             </span>
             <button
               onClick={() => navigate('/admin')}
-              className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'}`}
+              className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${
+                isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+              }`}
               style={{ backgroundColor: buttonColor }}
             >
               Painel
             </button>
             <button
               onClick={handleLogout}
-              className={`border rounded transition whitespace-nowrap ${isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} hover:bg-red-50`}
+              className={`border rounded transition whitespace-nowrap ${
+                isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+              } hover:bg-red-50`}
               style={{ borderColor: textColor, color: textColor }}
             >
               Sair
             </button>
           </>
         ) : (
+          // Usuário não logado
           <button
             onClick={handleLogin}
-            className={`border rounded whitespace-nowrap transition hover:opacity-90 ${isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'}`}
+            className={`border rounded whitespace-nowrap transition hover:opacity-90 ${
+              isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+            }`}
             style={{ borderColor: buttonColor, color: buttonColor }}
           >
             Área do Cliente
