@@ -1,4 +1,3 @@
-// frontend/src/hooks/useConfig.js
 import { useState, useCallback } from 'react';
 import { apiRequest } from '../lib/apiClient';
 
@@ -14,6 +13,7 @@ export function useConfig(profileId) {
   const [loading, setLoading] = useState(false);
 
   const loadConfig = useCallback(async () => {
+    if (!profileId) return;
     setLoading(true);
     try {
       const data = await apiRequest(`/api/config?profile_id=${profileId}`);
@@ -28,12 +28,16 @@ export function useConfig(profileId) {
   }, [profileId]);
 
   const saveConfig = useCallback(async (configData) => {
-    await apiRequest('/api/config', {
+    if (!profileId) throw new Error('Profile ID não encontrado');
+    
+    const response = await apiRequest('/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(configData)
     });
-  }, []);
+    
+    return response;
+  }, [profileId]);
 
   return { config, loading, loadConfig, saveConfig, setConfig };
 }

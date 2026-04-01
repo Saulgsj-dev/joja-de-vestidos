@@ -1,3 +1,4 @@
+// frontend/src/components/preview/SitePreview.jsx
 import { useState } from 'react';
 import Header from '../site/Header';
 import Footer from '../site/Footer';

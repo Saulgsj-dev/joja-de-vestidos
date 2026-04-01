@@ -1,3 +1,4 @@
+// frontend/src/components/admin/SectionEditor/ProductsEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 
 export default function ProductsEditor({ section, config, activeAccordion, onUpdateSection }) {

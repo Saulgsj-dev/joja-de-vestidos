@@ -1,3 +1,4 @@
+// frontend/src/components/site/Sections/ProductsSection.jsx
 import { getBackgroundStyle, getAlignClass } from '../../../utils/styleHelpers';
 
 export default function ProductsSection({ section, config, produtos }) {

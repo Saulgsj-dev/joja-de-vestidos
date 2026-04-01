@@ -1,3 +1,4 @@
+// frontend/src/components/admin/SectionEditor/ContentEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 import ImageUploader from '../ImageUploader';
 

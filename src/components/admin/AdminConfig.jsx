@@ -24,7 +24,7 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
         <label className="block text-sm font-medium mb-1">Cor de Fundo</label>
         <input
           type="color"
-          value={config.cor_fundo}
+          value={config.cor_fundo || '#ffffff'}
           onChange={(e) => handleColorChange('cor_fundo', e.target.value)}
           className="w-full h-10 rounded cursor-pointer"
         />
@@ -34,23 +34,31 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
         <label className="block text-sm font-medium mb-1">Cor do Texto</label>
         <input
           type="color"
-          value={config.cor_texto}
+          value={config.cor_texto || '#000000'}
           onChange={(e) => handleColorChange('cor_texto', e.target.value)}
           className="w-full h-10 rounded cursor-pointer"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Cor do Botão Principal</label>
+        <label className="block text-sm font-medium mb-1">Cor do Botão/Footer</label>
         <input
           type="color"
-          value={config.cor_botao}
+          value={config.cor_botao || '#000000'}
           onChange={(e) => handleColorChange('cor_botao', e.target.value)}
           className="w-full h-10 rounded cursor-pointer"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          💡 Esta cor será usada como padrão para botões e footer
-        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Texto do Footer</label>
+        <input
+          type="text"
+          value={config.footer_texto || '© 2024 Minha Loja'}
+          onChange={(e) => setConfig({ ...config, footer_texto: e.target.value })}
+          className="w-full p-2 border rounded"
+          placeholder="© 2024 Minha Loja"
+        />
       </div>
 
       <div>
@@ -70,9 +78,9 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
       <button
         onClick={onSave}
         disabled={saving}
-        className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+        className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
       >
-        {saving ? 'Salvando...' : '💾 Salvar Configurações'}
+        {saving ? '💾 Salvando...' : '💾 Salvar Configurações'}
       </button>
     </div>
   );

@@ -1,3 +1,4 @@
+// frontend/src/components/site/Sections/ContactSection.jsx
 import { getBackgroundStyle, getAlignClass } from '../../../utils/styleHelpers';
 
 export default function HeroSection({ section, config }) {
