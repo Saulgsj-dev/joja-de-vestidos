@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 
 export default function Home() {
-  const { storeId } = useParams(); // ✅ Pega o ID da loja da URL
+  const { storeId } = useParams(); // ID da loja na URL (opcional)
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -13,7 +13,7 @@ export default function Home() {
   const [profileId, setProfileId] = useState(null);
 
   useEffect(() => {
-    // ✅ Prioriza storeId da URL, senão tenta pegar da sessão
+    // ✅ Prioriza: 1) storeId da URL, 2) sessão do usuário, 3) ID padrão público
     const getProfileId = async () => {
       if (storeId) {
         setProfileId(storeId);
@@ -22,11 +22,16 @@ export default function Home() {
       
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const id = session?.user?.id || null;
-        setProfileId(id);
+        if (session?.user?.id) {
+          setProfileId(session.user.id);
+          return;
+        }
       } catch (error) {
         console.error('Erro ao pegar session:', error);
       }
+      
+      // ✅ FALLBACK: ID padrão para loja pública (configure no backend)
+      setProfileId('public');
     };
 
     getProfileId();
@@ -40,6 +45,7 @@ export default function Home() {
 
   const carregarDados = async () => {
     try {
+      // ✅ Rotas públicas não precisam de token
       const [sectionsData, configData, produtosData] = await Promise.all([
         apiRequest(`/api/sections?profile_id=${profileId}`).catch(() => []),
         apiRequest(`/api/config?profile_id=${profileId}`),
@@ -101,98 +107,36 @@ export default function Home() {
               {hasLeftImage && hasRightImage ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                   <div className="hidden lg:block order-2 lg:order-1">
-                    <img
-                      src={content.leftImage}
-                      alt="Lateral Esquerda"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
+                    <img src={content.leftImage} alt="Esquerda" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" />
                   </div>
                   <div className="order-1 lg:order-2 text-center">
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
-                      {content.title || 'Coleção de Vestidos'}
+                      {content.title || 'Bem-vindo'}
                     </h2>
                     <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto mb-4 sm:mb-6 px-2 text-white drop-shadow-md">
-                      {content.subtitle || 'Elegância e estilo para você'}
+                      {content.subtitle || 'Sua mensagem aqui'}
                     </p>
                     {content.image && (
                       <div className="relative w-full flex justify-center mt-4 sm:mt-6">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 350px)' }}
-                        />
+                        <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(40vh, 350px)' }} />
                       </div>
                     )}
                   </div>
                   <div className="hidden lg:block order-3">
-                    <img
-                      src={content.rightImage}
-                      alt="Lateral Direita"
-                      className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl"
-                    />
-                  </div>
-                  <div className="lg:hidden order-3 grid grid-cols-2 gap-3 sm:gap-4 mt-6">
-                    {hasLeftImage && (
-                      <img
-                        src={content.leftImage}
-                        alt="Lateral Esquerda"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
-                    {hasRightImage && (
-                      <img
-                        src={content.rightImage}
-                        alt="Lateral Direita"
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg shadow-lg"
-                      />
-                    )}
-                  </div>
-                </div>
-              ) : hasLeftImage || hasRightImage ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
-                  <div className={`text-center md:text-left ${hasRightImage ? 'md:order-2' : 'md:order-1'}`}>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg">
-                      {content.title || 'Coleção de Vestidos'}
-                    </h2>
-                    <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-lg mx-auto md:mx-0 mb-4 sm:mb-6 text-white drop-shadow-md">
-                      {content.subtitle || 'Elegância e estilo para você'}
-                    </p>
-                    {content.image && (
-                      <div className="relative w-full flex justify-center">
-                        <img
-                          src={content.image}
-                          alt="Principal"
-                          className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain rounded-lg shadow-2xl"
-                          style={{ maxHeight: 'min(40vh, 300px)' }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className={hasRightImage ? 'md:order-1' : 'md:order-2'}>
-                    <img
-                      src={hasLeftImage ? content.leftImage : content.rightImage}
-                      alt="Lateral"
-                      className="w-full h-48 sm:h-64 md:h-80 object-cover rounded-lg shadow-xl"
-                    />
+                    <img src={content.rightImage} alt="Direita" className="w-full h-auto max-h-80 lg:max-h-96 object-contain rounded-lg shadow-xl" />
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
                   <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-white drop-shadow-lg px-2">
-                    {content.title || 'Coleção de Vestidos'}
+                    {content.title || 'Bem-vindo'}
                   </h2>
                   <p className="text-sm sm:text-base lg:text-lg opacity-90 max-w-2xl mx-auto mb-6 sm:mb-8 px-4 text-white drop-shadow-md">
-                    {content.subtitle || 'Elegância e estilo para você'}
+                    {content.subtitle || 'Sua mensagem aqui'}
                   </p>
                   {content.image && (
                     <div className="relative w-full flex justify-center">
-                      <img
-                        src={content.image}
-                        alt="Principal"
-                        className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl"
-                        style={{ maxHeight: 'min(50vh, 450px)' }}
-                      />
+                      <img src={content.image} alt="Principal" className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl h-auto object-contain rounded-lg shadow-2xl" style={{ maxHeight: 'min(50vh, 450px)' }} />
                     </div>
                   )}
                 </div>
@@ -205,7 +149,7 @@ export default function Home() {
         return (
           <section key={section.id} className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
             <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8" style={{ color: config?.cor_texto }}>
-              {content.title || 'Nossos Vestidos'}
+              {content.title || 'Nossos Produtos'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {produtos.map(produto => (
@@ -215,18 +159,11 @@ export default function Home() {
                   </div>
                   <div className="p-4">
                     <h4 className="font-bold text-base sm:text-lg" style={{ color: config?.cor_texto }}>{produto.titulo}</h4>
-                    {produto.preco && (
-                      <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>
-                        {produto.preco}
-                      </p>
-                    )}
+                    {produto.preco && <p className="font-bold text-lg sm:text-xl mt-2" style={{ color: config?.cor_botao }}>{produto.preco}</p>}
                   </div>
                 </div>
               ))}
             </div>
-            {produtos.length === 0 && (
-              <p className="text-center text-gray-500 py-8">👗 Nenhum produto disponível</p>
-            )}
           </section>
         );
 
@@ -234,9 +171,7 @@ export default function Home() {
         return (
           <section key={section.id} className="py-6 sm:py-8 px-4 bg-gradient-to-r from-green-50 to-blue-100">
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>
-                {content.title || 'Sessão'}
-              </h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2" style={{ color: config?.cor_texto }}>{content.title || 'Sessão'}</h3>
               {content.text && <p className="text-gray-700 text-sm sm:text-base">{content.text}</p>}
             </div>
           </section>
@@ -249,30 +184,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      {/* ✅ Header Component - Passando sections também */}
       <Header config={config} sections={sections} />
-
-      {/* Renderiza as seções (exceto header) */}
+      
       {sections.length > 0 ? (
-        sections
-          .filter(section => section.section_type !== 'header')
-          .map(renderSection)
+        sections.filter(s => s.section_type !== 'header').map(renderSection)
       ) : (
-        <>
-          <section className="py-12 sm:py-16 px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
-              Coleção de Vestidos
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
-              Elegância e estilo para você
-            </p>
-          </section>
-        </>
+        <section className="py-12 sm:py-16 px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: config?.cor_texto }}>
+            Bem-vindo!
+          </h2>
+          <p className="text-sm sm:text-base lg:text-lg opacity-80" style={{ color: config?.cor_texto }}>
+            Configure seu site pelo painel administrativo
+          </p>
+        </section>
       )}
 
-      {/* Footer */}
       <footer className="p-4 sm:p-6 text-center mt-12" style={{ backgroundColor: config?.cor_botao || '#000', color: '#fff' }}>
-        <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Minha Loja de Vestidos'}</p>
+        <p className="text-sm sm:text-base">{config?.footer_texto || '© 2024 Todos os direitos reservados'}</p>
       </footer>
     </div>
   );
