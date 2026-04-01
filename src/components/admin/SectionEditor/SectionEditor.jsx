@@ -1,16 +1,17 @@
-// frontend/src/components/admin/SectionEditor/SectionEditor.jsx
 import HeaderEditor from './HeaderEditor';
 import HeroEditor from './HeroEditor';
 import ProductsEditor from './ProductsEditor';
 import ContentEditor from './ContentEditor';
 import ContactEditor from './ContactEditor';
+import FooterEditor from './FooterEditor';
 
 const editors = {
   header: HeaderEditor,
   hero: HeroEditor,
   products: ProductsEditor,
   content: ContentEditor,
-  contact: ContactEditor
+  contact: ContactEditor,
+  footer: FooterEditor
 };
 
 export default function SectionEditor({
@@ -35,7 +36,9 @@ export default function SectionEditor({
         <button
           onClick={() => onTogglePublish(section, section.is_active === 0)}
           className={`px-4 py-2 rounded-lg font-medium ${
-            section.is_active === 1 ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+            section.is_active === 1 
+              ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+              : 'bg-green-500 hover:bg-green-600 text-white'
           }`}
         >
           {section.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}

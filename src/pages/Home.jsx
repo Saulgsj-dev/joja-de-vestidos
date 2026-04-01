@@ -1,4 +1,3 @@
-// frontend/src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiRequest } from '../lib/apiClient';
@@ -37,6 +36,7 @@ export default function Home() {
       }
       setNotFound(true);
     };
+
     getProfileId();
   }, [storeId]);
 
@@ -53,6 +53,7 @@ export default function Home() {
         apiRequest(`/api/config?profile_id=${profileId}`).catch(() => ({})),
         apiRequest(`/api/produtos?profile_id=${profileId}`).catch(() => [])
       ]);
+
       setSections(sectionsData || []);
       setConfig(configData || {});
       setProdutos(produtosData || []);
@@ -77,7 +78,10 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
           <p className="text-gray-600 text-lg">Site não encontrado</p>
-          <button onClick={() => window.location.href = '/'} className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+          <button 
+            onClick={() => window.location.href = '/'} 
+            className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
             Voltar ao início
           </button>
         </div>
@@ -99,15 +103,21 @@ export default function Home() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
       <Header config={config} sections={sections} storeSlug={storeSlug} />
+      
       {sections.length > 0 ? (
-        sections.filter(section => section.section_type !== 'header').map(renderSection)
+        sections
+          .filter(section => section.section_type !== 'header' && section.section_type !== 'footer')
+          .map(renderSection)
       ) : (
         <section className="py-16 px-4 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: config?.cor_texto }}>Bem-vindo</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: config?.cor_texto }}>
+            Bem-vindo
+          </h2>
           <p className="text-gray-600">Site em construção</p>
         </section>
       )}
-      <Footer config={config} />
+      
+      <Footer config={config} sections={sections} />
     </div>
   );
 }

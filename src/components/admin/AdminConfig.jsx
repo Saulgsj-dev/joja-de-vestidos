@@ -1,4 +1,3 @@
-// frontend/src/components/admin/AdminConfig.jsx
 import { useState } from 'react';
 
 export default function AdminConfig({ config, setConfig, onSave, saving }) {
@@ -42,24 +41,16 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Cor do Botão/Footer</label>
+        <label className="block text-sm font-medium mb-1">Cor do Botão Principal</label>
         <input
           type="color"
           value={config.cor_botao}
           onChange={(e) => handleColorChange('cor_botao', e.target.value)}
           className="w-full h-10 rounded cursor-pointer"
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Texto do Footer</label>
-        <input
-          type="text"
-          value={config.footer_texto}
-          onChange={(e) => setConfig({ ...config, footer_texto: e.target.value })}
-          className="w-full p-2 border rounded"
-          placeholder="© 2024 Minha Loja"
-        />
+        <p className="text-xs text-gray-500 mt-1">
+          💡 Esta cor será usada como padrão para botões e footer
+        </p>
       </div>
 
       <div>
@@ -71,6 +62,9 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
           className="w-full p-2 border rounded"
           placeholder="5511999999999"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Formato: 55 + DDD + número (ex: 5511999999999)
+        </p>
       </div>
 
       <button
