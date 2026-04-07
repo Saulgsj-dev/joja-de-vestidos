@@ -6,9 +6,8 @@ export function useConfig(profileId) {
     cor_fundo: '#ffffff',
     cor_texto: '#000000',
     cor_botao: '#000000',
-    footer_texto: '© 2024 Minha Loja',
     whatsapp_numero: '',
-    nome_loja: 'Minha Loja de Vestidos'
+    nome_loja: 'Minha Loja'
   });
   const [loading, setLoading] = useState(false);
 
@@ -29,13 +28,11 @@ export function useConfig(profileId) {
 
   const saveConfig = useCallback(async (configData) => {
     if (!profileId) throw new Error('Profile ID não encontrado');
-    
     const response = await apiRequest('/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(configData)
     });
-    
     return response;
   }, [profileId]);
 

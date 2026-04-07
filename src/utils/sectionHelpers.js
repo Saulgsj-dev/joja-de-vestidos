@@ -1,4 +1,3 @@
-// frontend/src/utils/sectionHelpers.js
 export const SECTION_TYPES = {
   HEADER: 'header',
   HERO: 'hero',
@@ -9,16 +8,17 @@ export const SECTION_TYPES = {
 };
 
 export const getSectionLabel = (type, index) => {
-  const labels = {
-    [SECTION_TYPES.HEADER]: 'Header',
-    [SECTION_TYPES.HERO]: 'Hero Section',
-    [SECTION_TYPES.PRODUCTS]: 'Produtos',
-    [SECTION_TYPES.CONTENT]: `Conteúdo ${index + 1}`,
-    [SECTION_TYPES.CONTACT]: 'Contato',
-    [SECTION_TYPES.FOOTER]: 'Footer'
-  };
+  // Conta apenas seções de conteúdo para a numeração
+  const contentSections = ['content'];
   
-  return labels[type] || type;
+  if (type === 'header') return '🔝 Header';
+  if (type === 'hero') return '🎯 Hero Section';
+  if (type === 'products') return '🛍️ Produtos';
+  if (type === 'contact') return '📞 Contato';
+  if (type === 'footer') return '🔻 Footer (Rodapé)';
+  if (type === 'content') return `📄 Conteúdo ${index + 1}`;
+  
+  return type;
 };
 
 export const getDefaultSection = (type, order) => ({

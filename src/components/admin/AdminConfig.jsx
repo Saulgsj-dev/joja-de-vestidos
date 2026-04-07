@@ -20,57 +20,73 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Cor de Fundo</label>
-        <input
-          type="color"
-          value={config.cor_fundo || '#ffffff'}
-          onChange={(e) => handleColorChange('cor_fundo', e.target.value)}
-          className="w-full h-10 rounded cursor-pointer"
-        />
+      <div className="pt-4 border-t">
+        <h4 className="font-semibold text-sm mb-3 text-gray-700">🎨 Cores do Site</h4>
+        
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Cor de Fundo</label>
+            <input
+              type="color"
+              value={config.cor_fundo || '#ffffff'}
+              onChange={(e) => handleColorChange('cor_fundo', e.target.value)}
+              className="w-full h-10 rounded cursor-pointer border"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Cor do Texto</label>
+            <input
+              type="color"
+              value={config.cor_texto || '#000000'}
+              onChange={(e) => handleColorChange('cor_texto', e.target.value)}
+              className="w-full h-10 rounded cursor-pointer border"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Cor do Botão</label>
+            <input
+              type="color"
+              value={config.cor_botao || '#000000'}
+              onChange={(e) => handleColorChange('cor_botao', e.target.value)}
+              className="w-full h-10 rounded cursor-pointer border"
+            />
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Cor do Texto</label>
-        <input
-          type="color"
-          value={config.cor_texto || '#000000'}
-          onChange={(e) => handleColorChange('cor_texto', e.target.value)}
-          className="w-full h-10 rounded cursor-pointer"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Cor do Botão</label>
-        <input
-          type="color"
-          value={config.cor_botao || '#000000'}
-          onChange={(e) => handleColorChange('cor_botao', e.target.value)}
-          className="w-full h-10 rounded cursor-pointer"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">WhatsApp Número</label>
-        <input
-          type="text"
-          value={config.whatsapp_numero || ''}
-          onChange={(e) => setConfig({ ...config, whatsapp_numero: e.target.value })}
-          className="w-full p-2 border rounded"
-          placeholder="5511999999999"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Formato: 55 + DDD + número (ex: 5511999999999)
-        </p>
+      <div className="pt-4 border-t">
+        <h4 className="font-semibold text-sm mb-3 text-gray-700">📱 Contato</h4>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">WhatsApp Número</label>
+          <input
+            type="text"
+            value={config.whatsapp_numero || ''}
+            onChange={(e) => setConfig({ ...config, whatsapp_numero: e.target.value })}
+            className="w-full p-2 border rounded"
+            placeholder="5511999999999"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Formato: 55 + DDD + número (ex: 5511999999999)
+          </p>
+        </div>
       </div>
 
       <button
         onClick={onSave}
         disabled={saving}
-        className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+        className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium transition shadow-md"
       >
         {saving ? '💾 Salvando...' : '💾 Salvar Configurações'}
       </button>
+
+      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+        <p className="text-xs text-blue-800">
+          💡 <strong>Dica:</strong> Para editar o footer, vá na aba "Seções" e clique em "🔻 Footer (Rodapé)"
+        </p>
+      </div>
     </div>
   );
 }
