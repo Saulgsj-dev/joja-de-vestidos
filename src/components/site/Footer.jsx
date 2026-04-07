@@ -3,25 +3,30 @@ import { getAlignClass } from '../../utils/styleHelpers';
 export default function Footer({ config, sections, isPreview = false }) {
   const footerSection = sections?.find(s => s.section_type === 'footer');
   
+  // Se não tiver footer section, usa config padrão
+  if (!footerSection) {
+    return (
+      <footer className="py-8 px-4 text-center" style={{ backgroundColor: config?.cor_botao || '#000000', color: '#ffffff' }}>
+        <p>{config?.footer_texto || '© 2024 Minha Loja'}</p>
+      </footer>
+    );
+  }
+
   const backgroundColor = footerSection?.styles?.backgroundColor || config?.cor_botao || '#000000';
   const textColor = footerSection?.styles?.textColor || '#ffffff';
   const backgroundType = footerSection?.styles?.backgroundType || 'color';
   const backgroundImage = footerSection?.styles?.backgroundImage || '';
   const backgroundOpacity = (footerSection?.styles?.backgroundOpacity || 100) / 100;
-  
   const paddingTop = footerSection?.styles?.paddingTop || 'py-12';
   const paddingBottom = footerSection?.styles?.paddingBottom || 'py-8';
-  
   const iconPosition = footerSection?.styles?.iconPosition || 'top';
   const iconSize = footerSection?.styles?.iconSize || 'medio';
   const titleFontSize = footerSection?.styles?.titleFontSize || 'medio';
   const titleFontWeight = footerSection?.styles?.titleFontWeight || 'bold';
   const titleAlign = footerSection?.styles?.titleAlign || 'center';
-  
   const descriptionFontSize = footerSection?.styles?.descriptionFontSize || 'pequeno';
   const descriptionAlign = footerSection?.styles?.descriptionAlign || 'center';
   const descriptionColor = footerSection?.styles?.descriptionColor || '#9ca3af';
-  
   const buttonPosition = footerSection?.styles?.buttonPosition || 'bottom';
   const buttonSize = footerSection?.styles?.buttonSize || 'medio';
   
@@ -29,7 +34,7 @@ export default function Footer({ config, sections, isPreview = false }) {
   const title = footerSection?.content?.title || '© 2024 Minha Loja';
   const description = footerSection?.content?.description || '';
   const button = footerSection?.content?.button || null;
-  
+
   const backgroundStyle = {};
   if (backgroundType === 'image' && backgroundImage) {
     backgroundStyle.backgroundImage = `url(${backgroundImage})`;
@@ -40,7 +45,7 @@ export default function Footer({ config, sections, isPreview = false }) {
   } else {
     backgroundStyle.backgroundColor = backgroundColor;
   }
-  
+
   const getIconSizeClasses = () => {
     const sizes = {
       pequeno: 'w-8 h-8',
@@ -50,7 +55,7 @@ export default function Footer({ config, sections, isPreview = false }) {
     };
     return sizes[iconSize] || sizes.medio;
   };
-  
+
   const getTitleFontSizeClasses = () => {
     const sizes = {
       pequeno: 'text-sm md:text-base',
@@ -60,7 +65,7 @@ export default function Footer({ config, sections, isPreview = false }) {
     };
     return sizes[titleFontSize] || sizes.medio;
   };
-  
+
   const getTitleFontWeightClasses = () => {
     const weights = {
       normal: 'font-normal',
@@ -70,7 +75,7 @@ export default function Footer({ config, sections, isPreview = false }) {
     };
     return weights[titleFontWeight] || weights.bold;
   };
-  
+
   const getDescriptionFontSizeClasses = () => {
     const sizes = {
       pequeno: 'text-xs md:text-sm',
@@ -79,7 +84,7 @@ export default function Footer({ config, sections, isPreview = false }) {
     };
     return sizes[descriptionFontSize] || sizes.pequeno;
   };
-  
+
   const getButtonSizeClasses = () => {
     const sizes = {
       pequeno: 'px-4 py-2 text-sm',
@@ -88,10 +93,9 @@ export default function Footer({ config, sections, isPreview = false }) {
     };
     return sizes[buttonSize] || sizes.medio;
   };
-  
+
   const renderButton = () => {
     if (!button?.text) return null;
-    
     const isWhatsapp = button.link?.includes('wa.me') || button.link?.includes('whatsapp');
     const bgColor = button.color || (isWhatsapp ? '#25D366' : '#ffffff');
     const textColorButton = isWhatsapp || button.color ? '#ffffff' : '#000000';
@@ -108,10 +112,9 @@ export default function Footer({ config, sections, isPreview = false }) {
       </a>
     );
   };
-  
+
   const renderIcon = () => {
     if (!icon) return null;
-    
     return (
       <div className={`mb-4 ${getAlignClass(titleAlign)}`}>
         <img
@@ -122,7 +125,7 @@ export default function Footer({ config, sections, isPreview = false }) {
       </div>
     );
   };
-  
+
   return (
     <footer
       className={`${paddingTop} ${paddingBottom} px-4 md:px-6 lg:px-8 w-full`}
