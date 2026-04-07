@@ -11,9 +11,9 @@ export default function AdminSidebar({
   onTogglePublish,
   onLoadSections
 }) {
-  // Header e footer NÃO podem ser despublicados, mas podem ser editados
+  // Seções que não podem ser despublicadas
   const nonPublishableSections = ['header', 'footer'];
-
+  
   return (
     <div className="w-full lg:w-80 bg-white rounded-2xl p-4 shadow-lg">
       <div className="flex gap-2 mb-4">
@@ -30,20 +30,16 @@ export default function AdminSidebar({
           Config
         </button>
       </div>
-
+      
       {activeTab === 'sections' && (
         <div className="space-y-2">
           {sections.map((section, index) => {
             const canPublish = !nonPublishableSections.includes(section.section_type);
-            const label = getSectionLabel(section.section_type, index);
             
             return (
               <div key={section.id} className="relative group">
                 <button
-                  onClick={() => { 
-                    onSelectSection(section); 
-                    onToggleAccordion('content'); 
-                  }}
+                  onClick={() => { onSelectSection(section); onToggleAccordion('content'); }}
                   className={`w-full p-3 rounded-lg text-left transition ${
                     selectedSection?.id === section.id
                       ? 'bg-purple-100 border-2 border-purple-500'
@@ -51,7 +47,7 @@ export default function AdminSidebar({
                   } ${section.is_active === 0 ? 'opacity-50' : ''}`}
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{label}</span>
+                    <span>{getSectionLabel(section.section_type, index)}</span>
                     {canPublish && (
                       <span className={`text-xs px-2 py-1 rounded ${
                         section.is_active === 1 ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'
@@ -59,23 +55,15 @@ export default function AdminSidebar({
                         {section.is_active === 1 ? '✓' : '○'}
                       </span>
                     )}
-                    {!canPublish && (
-                      <span className="text-xs text-gray-400">
-                        {section.section_type === 'header' ? '🔒 Fixo' : '🔒 Fixo'}
-                      </span>
-                    )}
                   </div>
                 </button>
                 
                 {canPublish && (
                   <button
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onTogglePublish(section, section.is_active === 0); 
-                    }}
+                    onClick={(e) => { e.stopPropagation(); onTogglePublish(section, section.is_active === 0); }}
                     className={`absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition px-2 py-1 rounded text-xs ${
-                      section.is_active === 1
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                      section.is_active === 1 
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
                         : 'bg-green-500 hover:bg-green-600 text-white'
                     }`}
                   >
@@ -86,15 +74,12 @@ export default function AdminSidebar({
             );
           })}
           
-          <button 
-            className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg mt-2"
-            onClick={() => alert('Em breve: adicionar novas seções!')}
-          >
+          <button className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg mt-2">
             + Adicionar Seção
           </button>
         </div>
       )}
-
+      
       {activeTab === 'config' && (
         <div className="space-y-4">
           <h3 className="font-bold text-lg">Configurações Gerais</h3>

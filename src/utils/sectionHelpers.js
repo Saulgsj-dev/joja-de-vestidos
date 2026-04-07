@@ -1,3 +1,4 @@
+// frontend/src/utils/sectionHelpers.js
 export const SECTION_TYPES = {
   HEADER: 'header',
   HERO: 'hero',
@@ -9,12 +10,12 @@ export const SECTION_TYPES = {
 
 export const getSectionLabel = (type, index) => {
   const labels = {
-    [SECTION_TYPES.HEADER]: '️ Header',
-    [SECTION_TYPES.HERO]: '🎯 Hero Section',
-    [SECTION_TYPES.PRODUCTS]: '🛍️ Produtos',
-    [SECTION_TYPES.CONTENT]: `📄 Conteúdo ${index}`,
-    [SECTION_TYPES.CONTACT]: '📞 Contato',
-    [SECTION_TYPES.FOOTER]: '🔻 Footer (Rodapé)'
+    [SECTION_TYPES.HEADER]: 'Header',
+    [SECTION_TYPES.HERO]: 'Hero Section',
+    [SECTION_TYPES.PRODUCTS]: 'Produtos',
+    [SECTION_TYPES.CONTENT]: `Conteúdo ${index + 1}`,
+    [SECTION_TYPES.CONTACT]: 'Contato',
+    [SECTION_TYPES.FOOTER]: 'Footer'
   };
   
   return labels[type] || type;

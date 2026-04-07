@@ -26,25 +26,17 @@ export default function SectionEditor({
   const EditorComponent = editors[section.section_type];
   
   if (!EditorComponent) {
-    return (
-      <div className="text-gray-500 p-4">
-        Editor não encontrado para: {section.section_type}
-      </div>
-    );
+    return <div className="text-gray-500">Editor não encontrado para: {section.section_type}</div>;
   }
-
-  // Header e footer NÃO podem ser despublicados (são obrigatórios)
+  
+  // Seções que não podem ser despublicadas
   const nonPublishableSections = ['header', 'footer'];
   const canPublish = !nonPublishableSections.includes(section.section_type);
-
+  
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">
-          Editando: {section.section_type === 'footer' ? 'Footer (Rodapé)' : 
-                     section.section_type === 'header' ? 'Header (Cabeçalho)' :
-                     section.section_type}
-        </h2>
+        <h2 className="text-2xl font-bold">Editando: {section.section_type}</h2>
         {canPublish && (
           <button
             onClick={() => onTogglePublish(section, section.is_active === 0)}
@@ -58,7 +50,7 @@ export default function SectionEditor({
           </button>
         )}
       </div>
-
+      
       <EditorComponent
         section={section}
         config={config}
@@ -66,7 +58,7 @@ export default function SectionEditor({
         onUpdateSection={onUpdateSection}
         onSetActiveAccordion={onSetActiveAccordion}
       />
-
+      
       <button
         onClick={() => onSave(section)}
         className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full font-semibold"
