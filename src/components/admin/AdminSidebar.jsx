@@ -14,7 +14,7 @@ export default function AdminSidebar({
 }) {
   // Seções que não podem ser despublicadas
   const nonPublishableSections = ['header', 'footer'];
-
+  
   return (
     <div className="w-full lg:w-80 bg-white rounded-2xl p-4 shadow-lg">
       <div className="flex gap-2 mb-4">
@@ -31,7 +31,7 @@ export default function AdminSidebar({
           Config
         </button>
       </div>
-
+      
       {activeTab === 'sections' && (
         <div className="space-y-2">
           {sections.map((section, index) => {
@@ -80,7 +80,7 @@ export default function AdminSidebar({
           </button>
         </div>
       )}
-
+      
       {activeTab === 'config' && (
         <div className="space-y-4">
           <h3 className="font-bold text-lg">Configurações Gerais</h3>

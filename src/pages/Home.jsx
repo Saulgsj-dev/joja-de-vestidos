@@ -37,7 +37,7 @@ export default function Home() {
       }
       setNotFound(true);
     };
-
+    
     getProfileId();
   }, [storeId]);
 
@@ -54,7 +54,7 @@ export default function Home() {
         apiRequest(`/api/config?profile_id=${profileId}`).catch(() => ({})),
         apiRequest(`/api/produtos?profile_id=${profileId}`).catch(() => [])
       ]);
-
+      
       setSections(sectionsData || []);
       setConfig(configData || {});
       setProdutos(produtosData || []);
@@ -79,8 +79,8 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
           <p className="text-gray-600 text-lg">Site não encontrado</p>
-          <button 
-            onClick={() => window.location.href = '/'} 
+          <button
+            onClick={() => window.location.href = '/'}
             className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Voltar ao início

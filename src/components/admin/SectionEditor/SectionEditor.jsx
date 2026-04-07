@@ -25,27 +25,33 @@ export default function SectionEditor({
   onSetActiveAccordion
 }) {
   const EditorComponent = editors[section.section_type];
-
+  
   if (!EditorComponent) {
     return <div className="text-gray-500">Editor não encontrado para: {section.section_type}</div>;
   }
-
+  
+  // Seções que não podem ser despublicadas
+  const nonPublishableSections = ['header', 'footer'];
+  const canPublish = !nonPublishableSections.includes(section.section_type);
+  
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Editando: {section.section_type}</h2>
-        <button
-          onClick={() => onTogglePublish(section, section.is_active === 0)}
-          className={`px-4 py-2 rounded-lg font-medium ${
-            section.is_active === 1 
-              ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-              : 'bg-green-500 hover:bg-green-600 text-white'
-          }`}
-        >
-          {section.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}
-        </button>
+        {canPublish && (
+          <button
+            onClick={() => onTogglePublish(section, section.is_active === 0)}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              section.is_active === 1
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
+          >
+            {section.is_active === 1 ? '🔓 Despublicar' : '✅ Publicar'}
+          </button>
+        )}
       </div>
-
+      
       <EditorComponent
         section={section}
         config={config}
@@ -53,7 +59,7 @@ export default function SectionEditor({
         onUpdateSection={onUpdateSection}
         onSetActiveAccordion={onSetActiveAccordion}
       />
-
+      
       <button
         onClick={() => onSave(section)}
         className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full font-semibold"

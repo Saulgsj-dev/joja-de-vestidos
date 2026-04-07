@@ -1,136 +1,183 @@
 // frontend/src/components/site/Footer.jsx
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
 import { getAlignClass } from '../../utils/styleHelpers';
 
 export default function Footer({ config, sections, isPreview = false }) {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = () => navigate('/login');
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
-
-  // Buscar seção footer
   const footerSection = sections?.find(s => s.section_type === 'footer');
-
-  // Configurações do footer
+  
   const backgroundColor = footerSection?.styles?.backgroundColor || config?.cor_botao || '#000000';
   const textColor = footerSection?.styles?.textColor || '#ffffff';
-  const textFontSize = footerSection?.styles?.textFontSize || 'medio';
+  const backgroundType = footerSection?.styles?.backgroundType || 'color';
+  const backgroundImage = footerSection?.styles?.backgroundImage || '';
+  const backgroundOpacity = (footerSection?.styles?.backgroundOpacity || 100) / 100;
+  
   const paddingTop = footerSection?.styles?.paddingTop || 'py-12';
   const paddingBottom = footerSection?.styles?.paddingBottom || 'py-8';
-
-  // Tamanhos de fonte
-  const textSizeClasses = {
-    pequeno: 'text-sm md:text-base',
-    medio: 'text-base md:text-lg',
-    grande: 'text-lg md:text-xl'
+  
+  const iconPosition = footerSection?.styles?.iconPosition || 'top';
+  const iconSize = footerSection?.styles?.iconSize || 'medio';
+  const titleFontSize = footerSection?.styles?.titleFontSize || 'medio';
+  const titleFontWeight = footerSection?.styles?.titleFontWeight || 'bold';
+  const titleAlign = footerSection?.styles?.titleAlign || 'center';
+  
+  const descriptionFontSize = footerSection?.styles?.descriptionFontSize || 'pequeno';
+  const descriptionAlign = footerSection?.styles?.descriptionAlign || 'center';
+  const descriptionColor = footerSection?.styles?.descriptionColor || '#9ca3af';
+  
+  const buttonPosition = footerSection?.styles?.buttonPosition || 'bottom';
+  const buttonSize = footerSection?.styles?.buttonSize || 'medio';
+  
+  const icon = footerSection?.content?.icon || '';
+  const title = footerSection?.content?.title || '© 2024 Minha Loja';
+  const description = footerSection?.content?.description || '';
+  const button = footerSection?.content?.button || null;
+  
+  const backgroundStyle = {};
+  if (backgroundType === 'image' && backgroundImage) {
+    backgroundStyle.backgroundImage = `url(${backgroundImage})`;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundPosition = 'center';
+    backgroundStyle.backgroundColor = `rgba(0, 0, 0, ${0.6 * backgroundOpacity})`;
+    backgroundStyle.backgroundBlendMode = 'multiply';
+  } else {
+    backgroundStyle.backgroundColor = backgroundColor;
+  }
+  
+  const getIconSizeClasses = () => {
+    const sizes = {
+      pequeno: 'w-8 h-8',
+      medio: 'w-12 h-12',
+      grande: 'w-16 h-16',
+      extra_grande: 'w-24 h-24'
+    };
+    return sizes[iconSize] || sizes.medio;
   };
-
-  // Renderizar botão
-  const renderButton = (button, index) => {
+  
+  const getTitleFontSizeClasses = () => {
+    const sizes = {
+      pequeno: 'text-sm md:text-base',
+      medio: 'text-base md:text-lg',
+      grande: 'text-lg md:text-xl',
+      extra_grande: 'text-xl md:text-2xl'
+    };
+    return sizes[titleFontSize] || sizes.medio;
+  };
+  
+  const getTitleFontWeightClasses = () => {
+    const weights = {
+      normal: 'font-normal',
+      semibold: 'font-semibold',
+      bold: 'font-bold',
+      extrabold: 'font-extrabold'
+    };
+    return weights[titleFontWeight] || weights.bold;
+  };
+  
+  const getDescriptionFontSizeClasses = () => {
+    const sizes = {
+      pequeno: 'text-xs md:text-sm',
+      medio: 'text-sm md:text-base',
+      grande: 'text-base md:text-lg'
+    };
+    return sizes[descriptionFontSize] || sizes.pequeno;
+  };
+  
+  const getButtonSizeClasses = () => {
+    const sizes = {
+      pequeno: 'px-4 py-2 text-sm',
+      medio: 'px-6 py-3 text-base',
+      grande: 'px-8 py-4 text-lg'
+    };
+    return sizes[buttonSize] || sizes.medio;
+  };
+  
+  const renderButton = () => {
     if (!button?.text) return null;
+    
     const isWhatsapp = button.link?.includes('wa.me') || button.link?.includes('whatsapp');
-    const bgColor = button.color || (isWhatsapp ? '#25D366' : config?.cor_botao || '#000000');
+    const bgColor = button.color || (isWhatsapp ? '#25D366' : '#ffffff');
+    const textColorButton = isWhatsapp || button.color ? '#ffffff' : '#000000';
     
     return (
       <a
-        key={index}
         href={button.link || '#'}
         target={button.link?.startsWith('http') ? '_blank' : '_self'}
         rel="noopener noreferrer"
-        className="inline-block px-6 md:px-8 py-3 md:py-4 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 mt-4 text-sm md:text-base"
-        style={{ backgroundColor: bgColor }}
+        className={`inline-block rounded-lg font-medium transition-all duration-300 hover:opacity-90 ${getButtonSizeClasses()}`}
+        style={{ backgroundColor: bgColor, color: textColorButton }}
       >
         {button.text}
       </a>
     );
   };
-
+  
+  const renderIcon = () => {
+    if (!icon) return null;
+    
+    return (
+      <div className={`mb-4 ${getAlignClass(titleAlign)}`}>
+        <img
+          src={icon}
+          alt="Logo"
+          className={`${getIconSizeClasses()} object-contain mx-auto`}
+        />
+      </div>
+    );
+  };
+  
   return (
     <footer
       className={`${paddingTop} ${paddingBottom} px-4 md:px-6 lg:px-8 w-full`}
-      style={{ backgroundColor }}
+      style={backgroundStyle}
     >
       <div className="max-w-6xl mx-auto">
-        {/* Blocos do Footer */}
-        {footerSection?.content?.blocks?.length > 0 ? (
-          <div className="space-y-6 md:space-y-8">
-            {footerSection.content.blocks.map((block, index) => (
-              <div key={index} className={getAlignClass(block.align || 'center')}>
-                {block.title && (
-                  <p
-                    className={`${textSizeClasses[textFontSize]} font-semibold mb-3 md:mb-4`}
-                    style={{ color: textColor }}
-                  >
-                    {block.title}
-                  </p>
-                )}
-                {block.text && (
-                  <p
-                    className={`${textSizeClasses[textFontSize]} opacity-90 mb-3 md:mb-4 max-w-3xl mx-auto`}
-                    style={{ color: textColor }}
-                  >
-                    {block.text}
-                  </p>
-                )}
-                {block.button && renderButton(block.button, index)}
-              </div>
-            ))}
+        {/* Layout com ícone na esquerda/direita */}
+        {(iconPosition === 'left' || iconPosition === 'right') && icon ? (
+          <div className={`flex items-center gap-6 ${
+            iconPosition === 'left' ? 'flex-row' : 'flex-row-reverse'
+          } ${getAlignClass(titleAlign)}`}>
+            {renderIcon()}
+            <div className="flex-1 space-y-2">
+              {buttonPosition === 'top' && renderButton()}
+              <h3
+                className={`${getTitleFontSizeClasses()} ${getTitleFontWeightClasses()} ${getAlignClass(titleAlign)}`}
+                style={{ color: textColor }}
+              >
+                {title}
+              </h3>
+              {description && (
+                <p
+                  className={`${getDescriptionFontSizeClasses()} ${getAlignClass(descriptionAlign)}`}
+                  style={{ color: descriptionColor }}
+                >
+                  {description}
+                </p>
+              )}
+              {buttonPosition === 'bottom' && renderButton()}
+            </div>
           </div>
         ) : (
-          // Footer padrão (fallback)
-          <div className="text-center">
-            <p className={`${textSizeClasses[textFontSize]} opacity-90`} style={{ color: textColor }}>
-              {config?.footer_texto || '© 2024 Minha Loja de Vestidos'}
-            </p>
-          </div>
-        )}
-
-        {/* Botões de Auth - Apenas no site real */}
-        {!isPreview && (
-          <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-white/20">
-            {user ? (
-              <div className="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
-                <span className={`${textSizeClasses[textFontSize]} opacity-90`} style={{ color: textColor }}>
-                  Olá, {user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={() => navigate('/admin')}
-                  className="px-6 md:px-8 py-3 md:py-4 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition text-sm md:text-base"
-                >
-                  Painel Admin
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="px-6 md:px-8 py-3 md:py-4 border-2 border-white text-white rounded-lg font-medium hover:bg-white hover:text-black transition text-sm md:text-base"
-                >
-                  Sair
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleLogin}
-                className="px-8 md:px-10 py-4 md:py-5 bg-white text-black rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg text-base md:text-lg"
+          /* Layout com ícone no topo ou sem ícone */
+          <div className={`space-y-4 ${getAlignClass(titleAlign)}`}>
+            {iconPosition === 'top' && renderIcon()}
+            {buttonPosition === 'top' && (
+              <div className="mb-4">{renderButton()}</div>
+            )}
+            <h3
+              className={`${getTitleFontSizeClasses()} ${getTitleFontWeightClasses()}`}
+              style={{ color: textColor }}
+            >
+              {title}
+            </h3>
+            {description && (
+              <p
+                className={`${getDescriptionFontSizeClasses()}`}
+                style={{ color: descriptionColor }}
               >
-                👤 Área do Cliente
-              </button>
+                {description}
+              </p>
+            )}
+            {buttonPosition === 'bottom' && (
+              <div className="mt-4">{renderButton()}</div>
             )}
           </div>
         )}

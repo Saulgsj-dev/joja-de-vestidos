@@ -1,8 +1,8 @@
-// frontend/src/components/admin/SectionEditor/ContentEditor.jsx
+// frontend/src/components/admin/SectionEditor/FooterEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 import ImageUploader from '../ImageUploader';
 
-export default function FooterEditor({ section, config, activeAccordion, onUpdateSection }) {
+export default function FooterEditor({ section, config, activeAccordion, onUpdateSection, onSetActiveAccordion }) {
   const handleContentUpdate = (field, value) => {
     onUpdateSection({
       ...section,
@@ -17,64 +17,14 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
     });
   };
 
-  // 🔘 Funções para blocos
-  const handleAddBlock = () => {
-    const blocks = section.content?.blocks || [];
+  const handleButtonUpdate = (field, value) => {
+    const button = section.content?.button || { text: '', link: '', color: '#ffffff' };
     onUpdateSection({
       ...section,
       content: {
         ...section.content,
-        blocks: [...blocks, { type: 'text', title: '', text: '', align: 'center', button: null }]
+        button: { ...button, [field]: value }
       }
-    });
-  };
-
-  const handleUpdateBlock = (index, field, value) => {
-    const blocks = [...(section.content?.blocks || [])];
-    blocks[index] = { ...blocks[index], [field]: value };
-    onUpdateSection({
-      ...section,
-      content: { ...section.content, blocks }
-    });
-  };
-
-  const handleRemoveBlock = (index) => {
-    const blocks = (section.content?.blocks || []).filter((_, i) => i !== index);
-    onUpdateSection({
-      ...section,
-      content: { ...section.content, blocks }
-    });
-  };
-
-  const handleAddButtonToBlock = (blockIndex) => {
-    const blocks = [...(section.content?.blocks || [])];
-    blocks[blockIndex] = {
-      ...blocks[blockIndex],
-      button: { text: '', link: '', color: config?.cor_botao || '#000000' }
-    };
-    onUpdateSection({
-      ...section,
-      content: { ...section.content, blocks }
-    });
-  };
-
-  const handleUpdateButton = (blockIndex, field, value) => {
-    const blocks = [...(section.content?.blocks || [])];
-    if (blocks[blockIndex].button) {
-      blocks[blockIndex].button = { ...blocks[blockIndex].button, [field]: value };
-    }
-    onUpdateSection({
-      ...section,
-      content: { ...section.content, blocks }
-    });
-  };
-
-  const handleRemoveButton = (blockIndex) => {
-    const blocks = [...(section.content?.blocks || [])];
-    blocks[blockIndex] = { ...blocks[blockIndex], button: null };
-    onUpdateSection({
-      ...section,
-      content: { ...section.content, blocks }
     });
   };
 
@@ -82,9 +32,29 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
     <div className="space-y-3">
       {/* 🎨 FUNDO DO FOOTER */}
       <SectionAccordion id="footer-background" title="🎨 Fundo do Footer" defaultOpen={true}>
-        <div className="space-y-4">
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => handleStyleUpdate('backgroundType', 'color')}
+            className={`flex-1 py-2 rounded text-sm ${
+              section.styles?.backgroundType === 'color' || !section.styles?.backgroundType
+                ? 'bg-purple-600 text-white' : 'bg-gray-200'
+            }`}
+          >
+            Cor Sólida
+          </button>
+          <button
+            onClick={() => handleStyleUpdate('backgroundType', 'image')}
+            className={`flex-1 py-2 rounded text-sm ${
+              section.styles?.backgroundType === 'image' ? 'bg-purple-600 text-white' : 'bg-gray-200'
+            }`}
+          >
+            Imagem
+          </button>
+        </div>
+
+        {(!section.styles?.backgroundType || section.styles?.backgroundType === 'color') && (
           <div>
-            <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+            <label className="block text-xs font-medium mb-1">Cor de Fundo</label>
             <input
               type="color"
               value={section.styles?.backgroundColor || config?.cor_botao || '#000000'}
@@ -92,153 +62,284 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               className="w-full h-10 rounded cursor-pointer"
             />
           </div>
+        )}
+
+        {section.styles?.backgroundType === 'image' && (
+          <>
+            <ImageUploader
+              label="Imagem de Fundo"
+              value={section.styles?.backgroundImage || ''}
+              onChange={(url) => handleStyleUpdate('backgroundImage', url)}
+              onRemove={() => handleStyleUpdate('backgroundImage', '')}
+            />
+            <div className="mt-3">
+              <label className="block text-xs font-medium mb-1">
+                Opacidade da Imagem: {section.styles?.backgroundOpacity || 100}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={section.styles?.backgroundOpacity || 100}
+                onChange={(e) => handleStyleUpdate('backgroundOpacity', parseInt(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          </>
+        )}
+
+        <div className="mt-3">
+          <label className="block text-xs font-medium mb-1">Cor do Texto Principal</label>
+          <input
+            type="color"
+            value={section.styles?.textColor || '#ffffff'}
+            onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
+            className="w-full h-10 rounded cursor-pointer"
+          />
+        </div>
+      </SectionAccordion>
+
+      {/* 📦 CONTEÚDO DO FOOTER */}
+      <SectionAccordion id="footer-content" title="📦 Conteúdo">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Cor do Texto</label>
+            <label className="block text-xs font-medium mb-1">Título Principal</label>
             <input
-              type="color"
-              value={section.styles?.textColor || '#ffffff'}
-              onChange={(e) => handleStyleUpdate('textColor', e.target.value)}
-              className="w-full h-10 rounded cursor-pointer"
+              type="text"
+              value={section.content?.title || ''}
+              onChange={(e) => handleContentUpdate('title', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+              placeholder="Ex: © 2024 Minha Loja"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1">Descrição</label>
+            <textarea
+              value={section.content?.description || ''}
+              onChange={(e) => handleContentUpdate('description', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+              rows="2"
+              placeholder="Texto adicional do footer"
             />
           </div>
         </div>
       </SectionAccordion>
 
-      {/* 📦 BLOCOS DE CONTEÚDO */}
-      <SectionAccordion id="footer-blocks" title="📦 Blocos de Conteúdo">
+      {/* 🎯 ÍCONE */}
+      <SectionAccordion id="footer-icon" title="🎯 Ícone">
         <div className="space-y-4">
-          <p className="text-sm text-gray-500 mb-3">
-            💡 Adicione blocos com títulos, textos e botões personalizados
-          </p>
-          
-          {section.content?.blocks?.map((block, blockIndex) => (
-            <div key={blockIndex} className="p-4 bg-gray-50 rounded-lg border space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-sm">Bloco {blockIndex + 1}</span>
-                <button
-                  onClick={() => handleRemoveBlock(blockIndex)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  🗑️ Remover
-                </button>
-              </div>
+          <ImageUploader
+            label="Upload do Ícone/Logo"
+            value={section.content?.icon || ''}
+            onChange={(url) => handleContentUpdate('icon', url)}
+            onRemove={() => handleContentUpdate('icon', '')}
+          />
 
+          {section.content?.icon && (
+            <>
               <div>
-                <label className="block text-xs font-medium mb-1">Título</label>
-                <input
-                  type="text"
-                  value={block.title || ''}
-                  onChange={(e) => handleUpdateBlock(blockIndex, 'title', e.target.value)}
-                  className="w-full p-2 border rounded text-sm"
-                  placeholder="Ex: © 2024 Minha Loja"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1">Texto/Descrição</label>
-                <textarea
-                  value={block.text || ''}
-                  onChange={(e) => handleUpdateBlock(blockIndex, 'text', e.target.value)}
-                  className="w-full p-2 border rounded text-sm"
-                  rows="2"
-                  placeholder="Texto adicional (opcional)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-2">Alinhamento</label>
+                <label className="block text-xs font-medium mb-2">Posição do Ícone</label>
                 <div className="flex gap-2">
-                  {['left', 'center', 'right'].map(align => (
+                  {['top', 'left', 'right'].map(pos => (
                     <button
-                      key={align}
-                      onClick={() => handleUpdateBlock(blockIndex, 'align', align)}
+                      key={pos}
+                      onClick={() => handleStyleUpdate('iconPosition', pos)}
                       className={`flex-1 py-2 rounded text-sm ${
-                        block.align === align || (!block.align && align === 'center')
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-200'
+                        section.styles?.iconPosition === pos || (!section.styles?.iconPosition && pos === 'top')
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
                       }`}
                     >
-                      {align === 'left' ? '⬅️ Esquerda' : align === 'center' ? '↕️ Centro' : '➡️ Direita'}
+                      {pos === 'top' ? '⬆️ Topo' : pos === 'left' ? '⬅️ Esquerda' : '➡️ Direita'}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* BOTÃO DO BLOCO */}
-              {block.button ? (
-                <div className="p-3 bg-white rounded border space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium">Botão</span>
-                    <button
-                      onClick={() => handleRemoveButton(blockIndex)}
-                      className="text-red-500 text-xs"
-                    >
-                      Remover botão
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Texto do Botão</label>
-                    <input
-                      type="text"
-                      value={block.button.text || ''}
-                      onChange={(e) => handleUpdateButton(blockIndex, 'text', e.target.value)}
-                      className="w-full p-2 border rounded text-xs"
-                      placeholder="Ex: Fale Conosco"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Link</label>
-                    <input
-                      type="text"
-                      value={block.button.link || ''}
-                      onChange={(e) => handleUpdateButton(blockIndex, 'link', e.target.value)}
-                      className="w-full p-2 border rounded text-xs"
-                      placeholder="https://wa.me/5511999999999"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Cor do Botão</label>
-                    <input
-                      type="color"
-                      value={block.button.color || config?.cor_botao || '#000000'}
-                      onChange={(e) => handleUpdateButton(blockIndex, 'color', e.target.value)}
-                      className="w-full h-8 rounded cursor-pointer"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleAddButtonToBlock(blockIndex)}
-                  className="w-full py-2 border-2 border-dashed border-purple-300 rounded text-purple-600 hover:bg-purple-50 text-sm"
+              <div>
+                <label className="block text-xs font-medium mb-2">Tamanho do Ícone</label>
+                <select
+                  value={section.styles?.iconSize || 'medio'}
+                  onChange={(e) => handleStyleUpdate('iconSize', e.target.value)}
+                  className="w-full p-2 border rounded text-sm"
                 >
-                  + Adicionar Botão
-                </button>
-              )}
-            </div>
-          ))}
-
-          <button
-            onClick={handleAddBlock}
-            className="w-full py-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:bg-purple-50 transition font-medium"
-          >
-            + Adicionar Bloco
-          </button>
+                  <option value="pequeno">Pequeno (32px)</option>
+                  <option value="medio">Médio (48px)</option>
+                  <option value="grande">Grande (64px)</option>
+                  <option value="extra_grande">Extra Grande (96px)</option>
+                </select>
+              </div>
+            </>
+          )}
         </div>
       </SectionAccordion>
 
-      {/* 🔤 TAMANHO DO TEXTO */}
-      <SectionAccordion id="footer-font-size" title="🔤 Tamanho do Texto">
-        <div>
-          <label className="block text-sm font-medium mb-2">Tamanho do Texto</label>
-          <select
-            value={section.styles?.textFontSize || 'medio'}
-            onChange={(e) => handleStyleUpdate('textFontSize', e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="pequeno">Pequeno</option>
-            <option value="medio">Médio</option>
-            <option value="grande">Grande</option>
-          </select>
+      {/* 🔘 BOTÃO */}
+      <SectionAccordion id="footer-button" title="🔘 Botão">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium mb-1">Texto do Botão</label>
+            <input
+              type="text"
+              value={section.content?.button?.text || ''}
+              onChange={(e) => handleButtonUpdate('text', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+              placeholder="Ex: Fale Conosco"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1">Link do Botão</label>
+            <input
+              type="text"
+              value={section.content?.button?.link || ''}
+              onChange={(e) => handleButtonUpdate('link', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+              placeholder="https://wa.me/5511999999999"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1">Cor do Botão</label>
+            <input
+              type="color"
+              value={section.content?.button?.color || '#ffffff'}
+              onChange={(e) => handleButtonUpdate('color', e.target.value)}
+              className="w-full h-10 rounded cursor-pointer"
+            />
+          </div>
+
+          {section.content?.button?.text && (
+            <>
+              <div>
+                <label className="block text-xs font-medium mb-2">Posição do Botão</label>
+                <div className="flex gap-2">
+                  {['top', 'bottom'].map(pos => (
+                    <button
+                      key={pos}
+                      onClick={() => handleStyleUpdate('buttonPosition', pos)}
+                      className={`flex-1 py-2 rounded text-sm ${
+                        section.styles?.buttonPosition === pos || (!section.styles?.buttonPosition && pos === 'bottom')
+                          ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                      }`}
+                    >
+                      {pos === 'top' ? '⬆️ Acima do Texto' : '⬇️ Abaixo do Texto'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium mb-2">Tamanho do Botão</label>
+                <select
+                  value={section.styles?.buttonSize || 'medio'}
+                  onChange={(e) => handleStyleUpdate('buttonSize', e.target.value)}
+                  className="w-full p-2 border rounded text-sm"
+                >
+                  <option value="pequeno">Pequeno</option>
+                  <option value="medio">Médio</option>
+                  <option value="grande">Grande</option>
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+      </SectionAccordion>
+
+      {/* 🔤 ESTILO DO TÍTULO */}
+      <SectionAccordion id="footer-title-style" title="🔤 Estilo do Título">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium mb-2">Tamanho da Fonte</label>
+            <select
+              value={section.styles?.titleFontSize || 'medio'}
+              onChange={(e) => handleStyleUpdate('titleFontSize', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+            >
+              <option value="pequeno">Pequeno</option>
+              <option value="medio">Médio</option>
+              <option value="grande">Grande</option>
+              <option value="extra_grande">Extra Grande</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-2">Peso da Fonte</label>
+            <select
+              value={section.styles?.titleFontWeight || 'bold'}
+              onChange={(e) => handleStyleUpdate('titleFontWeight', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+            >
+              <option value="normal">Normal</option>
+              <option value="semibold">Semi-negrito</option>
+              <option value="bold">Negrito</option>
+              <option value="extrabold">Extra Negrito</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-2">Alinhamento</label>
+            <div className="flex gap-2">
+              {['left', 'center', 'right'].map(align => (
+                <button
+                  key={align}
+                  onClick={() => handleStyleUpdate('titleAlign', align)}
+                  className={`flex-1 py-2 rounded text-sm ${
+                    section.styles?.titleAlign === align || (!section.styles?.titleAlign && align === 'center')
+                      ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                  }`}
+                >
+                  {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </SectionAccordion>
+
+      {/* 📝 ESTILO DA DESCRIÇÃO */}
+      <SectionAccordion id="footer-desc-style" title="📝 Estilo da Descrição">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium mb-2">Tamanho da Fonte</label>
+            <select
+              value={section.styles?.descriptionFontSize || 'pequeno'}
+              onChange={(e) => handleStyleUpdate('descriptionFontSize', e.target.value)}
+              className="w-full p-2 border rounded text-sm"
+            >
+              <option value="pequeno">Pequeno</option>
+              <option value="medio">Médio</option>
+              <option value="grande">Grande</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-2">Cor do Texto</label>
+            <input
+              type="color"
+              value={section.styles?.descriptionColor || '#9ca3af'}
+              onChange={(e) => handleStyleUpdate('descriptionColor', e.target.value)}
+              className="w-full h-10 rounded cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-2">Alinhamento</label>
+            <div className="flex gap-2">
+              {['left', 'center', 'right'].map(align => (
+                <button
+                  key={align}
+                  onClick={() => handleStyleUpdate('descriptionAlign', align)}
+                  className={`flex-1 py-2 rounded text-sm ${
+                    section.styles?.descriptionAlign === align || (!section.styles?.descriptionAlign && align === 'center')
+                      ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                  }`}
+                >
+                  {align === 'left' ? '⬅️' : align === 'center' ? '↕️' : '➡️'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </SectionAccordion>
 
@@ -246,11 +347,11 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
       <SectionAccordion id="footer-spacing" title="📐 Espaçamento">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Padding Superior: {section.styles?.paddingTop || 'py-8'}</label>
+            <label className="block text-xs font-medium mb-2">Padding Superior</label>
             <select
-              value={section.styles?.paddingTop || 'py-8'}
+              value={section.styles?.paddingTop || 'py-12'}
               onChange={(e) => handleStyleUpdate('paddingTop', e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-sm"
             >
               <option value="py-4">Pequeno</option>
               <option value="py-8">Médio</option>
@@ -258,12 +359,13 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               <option value="py-16">Extra Grande</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-2">Padding Inferior: {section.styles?.paddingBottom || 'py-6'}</label>
+            <label className="block text-xs font-medium mb-2">Padding Inferior</label>
             <select
-              value={section.styles?.paddingBottom || 'py-6'}
+              value={section.styles?.paddingBottom || 'py-8'}
               onChange={(e) => handleStyleUpdate('paddingBottom', e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-sm"
             >
               <option value="py-4">Pequeno</option>
               <option value="py-6">Médio</option>
