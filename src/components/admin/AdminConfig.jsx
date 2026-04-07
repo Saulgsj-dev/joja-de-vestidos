@@ -1,3 +1,4 @@
+// frontend/src/components/admin/AdminConfig.jsx
 import { useState } from 'react';
 
 export default function AdminConfig({ config, setConfig, onSave, saving }) {
@@ -41,23 +42,12 @@ export default function AdminConfig({ config, setConfig, onSave, saving }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Cor do Botão/Footer</label>
+        <label className="block text-sm font-medium mb-1">Cor do Botão</label>
         <input
           type="color"
           value={config.cor_botao || '#000000'}
           onChange={(e) => handleColorChange('cor_botao', e.target.value)}
           className="w-full h-10 rounded cursor-pointer"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Texto do Footer</label>
-        <input
-          type="text"
-          value={config.footer_texto || '© 2024 Minha Loja'}
-          onChange={(e) => setConfig({ ...config, footer_texto: e.target.value })}
-          className="w-full p-2 border rounded"
-          placeholder="© 2024 Minha Loja"
         />
       </div>
 

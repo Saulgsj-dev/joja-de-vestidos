@@ -92,7 +92,6 @@ export default function Footer({ config, sections, isPreview = false }) {
   
   const renderButton = () => {
     if (!button?.text) return null;
-    
     const isWhatsapp = button.link?.includes('wa.me') || button.link?.includes('whatsapp');
     const bgColor = button.color || (isWhatsapp ? '#25D366' : '#ffffff');
     const textColorButton = isWhatsapp || button.color ? '#ffffff' : '#000000';
@@ -112,7 +111,6 @@ export default function Footer({ config, sections, isPreview = false }) {
   
   const renderIcon = () => {
     if (!icon) return null;
-    
     return (
       <div className={`mb-4 ${getAlignClass(titleAlign)}`}>
         <img
