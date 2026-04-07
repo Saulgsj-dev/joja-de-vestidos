@@ -1,3 +1,4 @@
+// frontend/src/hooks/useConfig.js
 import { useState, useCallback } from 'react';
 import { apiRequest } from '../lib/apiClient';
 
@@ -5,9 +6,8 @@ export function useConfig(profileId) {
   const [config, setConfig] = useState({
     cor_fundo: '#ffffff',
     cor_texto: '#000000',
-    cor_botao: '#000000',
-    whatsapp_numero: '',
     nome_loja: 'Minha Loja'
+    // ✅ Removido: cor_botao, whatsapp_numero, footer_texto (agora em seções)
   });
   const [loading, setLoading] = useState(false);
 
