@@ -1,4 +1,3 @@
-// frontend/src/components/admin/AdminSidebar.jsx
 import { getSectionLabel } from '../../utils/sectionHelpers';
 
 export default function AdminSidebar({

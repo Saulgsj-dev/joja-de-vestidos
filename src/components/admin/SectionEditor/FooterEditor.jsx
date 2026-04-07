@@ -1,4 +1,3 @@
-// frontend/src/components/admin/SectionEditor/FooterEditor.jsx
 import SectionAccordion from '../SectionAccordion';
 import ImageUploader from '../ImageUploader';
 
