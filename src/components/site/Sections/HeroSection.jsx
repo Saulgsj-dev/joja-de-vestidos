@@ -1,4 +1,4 @@
-// frontend/src/components/site/Sections/ContactSection.jsx
+// frontend/src/components/site/Sections/HeroSection.jsx
 import { getBackgroundStyle, getAlignClass } from '../../../utils/styleHelpers';
 
 export default function HeroSection({ section, config }) {
@@ -37,14 +37,14 @@ export default function HeroSection({ section, config }) {
     return `${sizes[styles?.subtitleFontSize || 'medio']} ${getAlignClass(styles?.subtitleAlign || 'center')}`;
   };
 
-  // 🔹 Tamanhos de Imagem (5 opções)
+  // 🔹 Tamanhos de Imagem (5 opções) - SEM CORTAR
   const getImageSizeClasses = () => {
     const sizes = {
-      pequeno: 'w-24 h-24 md:w-32 md:h-32',
-      medio: 'w-32 h-32 md:w-48 md:h-48',
-      grande: 'w-48 h-48 md:w-64 md:h-64',
-      extra_grande: 'w-64 h-64 md:w-80 md:h-80',
-      mega_grande: 'w-80 h-80 md:w-96 md:h-96'
+      pequeno: 'max-w-24 max-h-24 md:max-w-32 md:max-h-32',
+      medio: 'max-w-32 max-h-32 md:max-w-48 md:max-h-48',
+      grande: 'max-w-48 max-h-48 md:max-w-64 md:max-h-64',
+      extra_grande: 'max-w-64 max-h-64 md:max-w-80 md:max-h-80',
+      mega_grande: 'max-w-80 max-h-80 md:max-w-96 md:max-h-96'
     };
     return sizes[styles?.imageSize || 'grande'];
   };
@@ -58,6 +58,7 @@ export default function HeroSection({ section, config }) {
     const isWhatsapp = btn.link?.includes('wa.me') || btn.link?.includes('whatsapp');
     const defaultColor = isWhatsapp ? '#25D366' : '#f59e0b';
     const bgColor = btn.color || defaultColor;
+    
     return (
       <a
         key={index}
@@ -86,6 +87,7 @@ export default function HeroSection({ section, config }) {
       style={backgroundStyle}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70 pointer-events-none"></div>
+      
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 w-full">
         {imageLayout === 'center' && (
           <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6 md:space-y-8`}>
@@ -98,12 +100,14 @@ export default function HeroSection({ section, config }) {
                 />
               </div>
             )}
+
             <h2
               className={`${getTitleClasses()} mb-4 md:mb-6 drop-shadow-lg leading-tight md:leading-snug`}
               style={{ color: titleColor }}
             >
               {content.title || 'Bem-vindo'}
             </h2>
+
             {imagePosition === 'between' && content.image && (
               <div className="my-4 md:my-8 flex justify-center">
                 <img
@@ -113,12 +117,14 @@ export default function HeroSection({ section, config }) {
                 />
               </div>
             )}
+
             <p
               className={`${getSubtitleClasses()} opacity-95 max-w-3xl mx-auto mb-6 md:mb-8 drop-shadow-md leading-relaxed`}
               style={{ color: subtitleColor }}
             >
               {content.subtitle || 'Sua mensagem aqui'}
             </p>
+
             {imagePosition === 'below' && content.image && (
               <div className="mt-4 md:mt-8 flex justify-center">
                 <img
@@ -128,6 +134,7 @@ export default function HeroSection({ section, config }) {
                 />
               </div>
             )}
+
             {content.buttons?.length > 0 && (
               <div className={`${getButtonsAlignClass()} mt-6 md:mt-10 flex flex-wrap gap-4`}>
                 {content.buttons.map((btn, index) => renderButton(btn, index))}
@@ -135,6 +142,7 @@ export default function HeroSection({ section, config }) {
             )}
           </div>
         )}
+
         {imageLayout === 'sides' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
             {content.leftImage && (
@@ -146,34 +154,53 @@ export default function HeroSection({ section, config }) {
                 />
               </div>
             )}
+
             <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6`}>
               {imagePosition === 'above' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
                 </div>
               )}
+
               <h2 className={`${getTitleClasses()} mb-4 drop-shadow-lg`} style={{ color: titleColor }}>
                 {content.title || 'Bem-vindo'}
               </h2>
+
               {imagePosition === 'between' && content.image && (
                 <div className="mb-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
                 </div>
               )}
+
               <p className={`${getSubtitleClasses()} opacity-95 max-w-lg mx-auto mb-6 drop-shadow-md`} style={{ color: subtitleColor }}>
                 {content.subtitle || 'Sua mensagem aqui'}
               </p>
+
               {imagePosition === 'below' && content.image && (
                 <div className="mt-4 flex justify-center">
-                  <img src={content.image} alt="Principal" className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`} />
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
                 </div>
               )}
+
               {content.buttons?.length > 0 && (
                 <div className={`${getButtonsAlignClass()} mt-6 flex flex-wrap gap-4`}>
                   {content.buttons.map((btn, index) => renderButton(btn, index))}
                 </div>
               )}
             </div>
+
             {content.rightImage && (
               <div className="hidden lg:block">
                 <img
@@ -185,14 +212,17 @@ export default function HeroSection({ section, config }) {
             )}
           </div>
         )}
+
         {imageLayout === 'grid' && (
           <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-8`}>
             <h2 className={`${getTitleClasses()} mb-4 drop-shadow-lg`} style={{ color: titleColor }}>
               {content.title || 'Bem-vindo'}
             </h2>
+
             <p className={`${getSubtitleClasses()} opacity-95 max-w-2xl mx-auto mb-8 drop-shadow-md`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Sua mensagem aqui'}
             </p>
+
             {content.gridImages?.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {content.gridImages.map((img, index) => img && (
@@ -200,11 +230,12 @@ export default function HeroSection({ section, config }) {
                     key={index}
                     src={img}
                     alt={`Grid ${index}`}
-                    className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-lg shadow-lg hover:shadow-xl transition"
+                    className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg shadow-lg hover:shadow-xl transition"
                   />
                 ))}
               </div>
             )}
+
             {content.buttons?.length > 0 && (
               <div className={`${getButtonsAlignClass()} mt-8 flex flex-wrap gap-4`}>
                 {content.buttons.map((btn, index) => renderButton(btn, index))}

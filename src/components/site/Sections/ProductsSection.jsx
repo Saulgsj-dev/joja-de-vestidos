@@ -10,11 +10,11 @@ export default function ProductsSection({ section, config, produtos }) {
   // 🔹 Tamanhos de Fonte do Título (5 opções)
   const getTitleClasses = () => {
     const sizes = {
-      pequeno: 'text-xl md:text-2xl lg:text-3xl',
-      medio: 'text-2xl md:text-3xl lg:text-4xl',
-      grande: 'text-3xl md:text-4xl lg:text-5xl',
-      extra_grande: 'text-4xl md:text-5xl lg:text-6xl',
-      mega_grande: 'text-5xl md:text-6xl lg:text-7xl'
+      pequeno: 'text-xl md:text-2xl',
+      medio: 'text-2xl md:text-3xl',
+      grande: 'text-3xl md:text-4xl',
+      extra_grande: 'text-4xl md:text-5xl',
+      mega_grande: 'text-5xl md:text-6xl'
     };
     const weights = {
       normal: 'font-normal',
@@ -64,13 +64,21 @@ export default function ProductsSection({ section, config, produtos }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-14 lg:mb-16">
           {produtos.map(produto => (
             <div key={produto.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-              <div className="aspect-square bg-gray-100">
-                <img src={produto.imagem_url || ''} alt={produto.titulo} className="w-full h-full object-cover" />
+              <div className="p-6 flex items-center justify-center bg-gray-50">
+                <img
+                  src={produto.imagem_url || ''}
+                  alt={produto.titulo}
+                  className="w-full h-64 object-contain"
+                />
               </div>
               <div className="p-5 md:p-6">
-                <h4 className="font-bold text-lg md:text-xl mb-2" style={{ color: titleColor }}>{produto.titulo}</h4>
+                <h4 className="font-bold text-lg md:text-xl mb-2" style={{ color: titleColor }}>
+                  {produto.titulo}
+                </h4>
                 {produto.preco && (
-                  <p className="font-bold text-xl md:text-2xl mt-3" style={{ color: priceColor }}>{produto.preco}</p>
+                  <p className="font-bold text-xl md:text-2xl mt-3" style={{ color: priceColor }}>
+                    {produto.preco}
+                  </p>
                 )}
               </div>
             </div>

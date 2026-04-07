@@ -10,11 +10,11 @@ export default function ContentSection({ section, config }) {
   // 🔹 Tamanhos de Fonte do Título (5 opções)
   const getTitleClasses = () => {
     const sizes = {
-      pequeno: 'text-xl md:text-2xl lg:text-3xl',
-      medio: 'text-2xl md:text-3xl lg:text-4xl',
-      grande: 'text-3xl md:text-4xl lg:text-5xl',
-      extra_grande: 'text-4xl md:text-5xl lg:text-6xl',
-      mega_grande: 'text-5xl md:text-6xl lg:text-7xl'
+      pequeno: 'text-xl md:text-2xl',
+      medio: 'text-2xl md:text-3xl',
+      grande: 'text-3xl md:text-4xl',
+      extra_grande: 'text-4xl md:text-5xl',
+      mega_grande: 'text-5xl md:text-6xl'
     };
     const weights = {
       normal: 'font-normal',
@@ -34,17 +34,17 @@ export default function ContentSection({ section, config }) {
       extra_grande: 'text-xl md:text-2xl',
       mega_grande: 'text-2xl md:text-3xl'
     };
-    return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'center')} leading-relaxed md:leading-loose`;
+    return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'center')} leading-relaxed`;
   };
 
-  // 🔹 Tamanhos de Imagem (5 opções)
+  // 🔹 Tamanhos de Imagem (5 opções) - SEM CORTAR
   const getImageSizeClasses = () => {
     const sizes = {
-      pequeno: 'h-48 md:h-64',
-      medio: 'h-64 md:h-80',
-      grande: 'h-80 md:h-96',
-      extra_grande: 'h-96 md:h-[32rem]',
-      mega_grande: 'h-[32rem] md:h-[40rem]'
+      pequeno: 'max-h-48',
+      medio: 'max-h-64',
+      grande: 'max-h-80',
+      extra_grande: 'max-h-96',
+      mega_grande: 'max-h-[32rem]'
     };
     return sizes[styles?.imageSize || 'medio'];
   };
@@ -81,13 +81,13 @@ export default function ContentSection({ section, config }) {
   return (
     <section className="py-12 md:py-20 lg:py-24 px-4 md:px-6 lg:px-8" style={backgroundStyle}>
       <div className="max-w-6xl mx-auto">
-        {/* ✅ IMAGEM ACIMA DO TÍTULO */}
+        {/* ✅ IMAGEM ACIMA DO TÍTULO - SEM CORTAR */}
         {content.image && styles?.imagePosition === 'above' && (
           <div className="mb-6 md:mb-10 lg:mb-12">
             <img
               src={content.image}
               alt={content.title}
-              className={`w-full ${getImageSizeClasses()} object-cover rounded-xl shadow-2xl`}
+              className={`w-full ${getImageSizeClasses()} object-contain mx-auto`}
             />
           </div>
         )}
@@ -97,13 +97,13 @@ export default function ContentSection({ section, config }) {
           {content.title || 'Seção'}
         </h3>
 
-        {/* ✅ IMAGEM ENTRE TÍTULO E TEXTO */}
+        {/* ✅ IMAGEM ENTRE TÍTULO E TEXTO - SEM CORTAR */}
         {content.image && styles?.imagePosition === 'between' && (
           <div className="my-6 md:my-10 lg:my-12">
             <img
               src={content.image}
               alt={content.title}
-              className={`w-full ${getImageSizeClasses()} object-cover rounded-xl shadow-2xl`}
+              className={`w-full ${getImageSizeClasses()} object-contain mx-auto`}
             />
           </div>
         )}
@@ -117,13 +117,13 @@ export default function ContentSection({ section, config }) {
           </div>
         )}
 
-        {/* ✅ IMAGEM ABAIXO DO TEXTO */}
+        {/* ✅ IMAGEM ABAIXO DO TEXTO - SEM CORTAR */}
         {content.image && styles?.imagePosition === 'below' && (
           <div className="mt-6 md:mt-10 lg:mt-12 mb-8 md:mb-12">
             <img
               src={content.image}
               alt={content.title}
-              className={`w-full ${getImageSizeClasses()} object-cover rounded-xl shadow-2xl`}
+              className={`w-full ${getImageSizeClasses()} object-contain mx-auto`}
             />
           </div>
         )}
