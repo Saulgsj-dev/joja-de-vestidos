@@ -1,3 +1,4 @@
+// frontend/src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [error, setError] = useState(null);
+  const [displayName, setDisplayName] = useState('Minha loja de vestidos');
 
   const { sections, loading: sectionsLoading, loadSections, saveSection, togglePublish } = useSections(user?.id);
   const { config, loading: configLoading, saveConfig, loadConfig, setConfig } = useConfig(user?.id);
@@ -35,6 +37,13 @@ export default function AdminDashboard() {
       getStoreSlug();
     }
   }, [user, authLoading]);
+
+  // ✅ Sincroniza o nome com o display name
+  useEffect(() => {
+    if (config?.nome_loja) {
+      setDisplayName(config.nome_loja);
+    }
+  }, [config?.nome_loja]);
 
   const getStoreSlug = async () => {
     try {
@@ -53,6 +62,10 @@ export default function AdminDashboard() {
     try {
       console.log('💾 Salvando config:', config);
       await saveConfig(config);
+      // ✅ Atualiza o display name após salvar
+      if (config.nome_loja) {
+        setDisplayName(config.nome_loja);
+      }
       alert('✅ Configurações salvas com sucesso!');
     } catch (e) {
       console.error('❌ Erro ao salvar config:', e);
@@ -104,22 +117,22 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ backgroundColor: config.cor_fundo, color: config.cor_texto }}>
-      {/* 🔹 HEADER RESPONSIVO */}
+      {/* 🔹 HEADER RESPONSIVO - ✅ Nome dinâmico */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 sm:p-4 sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-3">
           <h1 className="text-lg sm:text-2xl font-bold truncate flex-1">
-            {config.nome_loja || 'Minha loja de vestidos'}
+            {displayName}
           </h1>
           <div className="flex gap-2">
-            <button 
-              onClick={() => navigate(publicSiteUrl)} 
+            <button
+              onClick={() => navigate(publicSiteUrl)}
               className="px-3 sm:px-4 py-2 bg-purple-700 hover:bg-purple-800 rounded-lg text-xs sm:text-sm font-medium transition shadow-md"
             >
               <span className="hidden sm:inline">Ver Site</span>
               <span className="sm:hidden">👁️</span>
             </button>
-            <button 
-              onClick={signOut} 
+            <button
+              onClick={signOut}
               className="px-3 sm:px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded-lg text-xs sm:text-sm font-medium transition shadow-md"
             >
               <span className="hidden sm:inline">Sair</span>
@@ -155,7 +168,6 @@ export default function AdminDashboard() {
       {/* 🔹 LAYOUT PRINCIPAL - 3 COLUNAS (DESKTOP) / 1 COLUNA (MOBILE) */}
       <div className="max-w-[1800px] mx-auto p-3 sm:p-4 lg:p-6">
         <div className="flex flex-col lg:flex-row gap-4">
-          
           {/* 📱 SIDEBAR - Mobile: Toggle / Desktop: Sempre visível */}
           <div className={`lg:block ${showSidebar ? 'block' : 'hidden'} w-full lg:w-80 flex-shrink-0`}>
             <div className="sticky top-[120px] lg:top-[100px]">
@@ -176,9 +188,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/*  EDITOR - Ocupa espaço disponível */}
+          {/* 📝 EDITOR - Ocupa espaço disponível */}
           <div className="bg-white rounded-2xl shadow-lg h-[80vh] flex flex-col overflow-hidden">
-            
             {/* Conteúdo com scroll */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {activeTab === 'config' ? (
@@ -208,28 +219,26 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* 👁️ PREVIEW - Desktop: Lado direito / Mobile: Abaixo */}
           <div className="flex-1 min-w-0 order-3 lg:order-3">
             <div className="bg-cyan-100 rounded-2xl p-3 sm:p-6 shadow-lg">
               <div className="bg-white rounded-xl p-2 sm:p-3">
-                <SitePreview 
-                  config={config} 
-                  sections={sections} 
+                <SitePreview
+                  config={config}
+                  sections={sections}
                   selectedSection={selectedSection}
                 />
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
       {/* 🔹 OVERLAY PARA MOBILE (fecha sidebar ao clicar fora) */}
       {showSidebar && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={() => setShowSidebar(false)}
         />
