@@ -12,9 +12,11 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -34,12 +36,17 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
   const leftType = headerConfig.leftType || 'text';
   const leftText = headerConfig.leftText || headerConfig.title || '';
   const leftLogo = headerConfig.leftLogo || headerConfig.logo || '';
+  const centerText = headerConfig.centerText || '';
+  const rightType = headerConfig.rightType || 'none';
+  const rightButton = headerConfig.rightButton || { text: '', link: '', color: config?.cor_botao || '#000000' };
+  
   const bgType = headerConfig.bgType || 'solid';
   const bgColor = headerConfig.bgColor || config?.cor_fundo || '#ffffff';
   const gradientStart = headerConfig.gradientStart || '#667eea';
   const gradientEnd = headerConfig.gradientEnd || '#764ba2';
   const textColor = headerConfig.textColor || config?.cor_texto || '#000000';
-  const buttonColor = headerConfig.buttonColor || config?.cor_botao || '#000000';
+  const centerTextColor = headerConfig.centerTextColor || textColor;
+  const rightTextColor = headerConfig.rightTextColor || textColor;
 
   const backgroundStyle = {};
   if (bgType === 'gradient') {
@@ -56,6 +63,16 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
     }
   };
 
+  const handleRightClick = () => {
+    if (rightType === 'button' && rightButton.link) {
+      if (rightButton.link.startsWith('http')) {
+        window.open(rightButton.link, '_blank');
+      } else {
+        navigate(rightButton.link);
+      }
+    }
+  };
+
   return (
     <header
       className={`p-3 sm:p-4 flex items-center shadow-md transition-all duration-300 ${
@@ -64,7 +81,7 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
       style={{ ...backgroundStyle, color: textColor }}
     >
       {/* Lado Esquerdo */}
-      <div className="flex items-center min-w-0">
+      <div className="flex items-center min-w-0 flex-1">
         {leftType === 'logo' && leftLogo ? (
           <img
             src={leftLogo}
@@ -87,9 +104,45 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
         )}
       </div>
 
+      {/* Centro */}
+      {centerText && (
+        <div className="hidden md:flex items-center justify-center flex-1">
+          <span
+            className={`font-medium ${
+              isPreview ? 'text-xs' : 'text-sm sm:text-base'
+            }`}
+            style={{ color: centerTextColor }}
+          >
+            {centerText}
+          </span>
+        </div>
+      )}
+
       {/* Lado Direito */}
-      <div className="flex items-center gap-2 sm:gap-3 ml-auto">
-        {isPreview ? (
+      <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-1 justify-end">
+        {rightType === 'text' && rightButton.text ? (
+          <span
+            className={`font-medium whitespace-nowrap ${
+              isPreview ? 'text-xs' : 'text-sm sm:text-base'
+            }`}
+            style={{ color: rightTextColor }}
+          >
+            {rightButton.text}
+          </span>
+        ) : rightType === 'button' && rightButton.text ? (
+          <button
+            onClick={handleRightClick}
+            className={`rounded font-medium transition hover:opacity-90 whitespace-nowrap ${
+              isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
+            }`}
+            style={{ 
+              backgroundColor: rightButton.color || config?.cor_botao || '#000000',
+              color: '#ffffff'
+            }}
+          >
+            {rightButton.text}
+          </button>
+        ) : isPreview ? (
           // No preview, mostra botões simulados
           <>
             <span className={`hidden lg:inline truncate ${
@@ -101,7 +154,7 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
               className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${
                 isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
               }`}
-              style={{ backgroundColor: buttonColor }}
+              style={{ backgroundColor: config?.cor_botao || '#000000' }}
             >
               Painel
             </button>
@@ -127,7 +180,7 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
               className={`rounded text-white font-medium transition hover:opacity-90 whitespace-nowrap ${
                 isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
               }`}
-              style={{ backgroundColor: buttonColor }}
+              style={{ backgroundColor: config?.cor_botao || '#000000' }}
             >
               Painel
             </button>
@@ -148,7 +201,7 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
             className={`border rounded whitespace-nowrap transition hover:opacity-90 ${
               isPreview ? 'px-2 py-1 text-xs' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'
             }`}
-            style={{ borderColor: buttonColor, color: buttonColor }}
+            style={{ borderColor: config?.cor_botao || '#000000', color: config?.cor_botao || '#000000' }}
           >
             Área do Cliente
           </button>
