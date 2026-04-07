@@ -1,5 +1,6 @@
 // frontend/src/components/admin/SectionEditor/ProductsEditor.jsx
 import SectionAccordion from '../SectionAccordion';
+import ImageUploader from '../ImageUploader';
 
 export default function ProductsEditor({ section, config, activeAccordion, onUpdateSection }) {
   const handleContentUpdate = (field, value) => {
@@ -196,6 +197,72 @@ export default function ProductsEditor({ section, config, activeAccordion, onUpd
             ))}
           </div>
         </div>
+      </SectionAccordion>
+
+      {/* 🖼️ LAYOUT DE IMAGENS */}
+      <SectionAccordion id="image-layout" title="🖼️ Layout de Imagens">
+        <div className="flex gap-2 mb-4">
+          {['center', 'sides', 'grid'].map(layout => (
+            <button
+              key={layout}
+              onClick={() => handleStyleUpdate('imageLayout', layout)}
+              className={`flex-1 py-2 rounded text-sm ${
+                section.styles?.imageLayout === layout || (!section.styles?.imageLayout && layout === 'center')
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200'
+              }`}
+            >
+              {layout === 'center' ? 'Centralizado' : layout === 'sides' ? 'Laterais' : 'Grid'}
+            </button>
+          ))}
+        </div>
+
+        {section.styles?.imageLayout === 'sides' && (
+          <>
+            <ImageUploader
+              label="Imagem Esquerda"
+              value={section.content?.leftImage || ''}
+              onChange={(url) => handleContentUpdate('leftImage', url)}
+              onRemove={() => handleContentUpdate('leftImage', '')}
+            />
+            <ImageUploader
+              label="Imagem Direita"
+              value={section.content?.rightImage || ''}
+              onChange={(url) => handleContentUpdate('rightImage', url)}
+              onRemove={() => handleContentUpdate('rightImage', '')}
+            />
+          </>
+        )}
+
+        {section.styles?.imageLayout === 'grid' && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Imagens do Grid</label>
+            <div className="space-y-2">
+              {(section.content?.gridImages || []).map((img, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <ImageUploader
+                    value={img}
+                    onChange={(url) => {
+                      const updated = [...(section.content.gridImages || [])];
+                      updated[index] = url;
+                      handleContentUpdate('gridImages', updated);
+                    }}
+                    onRemove={() => {
+                      const updated = (section.content.gridImages || []).filter((_, i) => i !== index);
+                      handleContentUpdate('gridImages', updated);
+                    }}
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => handleContentUpdate('gridImages', [...(section.content.gridImages || []), ''])}
+                className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-purple-500"
+              >
+                + Adicionar Imagem
+              </button>
+            </div>
+          </div>
+        )}
       </SectionAccordion>
 
       <SectionAccordion id="products-background" title="🎨 Fundo da Seção">

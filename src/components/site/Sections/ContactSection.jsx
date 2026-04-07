@@ -6,15 +6,16 @@ export default function ContactSection({ section, config }) {
   const backgroundStyle = getBackgroundStyle(styles);
   const titleColor = styles?.titleColor || config?.cor_texto || '#000000';
   const textColor = styles?.textColor || '#374151';
+  const imageLayout = styles?.imageLayout || 'center';
 
   // 🔹 Tamanhos de Fonte do Título (5 opções)
   const getTitleClasses = () => {
     const sizes = {
-      pequeno: 'text-xl md:text-2xl lg:text-3xl',
-      medio: 'text-2xl md:text-3xl lg:text-4xl',
-      grande: 'text-3xl md:text-4xl lg:text-5xl',
-      extra_grande: 'text-4xl md:text-5xl lg:text-6xl',
-      mega_grande: 'text-5xl md:text-6xl lg:text-7xl'
+      pequeno: 'text-xl md:text-2xl',
+      medio: 'text-2xl md:text-3xl',
+      grande: 'text-3xl md:text-4xl',
+      extra_grande: 'text-4xl md:text-5xl',
+      mega_grande: 'text-5xl md:text-6xl'
     };
     const weights = {
       normal: 'font-normal',
@@ -34,7 +35,7 @@ export default function ContactSection({ section, config }) {
       extra_grande: 'text-xl md:text-2xl',
       mega_grande: 'text-2xl md:text-3xl'
     };
-    return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'center')} leading-relaxed md:leading-loose`;
+    return `${sizes[styles?.textFontSize || 'medio']} ${getAlignClass(styles?.textAlign || 'center')} leading-relaxed`;
   };
 
   // 🔘 Função para renderizar botão
@@ -68,34 +69,144 @@ export default function ContactSection({ section, config }) {
 
   return (
     <section className="py-12 md:py-20 lg:py-24 px-4 md:px-6 lg:px-8" style={backgroundStyle}>
-      <div className="max-w-4xl mx-auto">
-        <h3 className={`${getTitleClasses()} mb-6 md:mb-8 lg:mb-10`} style={{ color: titleColor }}>
-          {content.title || 'Contato'}
-        </h3>
-        
-        {content.text && (
-          <div className="mb-8 md:mb-12 lg:mb-14">
-            <p className={`${getTextClasses()}`} style={{ color: textColor }}>
-              {content.text}
-            </p>
+      <div className="max-w-6xl mx-auto">
+        {/* 🎯 LAYOUT CENTRALIZADO */}
+        {imageLayout === 'center' && (
+          <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6 md:space-y-8`}>
+            <h3 className={`${getTitleClasses()} mb-6 md:mb-8 lg:mb-10`} style={{ color: titleColor }}>
+              {content.title || 'Contato'}
+            </h3>
+            
+            {content.text && (
+              <div className="mb-8 md:mb-12 lg:mb-14">
+                <p className={`${getTextClasses()} max-w-4xl mx-auto`} style={{ color: textColor }}>
+                  {content.text}
+                </p>
+              </div>
+            )}
+
+            {content.buttons?.length > 0 ? (
+              <div className={`${getButtonsAlignClass()} flex flex-wrap gap-3 md:gap-4 lg:gap-6 mt-8 md:mt-12`}>
+                {content.buttons.map((btn, index) => renderButton(btn, index))}
+              </div>
+            ) : (
+              config?.whatsapp_numero && (
+                <div className="mt-8 md:mt-12">
+                  <a
+                    href={`https://wa.me/${config.whatsapp_numero}`}
+                    className="inline-block px-8 md:px-10 py-4 md:py-5 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition shadow-lg text-base md:text-lg"
+                  >
+                    📱 Falar no WhatsApp
+                  </a>
+                </div>
+              )
+            )}
           </div>
         )}
 
-        {content.buttons?.length > 0 ? (
-          <div className={`${getButtonsAlignClass()} flex flex-wrap gap-3 md:gap-4 lg:gap-6`}>
-            {content.buttons.map((btn, index) => renderButton(btn, index))}
-          </div>
-        ) : (
-          config?.whatsapp_numero && (
-            <div className={getAlignClass(styles?.textAlign || 'center')}>
-              <a
-                href={`https://wa.me/${config.whatsapp_numero}`}
-                className="inline-block px-8 md:px-10 py-4 md:py-5 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition shadow-lg text-base md:text-lg"
-              >
-                📱 Falar no WhatsApp
-              </a>
+        {/* 🎯 LAYOUT LATERAIS */}
+        {imageLayout === 'sides' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
+            {/* Imagem Esquerda */}
+            {content.leftImage && (
+              <div className="hidden lg:block">
+                <img
+                  src={content.leftImage}
+                  alt="Esquerda"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
+              </div>
+            )}
+
+            {/* Conteúdo Central */}
+            <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6`}>
+              <h3 className={`${getTitleClasses()} mb-4`} style={{ color: titleColor }}>
+                {content.title || 'Contato'}
+              </h3>
+              
+              {content.text && (
+                <div className="mb-6">
+                  <p className={`${getTextClasses()}`} style={{ color: textColor }}>
+                    {content.text}
+                  </p>
+                </div>
+              )}
+
+              {content.buttons?.length > 0 ? (
+                <div className={`${getButtonsAlignClass()} flex flex-wrap gap-3 md:gap-4 mt-6`}>
+                  {content.buttons.map((btn, index) => renderButton(btn, index))}
+                </div>
+              ) : (
+                config?.whatsapp_numero && (
+                  <a
+                    href={`https://wa.me/${config.whatsapp_numero}`}
+                    className="inline-block px-6 md:px-8 py-3 md:py-4 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition shadow-md"
+                  >
+                    📱 Falar no WhatsApp
+                  </a>
+                )
+              )}
             </div>
-          )
+
+            {/* Imagem Direita */}
+            {content.rightImage && (
+              <div className="hidden lg:block">
+                <img
+                  src={content.rightImage}
+                  alt="Direita"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 🎯 LAYOUT GRID */}
+        {imageLayout === 'grid' && (
+          <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-8`}>
+            <h3 className={`${getTitleClasses()} mb-6 md:mb-8 lg:mb-10`} style={{ color: titleColor }}>
+              {content.title || 'Contato'}
+            </h3>
+
+            {/* Grid de Imagens */}
+            {content.gridImages?.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
+                {content.gridImages.map((img, index) => img && (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`Grid ${index}`}
+                    className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg shadow-lg hover:shadow-xl transition"
+                  />
+                ))}
+              </div>
+            )}
+            
+            {content.text && (
+              <div className="mb-8 md:mb-12">
+                <p className={`${getTextClasses()} max-w-4xl mx-auto`} style={{ color: textColor }}>
+                  {content.text}
+                </p>
+              </div>
+            )}
+
+            {content.buttons?.length > 0 ? (
+              <div className={`${getButtonsAlignClass()} flex flex-wrap gap-3 md:gap-4 lg:gap-6 mt-8 md:mt-12`}>
+                {content.buttons.map((btn, index) => renderButton(btn, index))}
+              </div>
+            ) : (
+              config?.whatsapp_numero && (
+                <div className="mt-8 md:mt-12">
+                  <a
+                    href={`https://wa.me/${config.whatsapp_numero}`}
+                    className="inline-block px-8 md:px-10 py-4 md:py-5 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition shadow-lg text-base md:text-lg"
+                  >
+                    📱 Falar no WhatsApp
+                  </a>
+                </div>
+              )
+            )}
+          </div>
         )}
       </div>
     </section>
