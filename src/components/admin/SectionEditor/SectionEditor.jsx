@@ -11,7 +11,7 @@ const editors = {
   products: ProductsEditor,
   content: ContentEditor,
   contact: ContactEditor,
-  footer: FooterEditor
+  footer: FooterEditor  // ✅ Footer Editor registrado
 };
 
 export default function SectionEditor({
@@ -28,11 +28,11 @@ export default function SectionEditor({
   if (!EditorComponent) {
     return <div className="text-gray-500">Editor não encontrado para: {section.section_type}</div>;
   }
-  
+
   // Seções que não podem ser despublicadas
   const nonPublishableSections = ['header', 'footer'];
   const canPublish = !nonPublishableSections.includes(section.section_type);
-  
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">

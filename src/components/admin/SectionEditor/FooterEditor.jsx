@@ -50,7 +50,7 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
             Imagem
           </button>
         </div>
-
+        
         {(!section.styles?.backgroundType || section.styles?.backgroundType === 'color') && (
           <div>
             <label className="block text-xs font-medium mb-1">Cor de Fundo</label>
@@ -62,7 +62,7 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
             />
           </div>
         )}
-
+        
         {section.styles?.backgroundType === 'image' && (
           <>
             <ImageUploader
@@ -86,7 +86,7 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
             </div>
           </>
         )}
-
+        
         <div className="mt-3">
           <label className="block text-xs font-medium mb-1">Cor do Texto Principal</label>
           <input
@@ -111,7 +111,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               placeholder="Ex: © 2024 Minha Loja"
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-1">Descrição</label>
             <textarea
@@ -134,7 +133,7 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
             onChange={(url) => handleContentUpdate('icon', url)}
             onRemove={() => handleContentUpdate('icon', '')}
           />
-
+          
           {section.content?.icon && (
             <>
               <div>
@@ -154,7 +153,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs font-medium mb-2">Tamanho do Ícone</label>
                 <select
@@ -186,7 +184,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               placeholder="Ex: Fale Conosco"
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-1">Link do Botão</label>
             <input
@@ -197,7 +194,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               placeholder="https://wa.me/5511999999999"
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-1">Cor do Botão</label>
             <input
@@ -207,7 +203,7 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               className="w-full h-10 rounded cursor-pointer"
             />
           </div>
-
+          
           {section.content?.button?.text && (
             <>
               <div>
@@ -227,7 +223,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs font-medium mb-2">Tamanho do Botão</label>
                 <select
@@ -261,7 +256,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               <option value="extra_grande">Extra Grande</option>
             </select>
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-2">Peso da Fonte</label>
             <select
@@ -275,7 +269,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               <option value="extrabold">Extra Negrito</option>
             </select>
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-2">Alinhamento</label>
             <div className="flex gap-2">
@@ -311,7 +304,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               <option value="grande">Grande</option>
             </select>
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-2">Cor do Texto</label>
             <input
@@ -321,7 +313,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               className="w-full h-10 rounded cursor-pointer"
             />
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-2">Alinhamento</label>
             <div className="flex gap-2">
@@ -358,7 +349,6 @@ export default function FooterEditor({ section, config, activeAccordion, onUpdat
               <option value="py-16">Extra Grande</option>
             </select>
           </div>
-
           <div>
             <label className="block text-xs font-medium mb-2">Padding Inferior</label>
             <select

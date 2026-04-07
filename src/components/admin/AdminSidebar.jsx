@@ -13,7 +13,7 @@ export default function AdminSidebar({
 }) {
   // Seções que não podem ser despublicadas
   const nonPublishableSections = ['header', 'footer'];
-
+  
   // Filtra e ordena seções para exibição
   const displaySections = sections.map((section, index) => ({
     ...section,
@@ -67,7 +67,6 @@ export default function AdminSidebar({
                     )}
                   </div>
                 </button>
-                
                 {canPublish && !isFixed && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onTogglePublish(section, section.is_active === 0); }}
@@ -83,13 +82,7 @@ export default function AdminSidebar({
               </div>
             );
           })}
-          
-          <button 
-            className="w-full p-3 text-blue-400 text-2xl font-bold hover:bg-blue-50 rounded-lg mt-2"
-            onClick={() => alert('Em breve: adicionar novas seções!')}
-          >
-            + Adicionar Seção
-          </button>
+          {/* ✅ BOTÃO "ADICIONAR SEÇÃO" REMOVIDO CONFORME SOLICITADO */}
         </div>
       )}
 

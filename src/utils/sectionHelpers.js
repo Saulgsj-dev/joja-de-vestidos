@@ -8,16 +8,12 @@ export const SECTION_TYPES = {
 };
 
 export const getSectionLabel = (type, index) => {
-  // Conta apenas seções de conteúdo para a numeração
-  const contentSections = ['content'];
-  
   if (type === 'header') return '🔝 Header';
   if (type === 'hero') return '🎯 Hero Section';
   if (type === 'products') return '🛍️ Produtos';
   if (type === 'contact') return '📞 Contato';
-  if (type === 'footer') return '🔻 Footer (Rodapé)';
+  if (type === 'footer') return '🔻 Footer (Rodapé)';  // ✅ Footer com label próprio
   if (type === 'content') return `📄 Conteúdo ${index + 1}`;
-  
   return type;
 };
 
