@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Headers de segurança e performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Redirect para HTTPS (o Netlify faz isto automaticamente, mas é bom documentar)
+[[redirects]]
+  from = "http://cmadvogados.netlify.app/*"
+  to = "https://cmadvogados.netlify.app/:splat"
+  status = 301
+  force = true
+
+# SPA Fallback (essencial para React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
