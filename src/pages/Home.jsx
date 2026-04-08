@@ -23,8 +23,10 @@ export default function Home() {
   // ✅ Efeito para atualizar meta tags dinamicamente (SEO)
   useEffect(() => {
     if (config?.nome_loja) {
+      // Atualiza título da página
       document.title = `${config.nome_loja} | Site Oficial`;
       
+      // Atualiza ou cria meta description
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
         metaDesc = document.createElement('meta');
@@ -32,10 +34,12 @@ export default function Home() {
         document.head.appendChild(metaDesc);
       }
       
+      // Busca subtítulo do hero para descrição
       const heroSection = sections.find(s => s.section_type === 'hero');
       const description = heroSection?.content?.subtitle || 
         `Conheça ${config.nome_loja} - Qualidade e excelência em nossos serviços.`;
       
+      // SEO: max 160 caracteres para meta description
       metaDesc.content = description.slice(0, 160);
     }
   }, [config, sections]);
@@ -126,6 +130,7 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
       <Header config={config} sections={sections} storeSlug={storeSlug} />
       
+      {/* ✅ Main landmark para acessibilidade e SEO */}
       <main id="main-content" className="focus:outline-none">
         {sections.length > 0 ? (
           sections
