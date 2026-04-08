@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiRequest } from '../lib/apiClient';
-import HeaderPublic from '../components/site/HeaderPublic'; // ← Trocado para HeaderPublic
+import Header from '../components/site/Header';
 import Footer from '../components/site/Footer';
 import HeroSection from '../components/site/Sections/HeroSection';
 import ProductsSection from '../components/site/Sections/ProductsSection';
@@ -103,7 +103,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
-      <HeaderPublic config={config} sections={sections} storeSlug={storeSlug} /> {/* ← Usando HeaderPublic */}
+      <Header config={config} sections={sections} storeSlug={storeSlug} />
       
       {sections.length > 0 ? (
         sections
