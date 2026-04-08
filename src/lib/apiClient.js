@@ -1,4 +1,3 @@
-// frontend/src/lib/apiClient.js
 // ✅ Supabase import lazy - só carrega quando realmente necessário
 let supabaseInstance = null;
 

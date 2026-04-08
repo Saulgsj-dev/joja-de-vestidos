@@ -17,7 +17,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const { data: { session }, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: { session }, error } = await supabase.signInWithPassword({ email, password });
       if (error) throw error;
       if (session) {
         navigate(from, { replace: true });
