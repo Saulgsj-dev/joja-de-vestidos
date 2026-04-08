@@ -58,6 +58,7 @@ export default function HeroSection({ section, config }) {
     const isWhatsapp = btn.link?.includes('wa.me') || btn.link?.includes('whatsapp');
     const defaultColor = isWhatsapp ? '#25D366' : '#f59e0b';
     const bgColor = btn.color || defaultColor;
+    
     return (
       <a
         key={index}
@@ -80,58 +81,60 @@ export default function HeroSection({ section, config }) {
     return 'justify-center';
   };
 
-  // ✅ Helper para imagem com dimensões e lazy loading
-  const renderOptimizedImage = (src, alt, className, isLCP = false) => {
-    if (!src) return null;
-    return (
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        // ✅ Dimensões para evitar CLS (ajustar conforme imagem real)
-        width={styles?.imageSize === 'mega_grande' ? 384 : styles?.imageSize === 'extra_grande' ? 320 : styles?.imageSize === 'grande' ? 256 : styles?.imageSize === 'medio' ? 192 : 128}
-        height={styles?.imageSize === 'mega_grande' ? 384 : styles?.imageSize === 'extra_grande' ? 320 : styles?.imageSize === 'grande' ? 256 : styles?.imageSize === 'medio' ? 192 : 128}
-        // ✅ LCP image carrega imediatamente, outras com lazy
-        loading={isLCP ? 'eager' : 'lazy'}
-        // ✅ Prioridade para LCP
-        fetchPriority={isLCP ? 'high' : 'auto'}
-        // ✅ Decoding otimizado
-        decoding={isLCP ? 'sync' : 'async'}
-      />
-    );
-  };
-
   return (
     <section
       className="relative min-h-[80vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden"
       style={backgroundStyle}
-      // ✅ Data attribute para preload script
-      data-hero-bg={styles?.backgroundType === 'image' ? 'true' : undefined}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70 pointer-events-none"></div>
+      
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 w-full">
         {imageLayout === 'center' && (
           <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6 md:space-y-8`}>
-            {imagePosition === 'above' && content.image && renderOptimizedImage(content.image, content.title || 'Logo', `${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`, true)}
-            
+            {imagePosition === 'above' && content.image && (
+              <div className="mb-4 md:mb-8 flex justify-center">
+                <img
+                  src={content.image}
+                  alt="Logo"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
+                />
+              </div>
+            )}
+
             <h2
               className={`${getTitleClasses()} mb-4 md:mb-6 drop-shadow-lg leading-tight md:leading-snug`}
               style={{ color: titleColor }}
             >
               {content.title || 'Bem-vindo'}
             </h2>
-            
-            {imagePosition === 'between' && content.image && renderOptimizedImage(content.image, content.title || 'Principal', `${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`, true)}
-            
+
+            {imagePosition === 'between' && content.image && (
+              <div className="my-4 md:my-8 flex justify-center">
+                <img
+                  src={content.image}
+                  alt="Principal"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
+                />
+              </div>
+            )}
+
             <p
               className={`${getSubtitleClasses()} opacity-95 max-w-3xl mx-auto mb-6 md:mb-8 drop-shadow-md leading-relaxed`}
               style={{ color: subtitleColor }}
             >
               {content.subtitle || 'Sua mensagem aqui'}
             </p>
-            
-            {imagePosition === 'below' && content.image && renderOptimizedImage(content.image, content.title || 'Principal', `${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`, false)}
-            
+
+            {imagePosition === 'below' && content.image && (
+              <div className="mt-4 md:mt-8 flex justify-center">
+                <img
+                  src={content.image}
+                  alt="Principal"
+                  className={`${getImageSizeClasses()} object-contain drop-shadow-2xl transition-all duration-300`}
+                />
+              </div>
+            )}
+
             {content.buttons?.length > 0 && (
               <div className={`${getButtonsAlignClass()} mt-6 md:mt-10 flex flex-wrap gap-4`}>
                 {content.buttons.map((btn, index) => renderButton(btn, index))}
@@ -144,33 +147,67 @@ export default function HeroSection({ section, config }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
             {content.leftImage && (
               <div className="hidden lg:block">
-                {renderOptimizedImage(content.leftImage, 'Esquerda', 'w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl', false)}
+                <img
+                  src={content.leftImage}
+                  alt="Esquerda"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
               </div>
             )}
+
             <div className={`${getAlignClass(styles?.titleAlign || 'center')} space-y-6`}>
-              {imagePosition === 'above' && content.image && renderOptimizedImage(content.image, content.title || 'Principal', `${getImageSizeClasses()} object-contain drop-shadow-2xl`, true)}
-              
+              {imagePosition === 'above' && content.image && (
+                <div className="mb-4 flex justify-center">
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
+                </div>
+              )}
+
               <h2 className={`${getTitleClasses()} mb-4 drop-shadow-lg`} style={{ color: titleColor }}>
                 {content.title || 'Bem-vindo'}
               </h2>
-              
-              {imagePosition === 'between' && content.image && renderOptimizedImage(content.image, content.title || 'Principal', `${getImageSizeClasses()} object-contain drop-shadow-2xl`, true)}
-              
+
+              {imagePosition === 'between' && content.image && (
+                <div className="mb-4 flex justify-center">
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
+                </div>
+              )}
+
               <p className={`${getSubtitleClasses()} opacity-95 max-w-lg mx-auto mb-6 drop-shadow-md`} style={{ color: subtitleColor }}>
                 {content.subtitle || 'Sua mensagem aqui'}
               </p>
-              
-              {imagePosition === 'below' && content.image && renderOptimizedImage(content.image, content.title || 'Principal', `${getImageSizeClasses()} object-contain drop-shadow-2xl`, false)}
-              
+
+              {imagePosition === 'below' && content.image && (
+                <div className="mt-4 flex justify-center">
+                  <img
+                    src={content.image}
+                    alt="Principal"
+                    className={`${getImageSizeClasses()} object-contain drop-shadow-2xl`}
+                  />
+                </div>
+              )}
+
               {content.buttons?.length > 0 && (
                 <div className={`${getButtonsAlignClass()} mt-6 flex flex-wrap gap-4`}>
                   {content.buttons.map((btn, index) => renderButton(btn, index))}
                 </div>
               )}
             </div>
+
             {content.rightImage && (
               <div className="hidden lg:block">
-                {renderOptimizedImage(content.rightImage, 'Direita', 'w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl', false)}
+                <img
+                  src={content.rightImage}
+                  alt="Direita"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
               </div>
             )}
           </div>
@@ -181,9 +218,11 @@ export default function HeroSection({ section, config }) {
             <h2 className={`${getTitleClasses()} mb-4 drop-shadow-lg`} style={{ color: titleColor }}>
               {content.title || 'Bem-vindo'}
             </h2>
+
             <p className={`${getSubtitleClasses()} opacity-95 max-w-2xl mx-auto mb-8 drop-shadow-md`} style={{ color: subtitleColor }}>
               {content.subtitle || 'Sua mensagem aqui'}
             </p>
+
             {content.gridImages?.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {content.gridImages.map((img, index) => img && (
@@ -192,15 +231,11 @@ export default function HeroSection({ section, config }) {
                     src={img}
                     alt={`Grid ${index}`}
                     className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg shadow-lg hover:shadow-xl transition"
-                    // ✅ Lazy load + dimensões para grid images
-                    width={320}
-                    height={180}
-                    loading="lazy"
-                    decoding="async"
                   />
                 ))}
               </div>
             )}
+
             {content.buttons?.length > 0 && (
               <div className={`${getButtonsAlignClass()} mt-8 flex flex-wrap gap-4`}>
                 {content.buttons.map((btn, index) => renderButton(btn, index))}
