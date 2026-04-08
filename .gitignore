@@ -1,24 +1,128 @@
-# Logs
-logs
-*.log
+# 🔐 ENVIRONMENT VARIABLES (NUNCA commitar chaves!)
+.env
+.env.local
+.env.*.local
+*.env
+
+# ⚠️ EXCEÇÃO: .env.example PODE ser commitado para documentação
+!.env.example
+
+# 📦 DEPENDÊNCIAS
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.pnpm-store/
 
-node_modules
-dist
-dist-ssr
-*.local
+# 🏗️ BUILD OUTPUTS (Vite)
+dist/
+dist-ssr/
+build/
+.out/
+.ssr/
 
-# Editor directories and files
+# 🗂️ CACHE & TEMPORÁRIOS
+.cache/
+.tmp/
+.temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 🧪 TESTS & COVERAGE
+coverage/
+.nyc_output/
+*.lcov
+
+# 🖥️ IDE & EDITORES
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# 🐳 DOCKER & CONTAINERS
+.docker/
+docker-compose.yml
+docker-compose.override.yml
+*.dockerignore
+
+# ☁️ DEPLOY & CI/CD
+.netlify/
+.vercel/
+.vercel/output/
+.firebase/
+*.log
+
+# 🔐 SUPABASE LOCAL (se usar CLI local)
+.supabase/
+!supabase/config.toml
+
+# 📱 MOBILE & NATIVE (caso use React Native no futuro)
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM/
+
+# 🗄️ DATABASE LOCAL (SQLite, etc)
+*.db
+*.sqlite
+*.sqlite3
+
+# 🎨 IMAGENS GERADAS/OTIMIZADAS (se tiver upload local)
+uploads/
+public/uploads/
+*.webp
+!public/favicon.svg
+
+# 📚 DOCUMENTAÇÃO LOCAL
+*.pdf
+*.docx
+*.xlsx
+
+# 🔧 CONFIGURAÇÕES ESPECÍFICAS DO PROJETO
+# (Ajuste conforme sua estrutura)
+frontend/dist/
+backend/dist/
+api/dist/
+
+# 🚫 ARQUIVOS DE DEBUG
+debug.log
+error.log
+*.pid
+*.seed
+*.pid.lock
+
+# 🔐 CHAVES E CERTIFICADOS
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.asc
+*.secret
+
+# 📦 ARQUIVOS DE COMPRESSÃO
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 🧩 EXTENSÕES E PLUGINS
+*.vsix
+*.vsixmanifest
+
+# 🗑️ LIXO DO SISTEMA
+ehthumbs.db
+Icon?
+._*
+.Spotlight-V100
+.Trashes
