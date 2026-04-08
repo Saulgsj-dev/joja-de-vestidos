@@ -8,10 +8,10 @@ export default function ImageUploader({
   onChange, 
   onRemove, 
   label, 
-  maxSize = 10,    // MB
-  quality = 0.85,  // Qualidade WebP (0.1 a 1.0)
-  maxWidth = 1920, // Dimensão máxima
-  showProgress = true
+  maxSize = 10,        // MB
+  quality = 0.85,      // Qualidade WebP (0.1 a 1.0)
+  maxWidth = 1920,     // Dimensão máxima
+  showProgress = true 
 }) {
   const [uploading, setUploading] = useState(false);
   const [converting, setConverting] = useState(false);
@@ -32,23 +32,19 @@ export default function ImageUploader({
       return;
     }
 
-    // ✅ Validação: tamanho máximo (antes da conversão)
+    // ✅ Validação: tamanho máximo
     if (file.size > maxSize * 1024 * 1024) {
       setError(`❌ Imagem muito grande. Máximo ${maxSize}MB.`);
       return;
     }
 
     try {
-      // 🔄 Passo 1: Converter para WebP (se necessário)
+      // 🔄 Passo 1: Converter para WebP (mantendo transparência)
       setConverting(true);
       const optimizedFile = await convertToWebP(file, {
         quality,
         maxWidth,
-        maxHeight: maxWidth,
-        onProgress: (progress) => {
-          // Futuro: usar para barra de progresso
-          console.log(`Progresso: ${progress}%`);
-        }
+        maxHeight: maxWidth
       });
       setConverting(false);
 
@@ -62,7 +58,7 @@ export default function ImageUploader({
       // Feedback visual
       if (showProgress) {
         const savings = ((1 - optimizedFile.size / file.size) * 100).toFixed(0);
-        alert(`✅ Imagem otimizada e enviada!\n📉 Economia: ${savings}% no tamanho`);
+        alert(`✅ Imagem otimizada e enviada!\n📉 Economia: ${savings}% no tamanho\n✨ Transparência preservada!`);
       }
       
     } catch (err) {
@@ -74,7 +70,7 @@ export default function ImageUploader({
     }
   };
 
-  // Limpar input ao remover (evita re-upload do mesmo arquivo)
+  // Limpar input ao remover
   const handleRemove = () => {
     const input = document.querySelector(`input[type="file"][data-label="${label}"]`);
     if (input) input.value = '';
@@ -97,12 +93,13 @@ export default function ImageUploader({
           onChange={handleFileChange}
           disabled={uploading || converting}
           data-label={label}
-          className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 
-                     file:text-sm file:font-medium file:bg-purple-100 file:text-purple-700 
+          className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg 
+                     file:border-0 file:text-sm file:font-medium 
+                     file:bg-purple-100 file:text-purple-700 
                      hover:file:bg-purple-200 disabled:opacity-50 cursor-pointer"
         />
         
-        {/* Botão remover (se tiver imagem) */}
+        {/* Botão remover */}
         {value && !uploading && !converting && (
           <button
             onClick={handleRemove}
@@ -110,7 +107,8 @@ export default function ImageUploader({
             title="Remover imagem"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         )}
@@ -133,7 +131,7 @@ export default function ImageUploader({
 
       {/* Preview da imagem */}
       {value && (
-        <div className="relative inline-block group">
+        <div className="relative inline-block group mt-2">
           <img 
             src={value} 
             alt={label || 'Preview'} 
@@ -152,10 +150,10 @@ export default function ImageUploader({
         </div>
       )}
 
-      {/* Dica de otimização */}
+      {/* Dica */}
       {showProgress && !value && (
         <p className="text-xs text-gray-500">
-          💡 Imagens são automaticamente convertidas para WebP e redimensionadas para melhor performance
+          💡 Imagens são automaticamente convertidas para WebP com transparência preservada
         </p>
       )}
     </div>

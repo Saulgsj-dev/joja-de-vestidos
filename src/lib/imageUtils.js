@@ -1,161 +1,118 @@
-// frontend/src/components/admin/ImageUploader.jsx
-import { useState } from 'react';
-import { uploadImage } from '../../lib/apiClient';
-import { convertToWebP, isValidImage, formatFileSize } from '../../lib/imageUtils';
+// frontend/src/lib/imageUtils.js
 
-export default function ImageUploader({ 
-  value, 
-  onChange, 
-  onRemove, 
-  label, 
-  maxSize = 10,        // MB
-  quality = 0.85,      // Qualidade WebP (0.1 a 1.0)
-  maxWidth = 1920,     // Dimensão máxima
-  showProgress = true 
-}) {
-  const [uploading, setUploading] = useState(false);
-  const [converting, setConverting] = useState(false);
-  const [error, setError] = useState(null);
+/**
+ * Converte uma imagem para WebP usando Canvas API
+ * @param {File} file - Arquivo de imagem original
+ * @param {Object} options - Opções de conversão
+ * @returns {Promise<File>} - Promise com o arquivo WebP convertido
+ */
+export async function convertToWebP(file, options = {}) {
+  const {
+    quality = 0.85,           // Qualidade: 0.1 a 1.0
+    maxWidth = 1920,          // Largura máxima da imagem
+    maxHeight = 1920,         // Altura máxima da imagem
+    onProgress = null         // Callback para progresso (opcional)
+  } = options;
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Reset states
-    setError(null);
-    setUploading(false);
-    setConverting(false);
-
-    // ✅ Validação: tipo de arquivo
-    if (!isValidImage(file)) {
-      setError('❌ Formato não suportado. Use JPG, PNG, WebP ou GIF.');
+  return new Promise((resolve, reject) => {
+    // Se já for WebP e estiver dentro dos limites, pode pular conversão
+    if (file.type === 'image/webp' && file.size <= 2 * 1024 * 1024) {
+      resolve(file);
       return;
     }
 
-    // ✅ Validação: tamanho máximo
-    if (file.size > maxSize * 1024 * 1024) {
-      setError(`❌ Imagem muito grande. Máximo ${maxSize}MB.`);
-      return;
-    }
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
 
-    try {
-      // 🔄 Passo 1: Converter para WebP (mantendo transparência)
-      setConverting(true);
-      const optimizedFile = await convertToWebP(file, {
-        quality,
-        maxWidth,
-        maxHeight: maxWidth
-      });
-      setConverting(false);
+    img.onload = () => {
+      // Liberar URL do objeto
+      URL.revokeObjectURL(objectUrl);
 
-      // 📤 Passo 2: Fazer upload do arquivo otimizado
-      setUploading(true);
-      const { url } = await uploadImage(optimizedFile);
-      
-      // ✅ Sucesso
-      onChange(url);
-      
-      // Feedback visual
-      if (showProgress) {
-        const savings = ((1 - optimizedFile.size / file.size) * 100).toFixed(0);
-        alert(`✅ Imagem otimizada e enviada!\n📉 Economia: ${savings}% no tamanho\n✨ Transparência preservada!`);
+      // Calcular novas dimensões mantendo aspect ratio
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
       }
-      
-    } catch (err) {
-      console.error('❌ Erro no upload:', err);
-      setError('❌ Erro: ' + (err.message || 'Falha ao processar imagem'));
-    } finally {
-      setConverting(false);
-      setUploading(false);
-    }
-  };
 
-  // Limpar input ao remover
-  const handleRemove = () => {
-    const input = document.querySelector(`input[type="file"][data-label="${label}"]`);
-    if (input) input.value = '';
-    onRemove?.();
-  };
+      // Criar canvas com as dimensões calculadas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-  return (
-    <div className="space-y-2">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
-      )}
+      canvas.width = width;
+      canvas.height = height;
 
-      {/* Input de arquivo */}
-      <div className="flex items-center gap-3">
-        <input
-          type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-          onChange={handleFileChange}
-          disabled={uploading || converting}
-          data-label={label}
-          className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                     file:border-0 file:text-sm file:font-medium 
-                     file:bg-purple-100 file:text-purple-700 
-                     hover:file:bg-purple-200 disabled:opacity-50 cursor-pointer"
-        />
-        
-        {/* Botão remover */}
-        {value && !uploading && !converting && (
-          <button
-            onClick={handleRemove}
-            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-            title="Remover imagem"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        )}
-      </div>
+      // Desenhar imagem no canvas (com fundo branco para PNGs com transparência)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
 
-      {/* Status de processamento */}
-      {(converting || uploading) && showProgress && (
-        <div className="flex items-center gap-2 text-sm text-purple-600">
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
-          <span>{converting ? '🔄 Otimizando imagem...' : '📤 Enviando...'}</span>
-        </div>
-      )}
+      // Converter para WebP
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Falha na conversão para WebP'));
+            return;
+          }
 
-      {/* Mensagem de erro */}
-      {error && (
-        <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-          {error}
-        </p>
-      )}
+          // Criar novo arquivo com nome .webp
+          const webpFileName = file.name.replace(/\.[^.]+$/, '') + '.webp';
+          const webpFile = new File([blob], webpFileName, {
+            type: 'image/webp',
+            lastModified: Date.now()
+          });
 
-      {/* Preview da imagem */}
-      {value && (
-        <div className="relative inline-block group mt-2">
-          <img 
-            src={value} 
-            alt={label || 'Preview'} 
-            className="h-32 w-auto object-contain rounded-lg border border-gray-200 shadow-sm"
-            loading="lazy"
-          />
-          <button
-            onClick={handleRemove}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 
-                       flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 
-                       transition-opacity shadow-lg hover:bg-red-600"
-            title="Remover"
-          >
-            ×
-          </button>
-        </div>
-      )}
+          // Log de otimização (útil para debug)
+          const originalSize = (file.size / 1024).toFixed(1);
+          const newSize = (webpFile.size / 1024).toFixed(1);
+          const savings = ((1 - webpFile.size / file.size) * 100).toFixed(1);
+          console.log(`🖼️ Otimização: ${originalSize}KB → ${newSize}KB (${savings}% menor)`);
 
-      {/* Dica */}
-      {showProgress && !value && (
-        <p className="text-xs text-gray-500">
-          💡 Imagens são automaticamente convertidas para WebP com transparência preservada
-        </p>
-      )}
-    </div>
-  );
+          resolve(webpFile);
+        },
+        'image/webp',
+        quality
+      );
+    };
+
+    img.onerror = (error) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Erro ao carregar imagem: ' + error.message));
+    };
+
+    // Trigger load
+    img.src = objectUrl;
+  });
+}
+
+/**
+ * Valida se o arquivo é uma imagem suportada
+ * @param {File} file 
+ * @returns {boolean}
+ */
+export function isValidImage(file) {
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/gif'
+  ];
+  return allowedTypes.includes(file.type);
+}
+
+/**
+ * Formata tamanho de arquivo para exibição
+ * @param {number} bytes 
+ * @returns {string}
+ */
+export function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }

@@ -55,8 +55,7 @@ export async function apiRequest(endpoint, options = {}) {
  * @returns {Promise<{url: string, fileName: string, contentType: string, size: number}>}
  */
 export async function uploadImage(file, options = {}) {
-  // ✅ CORREÇÃO: desestruturação correta do getSession()
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
   
   if (!session?.access_token) {
     console.error('❌ [uploadImage] Usuário não autenticado');
@@ -80,7 +79,7 @@ export async function uploadImage(file, options = {}) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+    const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {  // ✅ Renomeado para evitar conflito
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
@@ -89,13 +88,13 @@ export async function uploadImage(file, options = {}) {
       body: formData,
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+    if (!uploadResponse.ok) {  // ✅ Usando uploadResponse
+      const error = await uploadResponse.json().catch(() => ({}));  // ✅ Usando uploadResponse
       console.error('❌ [uploadImage] Erro na resposta:', error);
-      throw new Error(error.error || `Erro ${response.status} no upload`);
+      throw new Error(error.error || `Erro ${uploadResponse.status} no upload`);  // ✅ Usando uploadResponse
     }
 
-    const result = await response.json();
+    const result = await uploadResponse.json();  // ✅ Usando uploadResponse
     
     if (options.onProgress) {
       options.onProgress(100); // 100% = concluído
@@ -116,8 +115,7 @@ export async function uploadImage(file, options = {}) {
  * @returns {Promise<{success: boolean, fileName: string}>}
  */
 export async function deleteImage(fileName) {
-  // ✅ CORREÇÃO: desestruturação correta do getSession()
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
   
   if (!session?.access_token) {
     throw new Error('Não autorizado');
@@ -126,19 +124,19 @@ export async function deleteImage(fileName) {
   // Codifica o nome do arquivo para URL-safe
   const encodedFileName = encodeURIComponent(fileName);
   
-  const response = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {
+  const deleteResponse = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {  // ✅ Renomeado para deleteResponse
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${session.access_token}`,
     },
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `Erro ${response.status} ao deletar`);
+  if (!deleteResponse.ok) {  // ✅ Usando deleteResponse
+    const error = await deleteResponse.json().catch(() => ({}));  // ✅ Usando deleteResponse
+    throw new Error(error.error || `Erro ${deleteResponse.status} ao deletar`);  // ✅ Usando deleteResponse
   }
 
-  return response.json();
+  return deleteResponse.json();  // ✅ Usando deleteResponse
 }
 
 /**
@@ -165,24 +163,23 @@ export async function getProfileBySlug(slug) {
  * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
 export async function getProfileByUserId(userId) {
-  // ✅ CORREÇÃO: desestruturação correta do getSession()
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
   
   const headers = {};
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
   
-  const response = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {
+  const profileResponse = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {  // ✅ Renomeado
     headers,
   });
   
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `Erro ${response.status}`);
+  if (!profileResponse.ok) {  // ✅ Usando profileResponse
+    const error = await profileResponse.json().catch(() => ({}));  // ✅ Usando profileResponse
+    throw new Error(error.error || `Erro ${profileResponse.status}`);  // ✅ Usando profileResponse
   }
   
-  return response.json();
+  return profileResponse.json();  // ✅ Usando profileResponse
 }
 
 /**
@@ -203,8 +200,7 @@ function formatBytes(bytes) {
  * @returns {Promise<boolean>}
  */
 export async function isAuthenticated() {
-  // ✅ CORREÇÃO: desestruturação correta do getSession()
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
   return !!session?.access_token;
 }
 
