@@ -3,24 +3,47 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://jwmoftfgoiwbfwitcyrf.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
-// ✅ Cria cliente apenas com funcionalidades essenciais
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  // ✅ Desabilita realtime se não estiver usando
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  },
-  // ✅ Não carrega storage se não usar
-  db: {
-    schema: 'public'
-  }
-});
+let supabaseInstance = null;
 
-// ✅ Exporta apenas o que precisa
-export const { auth, from, schema, rpc } = supabase;
+export const getSupabase = async () => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10
+        }
+      },
+      db: {
+        schema: 'public'
+      }
+    });
+  }
+  return supabaseInstance;
+};
+
+export const supabase = {
+  auth: {
+    getSession: async () => {
+      const client = await getSupabase();
+      return client.auth.getSession();
+    },
+    onAuthStateChange: (callback) => {
+      return getSupabase().then(client => 
+        client.auth.onAuthStateChange(callback)
+      );
+    },
+    signInWithPassword: async (credentials) => {
+      const client = await getSupabase();
+      return client.auth.signInWithPassword(credentials);
+    },
+    signOut: async () => {
+      const client = await getSupabase();
+      return client.auth.signOut();
+    }
+  }
+};

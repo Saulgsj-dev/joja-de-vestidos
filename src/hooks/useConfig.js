@@ -7,7 +7,6 @@ export function useConfig(profileId) {
     cor_fundo: '#ffffff',
     cor_texto: '#000000',
     nome_loja: 'Minha Loja'
-    // ✅ Removido: cor_botao, whatsapp_numero, footer_texto (agora em seções)
   });
   const [loading, setLoading] = useState(false);
 

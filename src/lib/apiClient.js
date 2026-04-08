@@ -10,15 +10,8 @@ const getSupabase = async () => {
   return supabaseInstance;
 };
 
-// 🔹 URL base da API (Cloudflare Worker)
 const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
 
-/**
- * Faz uma requisição API genérica com autenticação automática
- * @param {string} endpoint - Rota da API (ex: '/api/config')
- * @param {Object} options - Opções do fetch (method, body, headers, etc)
- * @returns {Promise<any>} - Resposta da API em JSON
- */
 export async function apiRequest(endpoint, options = {}) {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
@@ -53,12 +46,6 @@ export async function apiRequest(endpoint, options = {}) {
   return text ? JSON.parse(text) : {};
 }
 
-/**
- * Faz upload de imagem com autenticação
- * @param {File} file - Arquivo de imagem
- * @param {Object} options - Opções adicionais
- * @returns {Promise<{url: string, fileName: string, contentType: string, size: number}>}
- */
 export async function uploadImage(file, options = {}) {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
@@ -111,11 +98,6 @@ export async function uploadImage(file, options = {}) {
   }
 }
 
-/**
- * Deleta uma imagem do bucket R2 via API
- * @param {string} fileName - Nome do arquivo no formato 'userId/uuid.webp'
- * @returns {Promise<{success: boolean, fileName: string}>}
- */
 export async function deleteImage(fileName) {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
@@ -141,13 +123,7 @@ export async function deleteImage(fileName) {
   return response.json();
 }
 
-/**
- * Busca perfil público por slug (rota pública, sem autenticação)
- * @param {string} slug - Slug da loja
- * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
- */
 export async function getProfileBySlug(slug) {
-  // ✅ Rota pública - não precisa de Supabase
   const response = await fetch(`${API_BASE_URL}/api/profile/${slug}`);
   
   if (!response.ok) {
@@ -160,11 +136,6 @@ export async function getProfileBySlug(slug) {
   return response.json();
 }
 
-/**
- * Busca perfil por ID de usuário (requer autenticação)
- * @param {string} userId - ID do usuário no Supabase
- * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
- */
 export async function getProfileByUserId(userId) {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
@@ -186,11 +157,6 @@ export async function getProfileByUserId(userId) {
   return response.json();
 }
 
-/**
- * Formata tamanho de arquivo em bytes para string legível
- * @param {number} bytes 
- * @returns {string}
- */
 function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -199,20 +165,12 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-/**
- * Verifica se o usuário está autenticado
- * @returns {Promise<boolean>}
- */
 export async function isAuthenticated() {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   return !!session?.access_token;
 }
 
-/**
- * Obtém o token de acesso atual
- * @returns {Promise<string|null>}
- */
 export async function getAccessToken() {
   const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
