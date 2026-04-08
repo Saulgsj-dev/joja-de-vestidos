@@ -1,6 +1,6 @@
 // frontend/src/components/site/Header.jsx
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { getSupabase } from '../../lib/supabaseClient'; // ✅ Usar getSupabase para lazy loading
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Header({ config, sections, isPreview = false, storeSlug = null }) {
@@ -9,21 +9,66 @@ export default function Header({ config, sections, isPreview = false, storeSlug 
   const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    let isMounted = true;
+    let authSubscription = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const initAuth = async () => {
+      try {
+        const supabase = await getSupabase();
+        
+        // Get initial session
+        const sessionResponse = await supabase.auth.getSession();
+        if (isMounted) {
+          setUser(sessionResponse?.data?.session?.user ?? null);
+        }
 
-    return () => subscription.unsubscribe();
+        // Subscribe to auth changes - SEM desestruturação perigosa
+        const authResponse = supabase.auth.onAuthStateChange((_event, session) => {
+          if (isMounted) {
+            setUser(session?.user ?? null);
+          }
+        });
+        
+        // ✅ Acesso seguro à subscription (compatível com todas as versões)
+        authSubscription = 
+          authResponse?.data?.subscription || 
+          authResponse?.subscription || 
+          null;
+      } catch (error) {
+        console.error('Header auth error:', error);
+      }
+    };
+
+    initAuth();
+
+    // ✅ Cleanup com verificação EXTRA de segurança
+    return () => {
+      isMounted = false;
+      // ✅ Só chama unsubscribe se:
+      // 1. subscription existir
+      // 2. for um objeto
+      // 3. tiver método unsubscribe que é uma função
+      if (
+        authSubscription && 
+        typeof authSubscription === 'object' && 
+        typeof authSubscription.unsubscribe === 'function'
+      ) {
+        authSubscription.unsubscribe();
+      }
+    };
   }, []);
 
   const handleLogin = () => navigate('/login');
+  
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    try {
+      const supabase = await getSupabase();
+      await supabase.auth.signOut();
+      setUser(null);
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const headerSection = sections?.find(s => s.section_type === 'header');

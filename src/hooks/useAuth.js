@@ -1,4 +1,3 @@
-// frontend/src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
 
@@ -15,21 +14,26 @@ export function useAuth() {
         const supabase = await getSupabase();
         
         // Get initial session
-        const { data: { session } } = await supabase.auth.getSession();
+        const sessionResponse = await supabase.auth.getSession();
         if (isMounted) {
-          setUser(session?.user ?? null);
+          setUser(sessionResponse?.data?.session?.user ?? null);
           setLoading(false);
         }
 
-        // Subscribe to auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        // Subscribe to auth changes - SEM desestruturação perigosa
+        const authResponse = supabase.auth.onAuthStateChange((_event, session) => {
           if (isMounted) {
             setUser(session?.user ?? null);
             setLoading(false);
           }
         });
         
-        authSubscription = subscription;
+        // ✅ Acesso seguro à subscription (compatível com todas as versões do Supabase)
+        authSubscription = 
+          authResponse?.data?.subscription || 
+          authResponse?.subscription || 
+          null;
+          
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (isMounted) setLoading(false);
@@ -38,10 +42,20 @@ export function useAuth() {
 
     initAuth();
 
-    // ✅ Cleanup com verificação de segurança (optional chaining)
+    // ✅ Cleanup com verificação EXTRA de segurança
     return () => {
       isMounted = false;
-      authSubscription?.unsubscribe?.();
+      // ✅ Só chama unsubscribe se:
+      // 1. subscription existir
+      // 2. for um objeto
+      // 3. tiver método unsubscribe que é uma função
+      if (
+        authSubscription && 
+        typeof authSubscription === 'object' && 
+        typeof authSubscription.unsubscribe === 'function'
+      ) {
+        authSubscription.unsubscribe();
+      }
     };
   }, []);
 
