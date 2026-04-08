@@ -45,12 +45,11 @@ export async function convertToWebP(file, options = {}) {
       canvas.width = width;
       canvas.height = height;
 
-      // Desenhar imagem no canvas (com fundo branco para PNGs com transparência)
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
+      // ✅ MANTÉM TRANSPARÊNCIA - Não adiciona fundo branco
+      // Canvas já começa transparente por padrão
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Converter para WebP
+      // Converter para WebP (com suporte a transparência)
       canvas.toBlob(
         (blob) => {
           if (!blob) {
