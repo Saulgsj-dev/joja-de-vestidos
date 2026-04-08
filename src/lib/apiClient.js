@@ -1,8 +1,24 @@
 // frontend/src/lib/apiClient.js
-import { supabase } from './supabaseClient';
 
 // 🔹 URL base da API (Cloudflare Worker)
 const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
+
+/**
+ * ✅ FUNÇÃO LAZY: Pega o token de autenticação apenas quando necessário
+ * Isso evita que o Supabase seja carregado em páginas públicas
+ */
+async function getAuthToken() {
+  try {
+    // Lazy import - carrega o módulo do Supabase apenas quando esta função é chamada
+    const { supabase } = await import('./supabaseClient');
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  } catch (e) {
+    // Se falhar (ex: página pública sem auth), retorna null silenciosamente
+    console.warn('⚠️ Auth não disponível:', e);
+    return null;
+  }
+}
 
 /**
  * Faz uma requisição API genérica com autenticação automática
@@ -11,22 +27,20 @@ const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
  * @returns {Promise<any>} - Resposta da API em JSON
  */
 export async function apiRequest(endpoint, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
 
-  // Adiciona token de autenticação se existir sessão
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
+  // ✅ Pega token dinamicamente (só carrega Supabase se necessário)
+  const token = await getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
-    // Garante que credentials sejam incluídas se necessário
     credentials: 'same-origin',
   });
 
@@ -36,7 +50,6 @@ export async function apiRequest(endpoint, options = {}) {
     try {
       errorData = await response.json();
     } catch {
-      // Se não conseguir parsear JSON, usa mensagem genérica
       errorData = { error: `Erro ${response.status}: ${response.statusText}` };
     }
     console.error('❌ [apiRequest] Erro:', errorData);
@@ -55,9 +68,10 @@ export async function apiRequest(endpoint, options = {}) {
  * @returns {Promise<{url: string, fileName: string, contentType: string, size: number}>}
  */
 export async function uploadImage(file, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  // ✅ Lazy auth - só carrega Supabase quando esta função é chamada
+  const token = await getAuthToken();
   
-  if (!session?.access_token) {
+  if (!token) {
     console.error('❌ [uploadImage] Usuário não autenticado');
     throw new Error('Não autorizado. Faça login para continuar.');
   }
@@ -67,37 +81,35 @@ export async function uploadImage(file, options = {}) {
     throw new Error('Arquivo inválido');
   }
 
-  // Log para debug (útil em desenvolvimento)
   console.log(`📤 [uploadImage] Iniciando: ${file.name} (${formatBytes(file.size)})`);
 
   const formData = new FormData();
   formData.append('file', file, file.name);
 
-  // Callback de progresso (opcional - para futura implementação)
   if (options.onProgress && typeof options.onProgress === 'function') {
-    options.onProgress(10); // 10% = começando upload
+    options.onProgress(10);
   }
 
   try {
-    const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {  // ✅ Renomeado para evitar conflito
+    const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        // NÃO definir Content-Type para FormData - o browser define automaticamente com boundary
+        'Authorization': `Bearer ${token}`,
+        // NÃO definir Content-Type para FormData - o browser define automaticamente
       },
       body: formData,
     });
 
-    if (!uploadResponse.ok) {  // ✅ Usando uploadResponse
-      const error = await uploadResponse.json().catch(() => ({}));  // ✅ Usando uploadResponse
+    if (!uploadResponse.ok) {
+      const error = await uploadResponse.json().catch(() => ({}));
       console.error('❌ [uploadImage] Erro na resposta:', error);
-      throw new Error(error.error || `Erro ${uploadResponse.status} no upload`);  // ✅ Usando uploadResponse
+      throw new Error(error.error || `Erro ${uploadResponse.status} no upload`);
     }
 
-    const result = await uploadResponse.json();  // ✅ Usando uploadResponse
+    const result = await uploadResponse.json();
     
     if (options.onProgress) {
-      options.onProgress(100); // 100% = concluído
+      options.onProgress(100);
     }
     
     console.log(`✅ [uploadImage] Concluído: ${result.url}`);
@@ -115,32 +127,33 @@ export async function uploadImage(file, options = {}) {
  * @returns {Promise<{success: boolean, fileName: string}>}
  */
 export async function deleteImage(fileName) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  // ✅ Lazy auth
+  const token = await getAuthToken();
   
-  if (!session?.access_token) {
+  if (!token) {
     throw new Error('Não autorizado');
   }
 
-  // Codifica o nome do arquivo para URL-safe
   const encodedFileName = encodeURIComponent(fileName);
   
-  const deleteResponse = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {  // ✅ Renomeado para deleteResponse
+  const deleteResponse = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': `Bearer ${session.access_token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 
-  if (!deleteResponse.ok) {  // ✅ Usando deleteResponse
-    const error = await deleteResponse.json().catch(() => ({}));  // ✅ Usando deleteResponse
-    throw new Error(error.error || `Erro ${deleteResponse.status} ao deletar`);  // ✅ Usando deleteResponse
+  if (!deleteResponse.ok) {
+    const error = await deleteResponse.json().catch(() => ({}));
+    throw new Error(error.error || `Erro ${deleteResponse.status} ao deletar`);
   }
 
-  return deleteResponse.json();  // ✅ Usando deleteResponse
+  return deleteResponse.json();
 }
 
 /**
- * Busca perfil público por slug (rota pública, sem autenticação)
+ * Busca perfil público por slug (rota pública, SEM autenticação)
+ * ✅ Esta função NÃO carrega Supabase - ideal para páginas públicas
  * @param {string} slug - Slug da loja (ex: 'minha-loja')
  * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
@@ -163,23 +176,24 @@ export async function getProfileBySlug(slug) {
  * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
 export async function getProfileByUserId(userId) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  // ✅ Lazy auth - só carrega Supabase quando necessário
+  const token = await getAuthToken();
   
   const headers = {};
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   
-  const profileResponse = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {  // ✅ Renomeado
+  const profileResponse = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {
     headers,
   });
   
-  if (!profileResponse.ok) {  // ✅ Usando profileResponse
-    const error = await profileResponse.json().catch(() => ({}));  // ✅ Usando profileResponse
-    throw new Error(error.error || `Erro ${profileResponse.status}`);  // ✅ Usando profileResponse
+  if (!profileResponse.ok) {
+    const error = await profileResponse.json().catch(() => ({}));
+    throw new Error(error.error || `Erro ${profileResponse.status}`);
   }
   
-  return profileResponse.json();  // ✅ Usando profileResponse
+  return profileResponse.json();
 }
 
 /**
@@ -200,8 +214,9 @@ function formatBytes(bytes) {
  * @returns {Promise<boolean>}
  */
 export async function isAuthenticated() {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
-  return !!session?.access_token;
+  // ✅ Lazy auth
+  const token = await getAuthToken();
+  return !!token;
 }
 
 /**
@@ -209,6 +224,6 @@ export async function isAuthenticated() {
  * @returns {Promise<string|null>}
  */
 export async function getAccessToken() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token || null;
+  // ✅ Lazy auth
+  return await getAuthToken();
 }
