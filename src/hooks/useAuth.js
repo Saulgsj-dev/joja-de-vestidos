@@ -1,28 +1,59 @@
 // frontend/src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabase } from '../lib/supabaseClient';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let isMounted = true;
+    let authSubscription = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const initAuth = async () => {
+      try {
+        const supabase = await getSupabase();
+        
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
 
-    return () => subscription.unsubscribe();
+        // Subscribe to auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (isMounted) {
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        });
+        
+        authSubscription = subscription;
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // ✅ Cleanup com verificação de segurança (optional chaining)
+    return () => {
+      isMounted = false;
+      // ✅ Safe: só chama unsubscribe se subscription existir
+      authSubscription?.unsubscribe?.();
+    };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      const supabase = await getSupabase();
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return { user, loading, signOut };
