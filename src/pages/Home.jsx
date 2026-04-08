@@ -1,6 +1,6 @@
 // frontend/src/pages/Home.jsx
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { apiRequest } from '../lib/apiClient';
 import Header from '../components/site/Header';
 import Footer from '../components/site/Footer';
@@ -11,7 +11,6 @@ import ContactSection from '../components/site/Sections/ContactSection';
 
 export default function Home() {
   const { storeId } = useParams();
-  const location = useLocation();
   const [sections, setSections] = useState([]);
   const [config, setConfig] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -19,30 +18,6 @@ export default function Home() {
   const [profileId, setProfileId] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [storeSlug, setStoreSlug] = useState(null);
-
-  // ✅ Efeito para atualizar meta tags dinamicamente (SEO)
-  useEffect(() => {
-    if (config?.nome_loja) {
-      // Atualiza título da página
-      document.title = `${config.nome_loja} | Site Oficial`;
-      
-      // Atualiza ou cria meta description
-      let metaDesc = document.querySelector('meta[name="description"]');
-      if (!metaDesc) {
-        metaDesc = document.createElement('meta');
-        metaDesc.name = 'description';
-        document.head.appendChild(metaDesc);
-      }
-      
-      // Busca subtítulo do hero para descrição
-      const heroSection = sections.find(s => s.section_type === 'hero');
-      const description = heroSection?.content?.subtitle || 
-        `Conheça ${config.nome_loja} - Qualidade e excelência em nossos serviços.`;
-      
-      // SEO: max 160 caracteres para meta description
-      metaDesc.content = description.slice(0, 160);
-    }
-  }, [config, sections]);
 
   useEffect(() => {
     const getProfileId = async () => {
@@ -130,21 +105,18 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: config?.cor_fundo || '#fff', color: config?.cor_texto }}>
       <Header config={config} sections={sections} storeSlug={storeSlug} />
       
-      {/* ✅ Main landmark para acessibilidade e SEO */}
-      <main id="main-content" className="focus:outline-none">
-        {sections.length > 0 ? (
-          sections
-            .filter(section => section.section_type !== 'header' && section.section_type !== 'footer')
-            .map(renderSection)
-        ) : (
-          <section className="py-16 px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: config?.cor_texto }}>
-              Bem-vindo
-            </h2>
-            <p className="text-gray-600">Site em construção</p>
-          </section>
-        )}
-      </main>
+      {sections.length > 0 ? (
+        sections
+          .filter(section => section.section_type !== 'header' && section.section_type !== 'footer')
+          .map(renderSection)
+      ) : (
+        <section className="py-16 px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4" style={{ color: config?.cor_texto }}>
+            Bem-vindo
+          </h2>
+          <p className="text-gray-600">Site em construção</p>
+        </section>
+      )}
       
       <Footer config={config} sections={sections} />
     </div>

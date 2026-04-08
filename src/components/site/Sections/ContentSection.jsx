@@ -50,40 +50,6 @@ export default function ContentSection({ section, config }) {
     return sizes[styles?.imageSize || 'medio'];
   };
 
-  // ✅ Helper para imagem otimizada (dimensões + lazy + priority)
-  const renderOptimizedImage = (src, alt, className, isLCP = false) => {
-    if (!src) return null;
-    
-    // Dimensões aproximadas para evitar CLS (ajustar conforme suas imagens reais)
-    const getDimensions = () => {
-      if (className?.includes('max-h-48')) return { width: 192, height: 192 };
-      if (className?.includes('max-h-64')) return { width: 256, height: 256 };
-      if (className?.includes('max-h-80')) return { width: 320, height: 320 };
-      if (className?.includes('max-h-96')) return { width: 384, height: 384 };
-      if (className?.includes('max-h-[32rem]')) return { width: 512, height: 512 };
-      if (className?.includes('h-32')) return { width: 320, height: 180 };
-      if (className?.includes('h-40')) return { width: 400, height: 225 };
-      if (className?.includes('h-48')) return { width: 480, height: 270 };
-      if (className?.includes('max-h-96') && className?.includes('rounded-lg')) return { width: 400, height: 300 };
-      return { width: 800, height: 450 }; // fallback
-    };
-    
-    const { width, height } = getDimensions();
-    
-    return (
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        width={width}
-        height={height}
-        loading={isLCP ? 'eager' : 'lazy'}
-        fetchPriority={isLCP ? 'high' : 'auto'}
-        decoding={isLCP ? 'sync' : 'async'}
-      />
-    );
-  };
-
   // 🔘 Função para renderizar botão
   const renderButton = (btn, index) => {
     if (!btn?.text) return null;
@@ -122,7 +88,11 @@ export default function ContentSection({ section, config }) {
             {/* Imagem Acima */}
             {content.image && styles?.imagePosition === 'above' && (
               <div className="mb-6 md:mb-10 lg:mb-12 flex justify-center">
-                {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, true)}
+                <img
+                  src={content.image}
+                  alt={content.title}
+                  className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                />
               </div>
             )}
 
@@ -134,7 +104,11 @@ export default function ContentSection({ section, config }) {
             {/* Imagem Entre */}
             {content.image && styles?.imagePosition === 'between' && (
               <div className="my-6 md:my-10 lg:my-12 flex justify-center">
-                {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, false)}
+                <img
+                  src={content.image}
+                  alt={content.title}
+                  className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                />
               </div>
             )}
 
@@ -150,7 +124,11 @@ export default function ContentSection({ section, config }) {
             {/* Imagem Abaixo */}
             {content.image && styles?.imagePosition === 'below' && (
               <div className="mt-6 md:mt-10 lg:mt-12 mb-8 md:mb-12 flex justify-center">
-                {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, false)}
+                <img
+                  src={content.image}
+                  alt={content.title}
+                  className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                />
               </div>
             )}
 
@@ -169,7 +147,11 @@ export default function ContentSection({ section, config }) {
             {/* Imagem Esquerda */}
             {content.leftImage && (
               <div className="hidden lg:block">
-                {renderOptimizedImage(content.leftImage, 'Esquerda', 'w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl', false)}
+                <img
+                  src={content.leftImage}
+                  alt="Esquerda"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
               </div>
             )}
 
@@ -178,7 +160,11 @@ export default function ContentSection({ section, config }) {
               {/* Imagem Principal Acima */}
               {content.image && styles?.imagePosition === 'above' && (
                 <div className="mb-4 flex justify-center">
-                  {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, true)}
+                  <img
+                    src={content.image}
+                    alt={content.title}
+                    className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                  />
                 </div>
               )}
 
@@ -190,7 +176,11 @@ export default function ContentSection({ section, config }) {
               {/* Imagem Principal Entre */}
               {content.image && styles?.imagePosition === 'between' && (
                 <div className="my-4 flex justify-center">
-                  {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, false)}
+                  <img
+                    src={content.image}
+                    alt={content.title}
+                    className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                  />
                 </div>
               )}
 
@@ -206,7 +196,11 @@ export default function ContentSection({ section, config }) {
               {/* Imagem Principal Abaixo */}
               {content.image && styles?.imagePosition === 'below' && (
                 <div className="mt-4 flex justify-center">
-                  {renderOptimizedImage(content.image, content.title, `${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`, false)}
+                  <img
+                    src={content.image}
+                    alt={content.title}
+                    className={`${getImageSizeClasses()} object-contain mx-auto drop-shadow-xl`}
+                  />
                 </div>
               )}
 
@@ -221,7 +215,11 @@ export default function ContentSection({ section, config }) {
             {/* Imagem Direita */}
             {content.rightImage && (
               <div className="hidden lg:block">
-                {renderOptimizedImage(content.rightImage, 'Direita', 'w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl', false)}
+                <img
+                  src={content.rightImage}
+                  alt="Direita"
+                  className="w-full h-auto max-h-96 object-contain rounded-lg shadow-2xl"
+                />
               </div>
             )}
           </div>
@@ -253,10 +251,6 @@ export default function ContentSection({ section, config }) {
                     src={img}
                     alt={`Grid ${index}`}
                     className="w-full h-32 sm:h-40 md:h-48 object-contain rounded-lg shadow-lg hover:shadow-xl transition"
-                    width={320}
-                    height={180}
-                    loading="lazy"
-                    decoding="async"
                   />
                 ))}
               </div>

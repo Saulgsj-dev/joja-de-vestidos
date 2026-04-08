@@ -1,44 +1,13 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- ✅ SEO: Meta description dinâmica (preencher via React Helmet ou similar) -->
-  <meta name="description" content="Carvalho & Martins Advogados - Excelência jurídica com resultados comprovados. Atendimento personalizado em direito civil, trabalhista e empresarial." />
-  
-  <!-- ✅ Performance: Preconnect para origens críticas -->
-  <link rel="preconnect" href="https://saas-vestidos-api.webpagesuporte.workers.dev" crossorigin />
-  <link rel="preconnect" href="https://pub-94710721ffb942c0bb900bb52d0d47ef.r2.dev" crossorigin />
-  
-  <!-- ✅ DNS Prefetch para fallback -->
-  <link rel="dns-prefetch" href="https://saas-vestidos-api.webpagesuporte.workers.dev" />
-  <link rel="dns-prefetch" href="https://pub-94710721ffb942c0bb900bb52d0d47ef.r2.dev" />
-  
-  <title>Carvalho & Martins Advogados | Excelência Jurídica</title>
-  
-  <!-- ✅ Preload da imagem LCP (hero background) - URL será injetada dinamicamente -->
-  <script>
-    // Inject LCP preload after config loads
-    window.addEventListener('load', () => {
-      const heroBg = document.querySelector('[data-hero-bg]');
-      if (heroBg?.style?.backgroundImage) {
-        const url = heroBg.style.backgroundImage.match(/url\(["']?([^"')]+)["']?\)/)?.[1];
-        if (url) {
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.href = url;
-          link.fetchPriority = 'high';
-          document.head.appendChild(link);
-        }
-      }
-    });
-  </script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

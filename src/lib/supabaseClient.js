@@ -1,27 +1,7 @@
-// frontend/src/lib/supabaseClient.js
+// src/lib/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://jwmoftfgoiwbfwitcyrf.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const supabaseUrl = 'https://jwmoftfgoiwbfwitcyrf.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bW9mdGZnb2l3YmZ3aXRjeXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5Mjg2MjUsImV4cCI6MjA5MDUwNDYyNX0.JRUI4sKa-_Q9JqFnRZxpM9k5ywXJp9DeKlcye1F5SGE';
 
-// ✅ Cria cliente apenas com funcionalidades essenciais
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  // ✅ Desabilita realtime se não estiver usando
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  },
-  // ✅ Não carrega storage se não usar
-  db: {
-    schema: 'public'
-  }
-});
-
-// ✅ Exporta apenas o que precisa
-export const { auth, from, schema, rpc } = supabase;
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

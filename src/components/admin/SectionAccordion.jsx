@@ -1,3 +1,4 @@
+
 // frontend/src/components/admin/SectionAccordion.jsx
 import { useState } from 'react';
 
