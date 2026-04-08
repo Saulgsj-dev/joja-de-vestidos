@@ -1,5 +1,14 @@
 // frontend/src/lib/apiClient.js
-import { supabase } from './supabaseClient';
+// ✅ Supabase import lazy - só carrega quando realmente necessário
+let supabaseInstance = null;
+
+const getSupabase = async () => {
+  if (!supabaseInstance) {
+    const { supabase } = await import('./supabaseClient');
+    supabaseInstance = supabase;
+  }
+  return supabaseInstance;
+};
 
 // 🔹 URL base da API (Cloudflare Worker)
 const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
@@ -11,6 +20,7 @@ const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
  * @returns {Promise<any>} - Resposta da API em JSON
  */
 export async function apiRequest(endpoint, options = {}) {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
   const headers = {
@@ -18,7 +28,6 @@ export async function apiRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Adiciona token de autenticação se existir sessão
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
@@ -26,35 +35,32 @@ export async function apiRequest(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
-    // Garante que credentials sejam incluídas se necessário
     credentials: 'same-origin',
   });
 
-  // Tratamento de erro com fallback seguro
   if (!response.ok) {
     let errorData = { error: 'Erro na requisição' };
     try {
       errorData = await response.json();
     } catch {
-      // Se não conseguir parsear JSON, usa mensagem genérica
       errorData = { error: `Erro ${response.status}: ${response.statusText}` };
     }
     console.error('❌ [apiRequest] Erro:', errorData);
     throw new Error(errorData.error || `Erro ${response.status}`);
   }
 
-  // Retorna JSON ou objeto vazio se resposta estiver vazia
   const text = await response.text();
   return text ? JSON.parse(text) : {};
 }
 
 /**
  * Faz upload de imagem com autenticação
- * @param {File} file - Arquivo de imagem (já pode estar convertido para WebP)
- * @param {Object} options - Opções adicionais (ex: onProgress para barra de progresso)
+ * @param {File} file - Arquivo de imagem
+ * @param {Object} options - Opções adicionais
  * @returns {Promise<{url: string, fileName: string, contentType: string, size: number}>}
  */
 export async function uploadImage(file, options = {}) {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session?.access_token) {
@@ -62,20 +68,17 @@ export async function uploadImage(file, options = {}) {
     throw new Error('Não autorizado. Faça login para continuar.');
   }
 
-  // Validações básicas do arquivo
   if (!file || !(file instanceof File)) {
     throw new Error('Arquivo inválido');
   }
 
-  // Log para debug (útil em desenvolvimento)
   console.log(`📤 [uploadImage] Iniciando: ${file.name} (${formatBytes(file.size)})`);
 
   const formData = new FormData();
   formData.append('file', file, file.name);
 
-  // Callback de progresso (opcional - para futura implementação)
   if (options.onProgress && typeof options.onProgress === 'function') {
-    options.onProgress(10); // 10% = começando upload
+    options.onProgress(10);
   }
 
   try {
@@ -83,7 +86,6 @@ export async function uploadImage(file, options = {}) {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        // NÃO definir Content-Type para FormData - o browser define automaticamente com boundary
       },
       body: formData,
     });
@@ -97,7 +99,7 @@ export async function uploadImage(file, options = {}) {
     const result = await response.json();
     
     if (options.onProgress) {
-      options.onProgress(100); // 100% = concluído
+      options.onProgress(100);
     }
     
     console.log(`✅ [uploadImage] Concluído: ${result.url}`);
@@ -115,13 +117,13 @@ export async function uploadImage(file, options = {}) {
  * @returns {Promise<{success: boolean, fileName: string}>}
  */
 export async function deleteImage(fileName) {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session?.access_token) {
     throw new Error('Não autorizado');
   }
 
-  // Codifica o nome do arquivo para URL-safe
   const encodedFileName = encodeURIComponent(fileName);
   
   const response = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {
@@ -141,10 +143,11 @@ export async function deleteImage(fileName) {
 
 /**
  * Busca perfil público por slug (rota pública, sem autenticação)
- * @param {string} slug - Slug da loja (ex: 'minha-loja')
+ * @param {string} slug - Slug da loja
  * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
 export async function getProfileBySlug(slug) {
+  // ✅ Rota pública - não precisa de Supabase
   const response = await fetch(`${API_BASE_URL}/api/profile/${slug}`);
   
   if (!response.ok) {
@@ -163,6 +166,7 @@ export async function getProfileBySlug(slug) {
  * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
 export async function getProfileByUserId(userId) {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
   const headers = {};
@@ -200,15 +204,17 @@ function formatBytes(bytes) {
  * @returns {Promise<boolean>}
  */
 export async function isAuthenticated() {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   return !!session?.access_token;
 }
 
 /**
- * Obtém o token de acesso atual (útil para integrações externas)
+ * Obtém o token de acesso atual
  * @returns {Promise<string|null>}
  */
 export async function getAccessToken() {
+  const supabase = await getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token || null;
 }
