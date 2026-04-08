@@ -1,3 +1,4 @@
+// frontend/src/utils/sectionHelpers.js
 export const SECTION_TYPES = {
   HEADER: 'header',
   HERO: 'hero',

@@ -1,3 +1,4 @@
+// frontend/src/components/admin/SectionEditor/SectionEditor.jsx
 import HeaderEditor from './HeaderEditor';
 import HeroEditor from './HeroEditor';
 import ProductsEditor from './ProductsEditor';

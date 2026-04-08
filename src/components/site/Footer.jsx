@@ -1,3 +1,4 @@
+// frontend/src/components/site/Footer.jsx
 import { getAlignClass } from '../../utils/styleHelpers';
 
 export default function Footer({ config, sections, isPreview = false }) {
