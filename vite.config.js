@@ -10,11 +10,11 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // ✅ React e Router - sempre usados na página pública
+            // ✅ React e Router - sempre usados
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor-react'
             }
-            // ✅ Supabase - carregado sob demanda apenas no admin/login
+            // ✅ Supabase - carregado sob demanda no admin
             if (id.includes('@supabase')) {
               return 'vendor-supabase'
             }
@@ -22,13 +22,13 @@ export default defineConfig({
             return 'vendor'
           }
         },
-        // ✅ Nomes de arquivos com hash para cache eficiente
+        // ✅ Nomes de arquivos com hash para cache
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    // ✅ Sourcemaps apenas em desenvolvimento (reduz tamanho em produção)
+    // ✅ Sourcemaps apenas em desenvolvimento
     sourcemap: false,
     // ✅ Minificação com Terser para remover código morto
     minify: 'terser',
@@ -40,7 +40,7 @@ export default defineConfig({
         passes: 2,               // Múltiplas passagens para melhor tree shaking
       },
       format: {
-        comments: false,         // Remove comentários do bundle final
+        comments: false,         // Remove comentários
       },
     },
     // ✅ Target compatível com browsers modernos
