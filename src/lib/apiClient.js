@@ -1,14 +1,16 @@
 // frontend/src/lib/apiClient.js
 import { supabase } from './supabaseClient';
 
-// 🔹 URL base da API (Cloudflare Worker)
-const API_BASE_URL = 'https://saas-vestidos-api.webpagesuporte.workers.dev';
+// ✅ CORREÇÃO: Usando variável de ambiente
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://saas-vestidos-api.webpagesuporte.workers.dev';
+
+// 🔍 Debug (remova após funcionar)
+if (import.meta.env.DEV) {
+  console.log('🌐 API Base URL:', API_BASE_URL);
+}
 
 /**
  * Faz uma requisição API genérica com autenticação automática
- * @param {string} endpoint - Rota da API (ex: '/api/config')
- * @param {Object} options - Opções do fetch (method, body, headers, etc)
- * @returns {Promise<any>} - Resposta da API em JSON
  */
 export async function apiRequest(endpoint, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -18,7 +20,6 @@ export async function apiRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Adiciona token de autenticação se existir sessão
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
@@ -26,78 +27,67 @@ export async function apiRequest(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
-    // Garante que credentials sejam incluídas se necessário
     credentials: 'same-origin',
   });
 
-  // Tratamento de erro com fallback seguro
   if (!response.ok) {
     let errorData = { error: 'Erro na requisição' };
     try {
       errorData = await response.json();
     } catch {
-      // Se não conseguir parsear JSON, usa mensagem genérica
       errorData = { error: `Erro ${response.status}: ${response.statusText}` };
     }
     console.error('❌ [apiRequest] Erro:', errorData);
     throw new Error(errorData.error || `Erro ${response.status}`);
   }
 
-  // Retorna JSON ou objeto vazio se resposta estiver vazia
   const text = await response.text();
   return text ? JSON.parse(text) : {};
 }
 
 /**
  * Faz upload de imagem com autenticação
- * @param {File} file - Arquivo de imagem (já pode estar convertido para WebP)
- * @param {Object} options - Opções adicionais (ex: onProgress para barra de progresso)
- * @returns {Promise<{url: string, fileName: string, contentType: string, size: number}>}
  */
 export async function uploadImage(file, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  const { data: { session } } = await supabase.auth.getSession();
   
   if (!session?.access_token) {
     console.error('❌ [uploadImage] Usuário não autenticado');
     throw new Error('Não autorizado. Faça login para continuar.');
   }
 
-  // Validações básicas do arquivo
   if (!file || !(file instanceof File)) {
     throw new Error('Arquivo inválido');
   }
 
-  // Log para debug (útil em desenvolvimento)
   console.log(`📤 [uploadImage] Iniciando: ${file.name} (${formatBytes(file.size)})`);
 
   const formData = new FormData();
   formData.append('file', file, file.name);
 
-  // Callback de progresso (opcional - para futura implementação)
   if (options.onProgress && typeof options.onProgress === 'function') {
-    options.onProgress(10); // 10% = começando upload
+    options.onProgress(10);
   }
 
   try {
-    const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {  // ✅ Renomeado para evitar conflito
+    const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        // NÃO definir Content-Type para FormData - o browser define automaticamente com boundary
       },
       body: formData,
     });
 
-    if (!uploadResponse.ok) {  // ✅ Usando uploadResponse
-      const error = await uploadResponse.json().catch(() => ({}));  // ✅ Usando uploadResponse
+    if (!uploadResponse.ok) {
+      const error = await uploadResponse.json().catch(() => ({}));
       console.error('❌ [uploadImage] Erro na resposta:', error);
-      throw new Error(error.error || `Erro ${uploadResponse.status} no upload`);  // ✅ Usando uploadResponse
+      throw new Error(error.error || `Erro ${uploadResponse.status} no upload`);
     }
 
-    const result = await uploadResponse.json();  // ✅ Usando uploadResponse
+    const result = await uploadResponse.json();
     
     if (options.onProgress) {
-      options.onProgress(100); // 100% = concluído
+      options.onProgress(100);
     }
     
     console.log(`✅ [uploadImage] Concluído: ${result.url}`);
@@ -111,38 +101,33 @@ export async function uploadImage(file, options = {}) {
 
 /**
  * Deleta uma imagem do bucket R2 via API
- * @param {string} fileName - Nome do arquivo no formato 'userId/uuid.webp'
- * @returns {Promise<{success: boolean, fileName: string}>}
  */
 export async function deleteImage(fileName) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  const { data: { session } } = await supabase.auth.getSession();
   
   if (!session?.access_token) {
     throw new Error('Não autorizado');
   }
 
-  // Codifica o nome do arquivo para URL-safe
   const encodedFileName = encodeURIComponent(fileName);
   
-  const deleteResponse = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {  // ✅ Renomeado para deleteResponse
+  const deleteResponse = await fetch(`${API_BASE_URL}/api/upload/${encodedFileName}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${session.access_token}`,
     },
   });
 
-  if (!deleteResponse.ok) {  // ✅ Usando deleteResponse
-    const error = await deleteResponse.json().catch(() => ({}));  // ✅ Usando deleteResponse
-    throw new Error(error.error || `Erro ${deleteResponse.status} ao deletar`);  // ✅ Usando deleteResponse
+  if (!deleteResponse.ok) {
+    const error = await deleteResponse.json().catch(() => ({}));
+    throw new Error(error.error || `Erro ${deleteResponse.status} ao deletar`);
   }
 
-  return deleteResponse.json();  // ✅ Usando deleteResponse
+  return deleteResponse.json();
 }
 
 /**
- * Busca perfil público por slug (rota pública, sem autenticação)
- * @param {string} slug - Slug da loja (ex: 'minha-loja')
- * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
+ * Busca perfil público por slug (rota pública, SEM autenticação)
  */
 export async function getProfileBySlug(slug) {
   const response = await fetch(`${API_BASE_URL}/api/profile/${slug}`);
@@ -159,33 +144,29 @@ export async function getProfileBySlug(slug) {
 
 /**
  * Busca perfil por ID de usuário (requer autenticação)
- * @param {string} userId - ID do usuário no Supabase
- * @returns {Promise<{id: string, nome_loja: string, slug: string, ativo: number, plano: string}>}
  */
 export async function getProfileByUserId(userId) {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  const { data: { session } } = await supabase.auth.getSession();
   
   const headers = {};
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
   
-  const profileResponse = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {  // ✅ Renomeado
+  const profileResponse = await fetch(`${API_BASE_URL}/api/profile/by-user/${userId}`, {
     headers,
   });
   
-  if (!profileResponse.ok) {  // ✅ Usando profileResponse
-    const error = await profileResponse.json().catch(() => ({}));  // ✅ Usando profileResponse
-    throw new Error(error.error || `Erro ${profileResponse.status}`);  // ✅ Usando profileResponse
+  if (!profileResponse.ok) {
+    const error = await profileResponse.json().catch(() => ({}));
+    throw new Error(error.error || `Erro ${profileResponse.status}`);
   }
   
-  return profileResponse.json();  // ✅ Usando profileResponse
+  return profileResponse.json();
 }
 
 /**
- * Formata tamanho de arquivo em bytes para string legível
- * @param {number} bytes 
- * @returns {string}
+ * Formata tamanho de arquivo em bytes
  */
 function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes';
@@ -197,16 +178,14 @@ function formatBytes(bytes) {
 
 /**
  * Verifica se o usuário está autenticado
- * @returns {Promise<boolean>}
  */
 export async function isAuthenticated() {
-  const { data: { session } } = await supabase.auth.getSession();  // ✅ CORREÇÃO: adicionado data:
+  const { data: { session } } = await supabase.auth.getSession();
   return !!session?.access_token;
 }
 
 /**
- * Obtém o token de acesso atual (útil para integrações externas)
- * @returns {Promise<string|null>}
+ * Obtém o token de acesso atual
  */
 export async function getAccessToken() {
   const { data: { session } } = await supabase.auth.getSession();
